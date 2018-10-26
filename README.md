@@ -22,7 +22,8 @@ The following packages have to be installed on your device
 
 The configuration file `AgrirouterClientTesterConfig.json` looks like this
 
-`{
+```
+{
     "applicationSettings": {
         "applicationId": "SOME_APPLICATION_ID",
         "certificationVersionId": "SOME_CERTIFICATION_VERSION_ID",
@@ -34,11 +35,12 @@ The configuration file `AgrirouterClientTesterConfig.json` looks like this
     "agrirouterSettings": {
         "url": "https://agrirouter-registration-service-hubqa-eu1.cfapps.eu1.hana.ondemand.com/api/v1.0/registration/onboard"
     }
-}`
+}
+```
 
 ### Other hints
 
-The project is devided into 2 parts: the lib (folder lib/AgrirouterClient) and an example application that is using the compiled lib (folder AgrirouterClientTester).
+The project is devided into 2 parts: the [lib](lib/AgrirouterClient) and an [example application](AgrirouterClientTester) that is using the compiled lib.
 
-Before creating a pull request, please execute the lint program in folder cpplint and remove all occuring errors.
+Before creating a pull request, please execute the lint program in folder [cpplint](cpplint) and remove all occuring errors.
  
