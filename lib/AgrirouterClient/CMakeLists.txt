@@ -7,7 +7,6 @@ file(GLOB INC_H
     "inc/Protobuf/messaging/*/*pb.h"
     "inc/Protobuf/messaging/*/payload/*/*pb.h"
     "third_party/cJSON/*.h"
-    "third_party/mosquitto/*.h"
     "src/ConnectionProvider/*.h"
 )
 
@@ -37,4 +36,4 @@ install(FILES ${INC_H} DESTINATION include/AgrirouterClient)
 ################################################################################
 # Link protobuf lib
 ################################################################################
-target_link_libraries(AgrirouterClient protobuf curl uuid mosquitto)
+target_link_libraries(AgrirouterClient protobuf curl uuid)
