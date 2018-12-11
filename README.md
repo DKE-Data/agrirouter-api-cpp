@@ -20,7 +20,7 @@ This project contains the C++ API for the communication with the agrirouter. Eve
 The following packages have to be installed on your device
 
 - protobuf: <br>
-[protobuf installation guide](https://git.cci-net.de/cci/agrirouter_lib/wikis/install-protoc)
+[protobuf installation guide](#compiler)
 - curl: <br>
 `sudo apt-get install curl`
 - uuid and uuid-dev: <br>
