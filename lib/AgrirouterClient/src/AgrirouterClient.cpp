@@ -134,13 +134,15 @@ void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, 
   }
 }
 
-void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size) {
+void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size, std::list<std::string>& a_ref_l_usedApplicationMsgId) {
   std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, getNextSeqNo(), addressing, getContextId(), taskdataZip, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin(); it != messages.end(); ++it) {
     AgrirouterMessage message = (AgrirouterMessage)*it;
 
     sendMessage(message, MG_EV_NON_TELEMETRY, messageId);
+
+    a_ref_l_usedApplicationMsgId.push_back(message.messageId());
   }
 }
 

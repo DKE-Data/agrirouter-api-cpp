@@ -33,7 +33,8 @@ class AgrirouterClient {
   // void sendDeviceDescription(Addressing addressing, std::string *messageId, ISO11783_TaskData *taskdata);
   // void sendTimelog(Addressing addressing, std::string *messageId, TimeLog *timelog);
   void sendImage(Addressing addressing, std::string *messageId, char *image, int size);
-  void sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size);
+  // a_ref_l_usedApplicationMsgId contains the used application message IDs (list contains several values for chunked messages)
+  void sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size, std::list<std::string>& a_ref_l_usedApplicationMsgId);
 
   // Request messages
   void requestMessages();
