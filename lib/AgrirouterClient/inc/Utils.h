@@ -394,6 +394,16 @@ inline ApplicationSettings getApplicationSettings(std::string absolutePath) {
     settings.locationCertsAndIds = cJSON_GetObjectItem(item, "locationCertsAndIds")->valuestring;
     settings.teamsetContextId = cJSON_GetObjectItem(item, "teamsetContextId")->valuestring;
     settings.connectionType = cJSON_GetObjectItem(item, "connectionType")->valuestring;
+
+    const cJSON* p_acceptSelfSignedCertificate = cJSON_GetObjectItem(item, "acceptSelfSignedCertificate");
+    if((NULL != p_acceptSelfSignedCertificate) && (std::string(p_acceptSelfSignedCertificate->valuestring) == "true"))
+    {
+        settings.acceptSelfSignedCertificate = true;
+    }
+    else
+    {
+        settings.acceptSelfSignedCertificate = false;
+    }
   }
 
   return settings;

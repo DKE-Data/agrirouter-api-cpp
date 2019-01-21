@@ -2,7 +2,9 @@
 
 #include <string>
 
-Settings::Settings() {
+Settings::Settings()
+    : m_acceptSelfSignedCertificate(false)
+{
   this->setOnParameter = false;
   this->setOnMessage = false;
   this->setOnError = false;
@@ -239,3 +241,14 @@ void Settings::setPollingMaxTime(int pollingMaxTime) {
 int Settings::getPollingMaxTime() {
   return this->pollingMaxTime;
 }
+
+void Settings::setAcceptSelfSignedCertificate(bool a_accept)
+{
+    m_acceptSelfSignedCertificate = a_accept;
+}
+
+bool Settings::acceptSelfSignedCertificate() const
+{
+    return m_acceptSelfSignedCertificate;
+}
+

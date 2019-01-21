@@ -158,6 +158,7 @@ typedef struct ApplicationSettings {
   std::string locationCertsAndIds;
   std::string teamsetContextId;
   std::string connectionType;
+  bool        acceptSelfSignedCertificate;
 } ApplicationSettings;
 
 // Struct for agrirouter settings

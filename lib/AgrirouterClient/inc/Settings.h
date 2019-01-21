@@ -72,6 +72,9 @@ class Settings {
   void setConnectionParametersPath(std::string connectionParametersPath);
   std::string getConnectionParametersPath();
 
+  void setAcceptSelfSignedCertificate(bool a_accept);
+  bool acceptSelfSignedCertificate() const;
+  
   void setPollingInterval(int pollingInterval);
   int getPollingInterval();
   void setPollingMaxTime(int pollingMaxTime);
@@ -110,6 +113,8 @@ class Settings {
   ConnectionType connectionType;
   ConnectionParameters connectionParameters;
   std::string connectionParametersPath;
+  
+  bool m_acceptSelfSignedCertificate;
 
   // For general purposes
   int pollingInterval;
