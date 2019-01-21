@@ -96,7 +96,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
   CurlConnectionProvider *self = reinterpret_cast<CurlConnectionProvider*>(member);
 
   // Convert char* to string including some necessary modifications
-  char *tmp = new char[realsize];
+  char *tmp = new char[realsize + 1];
   strncpy(tmp, content, realsize);
   tmp[realsize] = '\0';
   std::string message(tmp);

@@ -57,7 +57,7 @@ size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmem
     Registration *self = reinterpret_cast<Registration*>(member);
 
     // Convert to string including some necessary modifications
-    char *tmp = new char[realsize];
+    char *tmp = new char[realsize + 1];
     strncpy(tmp, content, realsize);
     tmp[realsize] = '\0';
     std::string message(tmp);

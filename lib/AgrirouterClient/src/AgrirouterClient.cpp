@@ -165,7 +165,7 @@ size_t AgrirouterClient::requestMessagesCallback(char *content, size_t size, siz
   AgrirouterClient *self = reinterpret_cast<AgrirouterClient*>(member);
 
   // Convert to string including some necessary modifications
-  char *tmp = new char[realsize];
+  char *tmp = new char[realsize + 1];
   strncpy(tmp, content, realsize);
   tmp[realsize] = '\0';
   std::string message = std::string(tmp);
@@ -227,7 +227,7 @@ void AgrirouterClient::callbackHandler(char *content, size_t size, MessageParame
     this->getMessages(this, requestMessagesCallback);
   } else {
     // Convert to string including some necessary modifications
-    char *tmp = new char[size];
+    char *tmp = new char[size + 1];
     strncpy(tmp, content, size);
     tmp[size] = '\0';
     std::list<Response> responses = getResponsesFromMessage(std::string(tmp));
@@ -248,7 +248,7 @@ size_t AgrirouterClient::messageCallback(char *content, size_t size, size_t nmem
   MessageParameters *messageParameters = reinterpret_cast<MessageParameters*>(member);
   size_t realsize = size * nmemb;
 
-  char *tmp = new char[realsize];
+  char *tmp = new char[realsize + 1];
   strncpy(tmp, content, realsize);
   tmp[realsize] = '\0';
 
