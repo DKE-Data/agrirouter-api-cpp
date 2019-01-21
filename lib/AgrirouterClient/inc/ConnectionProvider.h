@@ -14,7 +14,7 @@ class ConnectionProvider {
   virtual void getMessages(void) = 0;
 
   // Used to onboard to agrirouter
-  virtual void onboard(MessageParameters messageParameters) {}
+  virtual void onboard(MessageParameters /* messageParameters*/) {}
 
   virtual ~ConnectionProvider() {}
 

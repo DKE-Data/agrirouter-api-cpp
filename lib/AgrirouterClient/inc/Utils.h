@@ -254,7 +254,7 @@ inline std::string readFile(std::string absolutePath) {
   return "";
 }
 
-inline void writeFile(const char *data, int size, std::string absolutePath) {
+inline void writeFile(const char *data, int /* size */, std::string absolutePath) {
   std::ofstream file;
 
   try {
