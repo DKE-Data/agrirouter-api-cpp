@@ -304,9 +304,11 @@ inline std::string readBinaryFileAndBase64(std::string absolutePath) {
   unsigned char *file = new unsigned char[binaryFile.size()];
   std::copy(binaryFile.begin(), binaryFile.end(), file);
 
+  const std::string str_result = encodeBase64(file, binaryFile.size());
+
   delete [] file;
 
-  return encodeBase64(file, binaryFile.size());
+  return str_result;
 }
 
 inline void writeBase64EncodedBinaryFile(std::string file, std::string absolutePath) {
@@ -330,7 +332,7 @@ inline ConnectionParameters getSavedConnectionParameters(std::string absolutePat
     parameters.measuresUrl = cJSON_GetObjectItem(root, "measures")->valuestring;
     parameters.commandsUrl = cJSON_GetObjectItem(root, "commands")->valuestring;
     parameters.gatewayId = cJSON_GetObjectItem(root, "gatewayId")->valuestring;
-    
+
     // Check for MQTT (gatewayId "2")
     if (parameters.gatewayId == "2") {
       parameters.host = cJSON_GetObjectItem(root, "host")->valuestring,
