@@ -203,6 +203,12 @@ void CurlConnectionProvider::setCurlSSL(CURL *hnd) {
   if (this->settings->getConnectionParameters().secret != "") {
     curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, this->settings->getConnectionParameters().secret.c_str());
   }
+
+  if (this->settings->acceptSelfSignedCertificate())
+  {
+    curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYHOST, 0);
+  }
 }
 
 // For chunked curl responses see: https://curl.haxx.se/libcurl/c/getinmemory.html
