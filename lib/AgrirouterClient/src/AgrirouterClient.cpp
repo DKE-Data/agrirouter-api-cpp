@@ -123,7 +123,7 @@ void AgrirouterClient::sendMessagesDelete(std::string *messageId, MessageDelete 
   sendMessage(message, MG_EV_TIMELOG, messageId);
 }*/
 
-void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, char *image, int size) {
+void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, unsigned char const* image, int size) {
   std::list<AgrirouterMessage> messages = m_messageProvider->getImageMessage(messageId, getNextSeqNo(), addressing, getContextId(), image, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin();
@@ -134,7 +134,7 @@ void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, 
   }
 }
 
-void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size, std::list<std::string>& a_ref_l_usedApplicationMsgId) {
+void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, unsigned char const* taskdataZip, int size, std::list<std::string>& a_ref_l_usedApplicationMsgId) {
   std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, getNextSeqNo(), addressing, getContextId(), taskdataZip, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin(); it != messages.end(); ++it) {

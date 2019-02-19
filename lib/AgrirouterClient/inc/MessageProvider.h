@@ -26,8 +26,8 @@ class MessageProvider {
   // Messages with specific recipients
   // AgrirouterMessage getDeviceDescriptionMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, ISO11783_TaskData *taskData);
   // AgrirouterMessage getTimelogMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, TimeLog *timelog);
-  std::list<AgrirouterMessage> getImageMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *image, int size);
-  std::list<AgrirouterMessage> getTaskdataZipMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *taskdataZip, int size);
+  std::list<AgrirouterMessage> getImageMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, unsigned char const* image, int size);
+  std::list<AgrirouterMessage> getTaskdataZipMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, unsigned char const* taskdataZip, int size);
 
  private:
   Settings *m_settings;
@@ -35,7 +35,7 @@ class MessageProvider {
   AgrirouterMessage getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing addressing, std::string technicalMessageType, std::string typeUrl, const std::string &teamSetContextId, Message *message);
   AgrirouterMessage getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing addressing, std::string technicalMessageType, std::string typeUrl, const std::string &teamSetContextId, char *message, int size);
 
-  std::list<AgrirouterMessage> getChunkedMessages(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *unchunkedData, int size, std::string technicalMessageType);
+  std::list<AgrirouterMessage> getChunkedMessages(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, unsigned char const* unchunkedData, int size, std::string technicalMessageType);
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_MESSAGEPROVIDER_H_
