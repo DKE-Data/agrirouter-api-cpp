@@ -454,18 +454,18 @@ inline google::protobuf::Timestamp getCurrentTimestamp() {
   return getTimestampFromTimeval(tv);
 }
 
-inline ValidityPeriod *getValidityPeriodForLastMinutes(int minutes) {
-  ValidityPeriod *validityPeriod = new ValidityPeriod();
+inline ValidityPeriod getValidityPeriodForLastMinutes(int minutes) {
+  ValidityPeriod validityPeriod;
 
   google::protobuf::Timestamp to = getCurrentTimestamp();
-  google::protobuf::Timestamp *t = validityPeriod->mutable_sentto();
+  google::protobuf::Timestamp *t = validityPeriod.mutable_sentto();
   *t = to;
 
   struct timeval tv = getTimestamp();
   tv.tv_sec -= minutes * 60;
 
   google::protobuf::Timestamp from = getTimestampFromTimeval(tv);
-  google::protobuf::Timestamp *f = validityPeriod->mutable_sentfrom();
+  google::protobuf::Timestamp *f = validityPeriod.mutable_sentfrom();
   *f = from;
 
   return validityPeriod;
