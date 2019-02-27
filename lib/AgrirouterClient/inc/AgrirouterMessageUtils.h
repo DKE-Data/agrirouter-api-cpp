@@ -262,6 +262,8 @@ static std::list<Response> getResponsesFromMessage(std::string message) {
 
   printf("Number of responses %lu\n", responses.size());
 
+  cJSON_Delete(root);
+
   return responses;
 }
 

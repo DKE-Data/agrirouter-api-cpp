@@ -339,6 +339,8 @@ inline ConnectionParameters getSavedConnectionParameters(std::string absolutePat
       parameters.port = cJSON_GetObjectItem(root, "port")->valuestring;
       parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
     }
+
+    cJSON_Delete(root);
   }
 
   return parameters;
@@ -404,6 +406,8 @@ inline ApplicationSettings getApplicationSettings(std::string absolutePath) {
     {
         settings.acceptSelfSignedCertificate = false;
     }
+
+    cJSON_Delete(root);
   }
 
   return settings;
@@ -419,6 +423,8 @@ inline AgrirouterSettings getAgrirouterSettings(std::string absolutePath) {
   settings.registrationUrl = cJSON_GetObjectItem(item, "url")->valuestring;
 
   printf("registration %s\n", settings.registrationUrl.c_str());
+
+  cJSON_Delete(root);
 
   return settings;
 }

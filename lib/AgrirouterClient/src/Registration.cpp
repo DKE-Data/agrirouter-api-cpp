@@ -110,6 +110,8 @@ void Registration::parseCertificates(std::string message, void *member) {
     self->m_settings->setPrivateKey(privKey);
 
     self->m_settings->setConnectionParameters(parameters);
+
+    cJSON_Delete(root);
 }
 
 bool Registration::containsError(std::string message) {
