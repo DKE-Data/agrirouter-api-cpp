@@ -74,11 +74,11 @@ void Communicator::sendSubscription() {
 
 int Communicator::sendMessageQuery() {
   // For the last 29 days
-  ValidityPeriod *validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
+  ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
 
   MessageQuery messageQuery = MessageQuery();
   ValidityPeriod *v = messageQuery.mutable_validity_period();
-  *v = *validityPeriod;
+  *v = validityPeriod;
 
   std::string val = messageToJson(&messageQuery);
   printf("MessageQuery: %s\n", val.c_str());
@@ -91,11 +91,11 @@ int Communicator::sendMessageQuery() {
 
 void Communicator::sendMessageQueryWithId(std::list<std::string> messageIds) {
   // For the last 29 days
-  ValidityPeriod *validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
+  ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
 
   MessageQuery messageQuery = MessageQuery();
   ValidityPeriod *v = messageQuery.mutable_validity_period();
-  *v = *validityPeriod;
+  *v = validityPeriod;
 
   for (std::list<std::string>::iterator it = messageIds.begin(); it != messageIds.end(); ++it) {
     std::string id = (std::string)*it;
@@ -108,11 +108,11 @@ void Communicator::sendMessageQueryWithId(std::list<std::string> messageIds) {
 
 void Communicator::sendMessageQueryWithSender(std::list<std::string> senders) {
   // For the last 29 days
-  ValidityPeriod *validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
+  ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(60 * 24 * 29);
 
   MessageQuery messageQuery = MessageQuery();
   ValidityPeriod *v = messageQuery.mutable_validity_period();
-  *v = *validityPeriod;
+  *v = validityPeriod;
 
   for (std::list<std::string>::iterator it = senders.begin(); it != senders.end(); ++it) {
     std::string sender = (std::string)*it;

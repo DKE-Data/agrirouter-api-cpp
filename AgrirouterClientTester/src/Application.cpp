@@ -170,9 +170,9 @@ int32_t Application::run(int32_t argc, char *argv[]) {
       std::string message = arg.substr(begin + 1);
 
       int minutes = stringToInt(message);
-      ValidityPeriod *validityPeriod = getValidityPeriodForLastMinutes(minutes);
+      ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(minutes);
 
-      this->m_communicator->sendMessageQueryWithValidityPeriod(validityPeriod);
+      this->m_communicator->sendMessageQueryWithValidityPeriod(&validityPeriod);
 
     } else if (arg.find("--sender") != std::string::npos) {
       size_t begin = arg.find("=");
