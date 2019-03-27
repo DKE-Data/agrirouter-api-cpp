@@ -41,7 +41,6 @@ class AgrirouterClient {
   static size_t requestMessagesCallback(char *content, size_t size, size_t nmemb, void *member);
 
   // Getter and Setter
-  int32_t getNextSeqNo();
   std::string getContextId() const;
   void setContextId(const std::string &contextId);
 
@@ -60,7 +59,6 @@ class AgrirouterClient {
   Settings *m_settings;
 
   std::string m_contextId;
-  int32_t m_seqNo;
 
   std::string m_xsuaaToken;
 };

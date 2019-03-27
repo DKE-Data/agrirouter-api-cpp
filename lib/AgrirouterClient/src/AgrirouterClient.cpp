@@ -22,7 +22,6 @@ AgrirouterClient::AgrirouterClient(Settings *settings) {
 }
 
 void AgrirouterClient::init(Settings *settings) {
-  m_seqNo = 1;
   m_contextId = createUuid();
   m_settings = settings;
   m_messageProvider = new MessageProvider(settings);
@@ -55,76 +54,67 @@ void AgrirouterClient::registerDeviceWithRegCode(std::string registrationCode, A
   registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
 }
 
-int32_t AgrirouterClient::getNextSeqNo() {
-  // Overflow check
-  if ((++m_seqNo) >= 2147483647) {
-    m_seqNo = 1;
-  }
-
-  return m_seqNo;
-}
-
 void AgrirouterClient::sendCapabilities(std::string *messageId, CapabilitySpecification *capabilities) {
-  AgrirouterMessage message = m_messageProvider->getCapabilityMessage(messageId, getNextSeqNo(), getContextId(), capabilities);
+  AgrirouterMessage message = m_messageProvider->getCapabilityMessage(messageId, getContextId(), capabilities);
   sendMessage(message, MG_EV_CAPABILITIES, messageId);
 }
 
 void AgrirouterClient::sendSubscription(std::string *messageId, Subscription *subscription) {
-  AgrirouterMessage message = m_messageProvider->getSubscriptionMessage(messageId, getNextSeqNo(), getContextId(), subscription);
+  AgrirouterMessage message = m_messageProvider->getSubscriptionMessage(messageId, getContextId(), subscription);
 
   sendMessage(message, MG_EV_SUBSCRIPTIONS, messageId);
 }
 
 void AgrirouterClient::sendListEndpointsFiltered(std::string *messageId, ListEndpointsQuery *listEndpointsQuery) {
-  AgrirouterMessage message = m_messageProvider->getListEndpointsMessage(messageId, getNextSeqNo(), getContextId(), listEndpointsQuery);
+  AgrirouterMessage message = m_messageProvider->getListEndpointsMessage(messageId, getContextId(), listEndpointsQuery);
 
   sendMessage(message, MG_EV_LIST_ENDPOINTS_FILTERED, messageId);
 }
 
 void AgrirouterClient::sendListEndpointsUnfiltered(std::string *messageId, ListEndpointsQuery *listEndpointsQuery) {
-  AgrirouterMessage message = m_messageProvider->getListEndpointsUnfilteredMessage(messageId, getNextSeqNo(), getContextId(), listEndpointsQuery);
+  AgrirouterMessage message = m_messageProvider->getListEndpointsUnfilteredMessage(messageId, getContextId(), listEndpointsQuery);
 
   sendMessage(message, MG_EV_LIST_ENDPOINTS_UNFILTERED, messageId);
 }
 
 void AgrirouterClient::sendQueryMessages(std::string *messageId, MessageQuery *messageQuery) {
-  AgrirouterMessage message = m_messageProvider->getQueryMessage(messageId, getNextSeqNo(), getContextId(), messageQuery);
+  AgrirouterMessage message = m_messageProvider->getQueryMessage(messageId, getContextId(), messageQuery);
 
   sendMessage(message, MG_EV_QUERY_MESSAGES, messageId);
 }
 
 void AgrirouterClient::sendQueryHeaderMessages(std::string *messageId, MessageQuery *messageQuery) {
-  AgrirouterMessage message = m_messageProvider->getQueryHeaderMessage(messageId, getNextSeqNo(), getContextId(), messageQuery);
+  AgrirouterMessage message = m_messageProvider->getQueryHeaderMessage(messageId, getContextId(), messageQuery);
 
   sendMessage(message, MG_EV_QUERY_HEADERS, messageId);
 }
 
 void AgrirouterClient::sendMessagesConfirm(std::string *messageId, MessageConfirm *messageConfirm) {
-  AgrirouterMessage message = m_messageProvider->getConfirmMessage(messageId, getNextSeqNo(), getContextId(), messageConfirm);
+  AgrirouterMessage message = m_messageProvider->getConfirmMessage(messageId, getContextId(), messageConfirm);
 
   sendMessage(message, MG_EV_MESSAGE_CONFIRM, messageId);
 }
 
 void AgrirouterClient::sendMessagesDelete(std::string *messageId, MessageDelete *messageDelete) {
-  AgrirouterMessage message = m_messageProvider->getDeleteMessage(messageId, getNextSeqNo(), getContextId(), messageDelete);
+  AgrirouterMessage message = m_messageProvider->getDeleteMessage(messageId, getContextId(), messageDelete);
 
   sendMessage(message, MG_EV_MESSAGE_DELETE, messageId);
 }
 
 /*void AgrirouterClient::sendDeviceDescription(Addressing addressing, std::string *messageId, ISO11783_TaskData *taskdata) {
-  AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, getNextSeqNo(), addressing, getContextId(), taskdata);
+  AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, addressing, getContextId(), taskdata);
 
   sendMessage(message, MG_EV_DEVICE_DESCRIPTION, messageId);
 }*/
 
 /*void AgrirouterClient::sendTimelog(Addressing addressing, std::string *messageId, TimeLog *timelog) {
-  AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, getNextSeqNo(), addressing, getContextId(), timelog);
+  AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, addressing, getContextId(), timelog);
 
   sendMessage(message, MG_EV_TIMELOG, messageId);
 }*/
 
 void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, unsigned char const* image, int size) {
-  std::list<AgrirouterMessage> messages = m_messageProvider->getImageMessage(messageId, getNextSeqNo(), addressing, getContextId(), image, size);
+  std::list<AgrirouterMessage> messages = m_messageProvider->getImageMessage(messageId, addressing, getContextId(), image, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin();
        it != messages.end(); ++it) {
@@ -135,7 +125,7 @@ void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, 
 }
 
 void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, unsigned char const* taskdataZip, int size, std::list<std::string>& a_ref_l_usedApplicationMsgId) {
-  std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, getNextSeqNo(), addressing, getContextId(), taskdataZip, size);
+  std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, addressing, getContextId(), taskdataZip, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin(); it != messages.end(); ++it) {
     AgrirouterMessage message = (AgrirouterMessage)*it;
