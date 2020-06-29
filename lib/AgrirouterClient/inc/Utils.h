@@ -303,10 +303,11 @@ inline std::string readBinaryFileAndBase64(std::string absolutePath) {
   std::vector<unsigned char> binaryFile = readBinaryFile(absolutePath);
   unsigned char *file = new unsigned char[binaryFile.size()];
   std::copy(binaryFile.begin(), binaryFile.end(), file);
-
+  unsigned int fileLength = binaryFile.size();
+  binaryFile.clear();
+  std::string encodedData = encodeBase64(file, fileLength);
   delete [] file;
-
-  return encodeBase64(file, binaryFile.size());
+  return encodedData;
 }
 
 inline void writeBase64EncodedBinaryFile(std::string file, std::string absolutePath) {
