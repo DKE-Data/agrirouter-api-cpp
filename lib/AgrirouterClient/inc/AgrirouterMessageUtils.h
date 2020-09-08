@@ -85,7 +85,7 @@ static RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
   header.set_mode(addressing.mode);
 
   if ((addressing.mode == RequestEnvelope::DIRECT) ||
-      (addressing.mode == RequestEnvelope::DIRECT)) {
+      (addressing.mode == RequestEnvelope::PUBLISH_WITH_DIRECT)) {
     // Add recipients
     for (std::list<std::string>::iterator it = addressing.recipients.begin();
          it != addressing.recipients.end(); ++it) {
