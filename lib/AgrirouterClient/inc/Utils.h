@@ -343,7 +343,7 @@ inline ConnectionParameters getSavedConnectionParameters(std::string absolutePat
   return parameters;
 }
 
-inline void saveConnectionParameters(ConnectionParameters *parameters, std::string absolutePath) {
+inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameters, std::string absolutePath) {
   std::string ids = "{";
 
   ids += "\n\t\"deviceAlternateId\": \"";
@@ -375,6 +375,11 @@ inline void saveConnectionParameters(ConnectionParameters *parameters, std::stri
 
   ids += "\"\n}";
 
+  return ids;
+}
+
+inline void saveConnectionParameters(ConnectionParameters *parameters, std::string absolutePath) {
+  std::string credentials = getConnectionParametersAsJSON(parameters);
   writeFile(ids, absolutePath);
 }
 
