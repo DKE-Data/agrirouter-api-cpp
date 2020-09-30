@@ -315,32 +315,39 @@ inline void writeBase64EncodedBinaryFile(std::string file, std::string absoluteP
   writeBinaryFile(decoded, absolutePath);
 }
 
-inline ConnectionParameters getSavedConnectionParameters(std::string absolutePath) {
+inline ConnectionParameters getConnectionParametersFromJSON(std::string params){
   ConnectionParameters parameters;
+
+  // printf("parameters: %s\n", params.c_str());
+
+  cJSON *root = cJSON_Parse(params.c_str());
+  parameters.deviceAlternateId = cJSON_GetObjectItem(root, "deviceAlternateId")->valuestring;
+  parameters.capabilityAlternateId = cJSON_GetObjectItem(root, "capabilityAlternateId")->valuestring;
+  parameters.sensorAlternateId = cJSON_GetObjectItem(root, "sensorAlternateId")->valuestring;
+  parameters.certificateType = cJSON_GetObjectItem(root, "certificateType")->valuestring;
+  parameters.secret = cJSON_GetObjectItem(root, "secret")->valuestring;
+  parameters.measuresUrl = cJSON_GetObjectItem(root, "measures")->valuestring;
+  parameters.commandsUrl = cJSON_GetObjectItem(root, "commands")->valuestring;
+  parameters.gatewayId = cJSON_GetObjectItem(root, "gatewayId")->valuestring;
+  
+  // Check for MQTT (gatewayId "2")
+  if (parameters.gatewayId == "2") {
+    parameters.host = cJSON_GetObjectItem(root, "host")->valuestring,
+    parameters.port = cJSON_GetObjectItem(root, "port")->valuestring;
+    parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
+  }
+
+}
+
+inline ConnectionParameters getSavedConnectionParameters(std::string absolutePath) {
 
   if (fileExists(absolutePath)) {
     std::string params = readFile(absolutePath);
-    // printf("parameters: %s\n", params.c_str());
-
-    cJSON *root = cJSON_Parse(params.c_str());
-    parameters.deviceAlternateId = cJSON_GetObjectItem(root, "deviceAlternateId")->valuestring;
-    parameters.capabilityAlternateId = cJSON_GetObjectItem(root, "capabilityAlternateId")->valuestring;
-    parameters.sensorAlternateId = cJSON_GetObjectItem(root, "sensorAlternateId")->valuestring;
-    parameters.certificateType = cJSON_GetObjectItem(root, "certificateType")->valuestring;
-    parameters.secret = cJSON_GetObjectItem(root, "secret")->valuestring;
-    parameters.measuresUrl = cJSON_GetObjectItem(root, "measures")->valuestring;
-    parameters.commandsUrl = cJSON_GetObjectItem(root, "commands")->valuestring;
-    parameters.gatewayId = cJSON_GetObjectItem(root, "gatewayId")->valuestring;
-    
-    // Check for MQTT (gatewayId "2")
-    if (parameters.gatewayId == "2") {
-      parameters.host = cJSON_GetObjectItem(root, "host")->valuestring,
-      parameters.port = cJSON_GetObjectItem(root, "port")->valuestring;
-      parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
-    }
+    return getConnectionParametersFromJSON(params);
+  } else {
+	  ConnectionParameters parameters;
+	  return parameters;
   }
-
-  return parameters;
 }
 
 inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameters, std::string absolutePath) {
