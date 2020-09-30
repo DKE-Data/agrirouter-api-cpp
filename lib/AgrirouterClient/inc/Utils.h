@@ -337,6 +337,10 @@ inline ConnectionParameters getConnectionParametersFromJSON(std::string params){
     parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
   }
 
+  cJSON_free(root);
+
+  return parameters;
+
 }
 
 inline ConnectionParameters getSavedConnectionParameters(std::string absolutePath) {
@@ -387,7 +391,7 @@ inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameter
 
 inline void saveConnectionParameters(ConnectionParameters *parameters, std::string absolutePath) {
   std::string credentials = getConnectionParametersAsJSON(parameters);
-  writeFile(ids, absolutePath);
+  writeFile(credentials, absolutePath);
 }
 
 inline ApplicationSettings getApplicationSettings(std::string absolutePath) {
