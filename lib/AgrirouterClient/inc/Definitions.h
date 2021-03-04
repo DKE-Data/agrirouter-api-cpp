@@ -69,6 +69,9 @@
 #define MG_EV_GET_MESSAGES (MG_EV_BASE + GET_MESSAGES)
 #define MG_EV_TIMELOG (MG_EV_BASE + TIMELOG)
 
+// Size for chunked transfer
+const int CHUNKSIZE_IN_KB = 500000;
+
 // Protobuf typedefs
 typedef agrirouter::request::RequestEnvelope RequestEnvelope;
 typedef agrirouter::request::RequestPayloadWrapper RequestPayloadWrapper;

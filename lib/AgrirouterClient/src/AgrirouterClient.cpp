@@ -64,6 +64,17 @@ int32_t AgrirouterClient::getNextSeqNo() {
   return m_seqNo;
 }
 
+std::vector<int32_t> AgrirouterClient::getNextChunkedSeqNo(int32_t size) {
+  // Used to increment sequence number for each chunked message
+  int chunks = getNumberOfChunks(size, CHUNKSIZE_IN_KB);
+  std::vector<int> seqNos(chunks);
+  for (int i = 0; i < chunks; i++) {
+    seqNos[i] = this->getNextSeqNo();
+  }
+
+  return seqNos;
+}
+
 void AgrirouterClient::sendCapabilities(std::string *messageId, CapabilitySpecification *capabilities) {
   AgrirouterMessage message = m_messageProvider->getCapabilityMessage(messageId, getNextSeqNo(), getContextId(), capabilities);
   sendMessage(message, MG_EV_CAPABILITIES, messageId);
@@ -124,7 +135,7 @@ void AgrirouterClient::sendMessagesDelete(std::string *messageId, MessageDelete 
 }*/
 
 void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, char *image, int size) {
-  std::list<AgrirouterMessage> messages = m_messageProvider->getImageMessage(messageId, getNextSeqNo(), addressing, getContextId(), image, size);
+  std::list<AgrirouterMessage> messages = m_messageProvider->getImageMessage(messageId, getNextChunkedSeqNo(size), addressing, getContextId(), image, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin();
        it != messages.end(); ++it) {
@@ -135,7 +146,7 @@ void AgrirouterClient::sendImage(Addressing addressing, std::string *messageId, 
 }
 
 void AgrirouterClient::sendTaskdataZip(Addressing addressing, std::string *messageId, char *taskdataZip, int size) {
-  std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, getNextSeqNo(), addressing, getContextId(), taskdataZip, size);
+  std::list<AgrirouterMessage> messages = m_messageProvider->getTaskdataZipMessage(messageId, getNextChunkedSeqNo(size), addressing, getContextId(), taskdataZip, size);
 
   for (std::list<AgrirouterMessage>::iterator it = messages.begin(); it != messages.end(); ++it) {
     AgrirouterMessage message = (AgrirouterMessage)*it;
