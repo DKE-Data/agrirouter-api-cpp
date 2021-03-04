@@ -46,12 +46,9 @@ inline int stringToInt(std::string s) {
 
 inline int getNumberOfChunks(int sizeOfFile, int chunkSize) {
   int chunks = sizeOfFile / chunkSize;
-  // printf("%i = %i / %i\n", chunks, sizeOfFile, chunkSize);
   if ((sizeOfFile % chunkSize) != 0) {
-    // printf("%i \% %i = %i\n", sizeOfFile, chunkSize, sizeOfFile % chunkSize);
     chunks++;
   }
-  // printf("return %i\n", chunks);
   return chunks;
 }
 
@@ -77,11 +74,10 @@ inline void fillAnyMessage(Any *any, Message *message) {
   char msg[size];
 
   if (message->SerializeToArray(msg, size)) {
-    // // printf("Serialization was successful\n");
-
+    // printf("Serialization was successful\n");
     any->set_value(msg, size);
   } else {
-    // // printf("Serialization failed\n");
+    // printf("Serialization failed\n");
   }
 
 }
@@ -261,7 +257,6 @@ inline void writeFile(const char *data, int size, std::string absolutePath) {
     file.open(absolutePath.c_str());
     file << data;
     file.close();
-    // printf("Wrote to file \"%s\"\n", absolutePath.c_str());
 
     FILE *file = NULL;
     file = fopen(absolutePath.c_str(), "rb");
@@ -279,7 +274,6 @@ inline void writeFile(const std::string &data, std::string absolutePath) {
     file.open(absolutePath.c_str());
     file << data.c_str();
     file.close();
-    // printf("Wrote to file \"%s\"\n", absolutePath.c_str());
   } catch (std::ios_base::failure &e) {
     // printf("File \"%s\" could not be written", absolutePath.c_str());
   }

@@ -19,8 +19,7 @@ class ConnectionProvider {
   virtual ~ConnectionProvider() {}
 
   // Function pointer for callback functions
-  typedef size_t (*Callback)(char *content, size_t size, size_t nmemb,
-                             void *member);
+  typedef size_t (*Callback)(char *content, size_t size, size_t nmemb, void *member);
 
   // Setter and Getter
   void setSettings(Settings *settings);
