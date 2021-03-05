@@ -114,7 +114,7 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
   if (size > CHUNKSIZE_IN_KB) {
     // Handle message chunks
     int count = 0;
-    int chunks = getNumberOfChunks(size, chunkSize);
+    int chunks = getNumberOfChunks(size, CHUNKSIZE_IN_KB);
 
     std::string contextId = createUuid();
     std::string data(unchunkedData, size);
@@ -139,9 +139,9 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
 
       std::string chunkedData = "";
       if (i <= (chunks - 1)) {
-        chunkedData = data.substr(i * chunkSize, chunkSize);
+        chunkedData = data.substr(i * CHUNKSIZE_IN_KB, CHUNKSIZE_IN_KB);
       } else {
-        chunkedData = data.substr(i * chunkSize);
+        chunkedData = data.substr(i * CHUNKSIZE_IN_KB);
       }
 
       google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
