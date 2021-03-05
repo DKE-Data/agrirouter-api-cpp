@@ -48,8 +48,7 @@ struct Response {
     payloadWrapper = payload;
   }
 
-  void setEnvelope(const std::string &appMesssageId, int32_t responseCode,
-                   ResponseEnvelope::ResponseBodyType type) {
+  void setEnvelope(const std::string &appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type) {
     envelope.set_application_message_id(appMesssageId);
     envelope.set_response_code(responseCode);
     envelope.set_type(type);
@@ -69,8 +68,7 @@ class AgrirouterMessage {
  public:
   AgrirouterMessage();
   explicit AgrirouterMessage(const Request request);
-  AgrirouterMessage(const RequestEnvelope envelope,
-                    const RequestPayloadWrapper payloadWrapper);
+  AgrirouterMessage(const RequestEnvelope envelope, const RequestPayloadWrapper payloadWrapper);
   ~AgrirouterMessage();
 
   Request request();

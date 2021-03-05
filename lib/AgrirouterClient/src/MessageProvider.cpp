@@ -100,23 +100,21 @@ AgrirouterMessage MessageProvider::getDeleteMessage(std::string *messageId, int3
   return getAgrirouterMessage(messageId, seqNo, addressing, "iso:11783:-10:time_log:protobuf", "types.agrirouter.com/efdi.TimeLog", teamSetContextId, timelog);
 }*/
 
-std::list<AgrirouterMessage> MessageProvider::getImageMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *image, int size) {
-  return getChunkedMessages(messageId, seqNo, addressing, teamSetContextId, image, size, "img:png");
+std::list<AgrirouterMessage> MessageProvider::getImageMessage(std::string *messageId, std::vector<int32_t> seqNos, Addressing addressing, const std::string &teamSetContextId, char *image, int size) {
+  return getChunkedMessages(messageId, seqNos, addressing, teamSetContextId, image, size, "img:png");
 }
 
-std::list<AgrirouterMessage> MessageProvider::getTaskdataZipMessage(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *taskdataZip, int size) {
-  return getChunkedMessages(messageId, seqNo, addressing, teamSetContextId, taskdataZip, size, "iso:11783:-10:taskdata:zip");
+std::list<AgrirouterMessage> MessageProvider::getTaskdataZipMessage(std::string *messageId, std::vector<int32_t> seqNos, Addressing addressing, const std::string &teamSetContextId, char *taskdataZip, int size) {
+  return getChunkedMessages(messageId, seqNos, addressing, teamSetContextId, taskdataZip, size, "iso:11783:-10:taskdata:zip");
 }
 
-std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *messageId, int32_t seqNo, Addressing addressing, const std::string &teamSetContextId, char *unchunkedData, int size, std::string technicalMessageType) {
-  int chunkSize = 500000;
-  // Do we have to chunk? 500kB is the size when we chunk
-
+std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *messageId, std::vector<int32_t> seqNos, Addressing addressing, const std::string &teamSetContextId, char *unchunkedData, int size, std::string technicalMessageType) {
   std::list<AgrirouterMessage> list;
-
-  if (size > chunkSize) {
+  
+  if (size > CHUNKSIZE_IN_KB) {
+    // Handle message chunks
     int count = 0;
-    int chunks = getNumberOfChunks(size, chunkSize);
+    int chunks = getNumberOfChunks(size, CHUNKSIZE_IN_KB);
 
     std::string contextId = createUuid();
     std::string data(unchunkedData, size);
@@ -131,7 +129,7 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
       }
 
       Request request;
-      request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
+      request.envelope = createRequestHeader(applicationMessageId, seqNos[i], technicalMessageType, addressing, teamSetContextId);
       ChunkComponent *chunk = request.envelope.mutable_chunk_info();
       // Start counting at 1
       chunk->set_context_id(contextId);
@@ -141,9 +139,9 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
 
       std::string chunkedData = "";
       if (i <= (chunks - 1)) {
-        chunkedData = data.substr(i * chunkSize, chunkSize);
+        chunkedData = data.substr(i * CHUNKSIZE_IN_KB, CHUNKSIZE_IN_KB);
       } else {
-        chunkedData = data.substr(i * chunkSize);
+        chunkedData = data.substr(i * CHUNKSIZE_IN_KB);
       }
 
       google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
@@ -151,6 +149,7 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
       list.push_back(AgrirouterMessage(request));
     }
   } else {
+    // No chunking needed
     std::string applicationMessageId;
 
     if (messageId->empty()) {
@@ -160,7 +159,7 @@ std::list<AgrirouterMessage> MessageProvider::getChunkedMessages(std::string *me
     }
 
     Request request;
-    request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
+    request.envelope = createRequestHeader(applicationMessageId, seqNos[0], technicalMessageType, addressing, teamSetContextId);
     google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
     payload->set_value(unchunkedData);
     list.push_back(AgrirouterMessage(request));
