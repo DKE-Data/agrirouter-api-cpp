@@ -41,7 +41,7 @@ class AgrirouterClient {
 
   // Getter and Setter
   int32_t getNextSeqNo();
-  std::vector<int32_t> AgrirouterClient::getNextChunkedSeqNos(int32_t size);
+  std::vector<int32_t> /*AgrirouterClient::*/getNextChunkedSeqNos(int32_t size);
   std::string getContextId() const;
   void setContextId(const std::string &contextId);
 
