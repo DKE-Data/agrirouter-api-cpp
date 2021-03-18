@@ -24,7 +24,7 @@ void CurlConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
   // Initializations
   CURL *hnd;
 
-  struct MemoryStruct chunk;
+  MemoryStruct chunk;
   // Will be grown as needed by the realloc above
   chunk.memory = reinterpret_cast<char*>(malloc(1));
   // No data at this point
@@ -46,7 +46,7 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters) {
   // Initializations
   CURL *hnd;
 
-  struct MemoryStruct chunk;
+  MemoryStruct chunk;
   // Will be grown as needed by the realloc above
   chunk.memory = reinterpret_cast<char*>(malloc(1));
   // No data at this point
@@ -69,7 +69,7 @@ void CurlConnectionProvider::getMessages(void) {
   // Initializations
   CURL *hnd;
 
-  struct MemoryStruct chunk;
+  MemoryStruct chunk;
   // Will be grown as needed by the realloc above
   chunk.memory = reinterpret_cast<char*>(malloc(1));
   // No data at this point
