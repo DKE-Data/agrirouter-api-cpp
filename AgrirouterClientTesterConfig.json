@@ -1,0 +1,13 @@
+{
+    "applicationSettings": {
+        "applicationId": "SOME_APPLICATION_ID",
+        "certificationVersionId": "SOME_CERTIFICATION_VERSION_ID",
+        "externalId": "SOME_EXTERNAL_ID",
+        "locationCertsAndIds": "THE_LOCATION_WHERE_THE_KEY_AND_CERT_ARE_STORED",
+        "teamsetContextId": "SOME_TEAMSET_CONTEXT_ID",
+        "connectionType": "HTTP"
+    },
+    "agrirouterSettings": {
+        "url": "https://agrirouter-registration-service.cfapps.eu1.hana.ondemand.com/api/v1.0/registration/onboard"
+    }
+}

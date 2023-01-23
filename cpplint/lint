@@ -1,0 +1,11 @@
+echo "------------------------------"
+echo "cpplint is running for ..."
+echo "... AgrirouterClientTester sources"
+echo "------------------------------"
+python cpplint.py --linelength=2000 --filter=-legal --counting=detailed  $( find ../AgrirouterClientTester/ -name \*.h -or -name \*.cpp )
+
+echo "------------------------------"
+echo "... Agrirouter lib sources"
+echo "------------------------------"
+python cpplint.py --linelength=2000 --filter=-legal --counting=detailed  $( find ../lib/AgrirouterClient/src/ -name \*.h -or -name \*.cpp )
+echo "------------------------------"
