@@ -130,69 +130,76 @@ typedef google::protobuf::io::CodedOutputStream CodedOutputStream;
 typedef google::protobuf::io::StringOutputStream StringOutputStream;
 
 // Error struct for callback functions
-typedef struct Error {
-  std::string code;
-  std::string message;
-  std::string applicationMessageId;
+typedef struct Error
+{
+    std::string code;
+    std::string message;
+    std::string applicationMessageId;
 } Error;
 
 // Struct for connection parameters received in onboard reponse
-typedef struct ConnectionParameters {
-  std::string deviceAlternateId;
-  std::string capabilityAlternateId;
-  std::string sensorAlternateId;
-  std::string certificateType;
-  std::string secret;
-  std::string measuresUrl;
-  std::string commandsUrl;
-  std::string gatewayId;
-  std::string host;
-  std::string port;
-  std::string clientId;
+typedef struct ConnectionParameters
+{
+    std::string deviceAlternateId;
+    std::string capabilityAlternateId;
+    std::string sensorAlternateId;
+    std::string certificateType;
+    std::string secret;
+    std::string measuresUrl;
+    std::string commandsUrl;
+    std::string gatewayId;
+    std::string host;
+    std::string port;
+    std::string clientId;
 } ConnectionParameters;
 
 // Struct for message parameters used for communication
-typedef struct MessageParameters {
-  int event;
-  std::string applicationMessageId;
-  void *member;
+typedef struct MessageParameters
+{
+    int event;
+    std::string applicationMessageId;
+    void *member;
 } MessageParameters;
 
 // Struct for evaluating the mode. DIRECT: with recipients, PUBLISH: without
 // recipients, PUBLISH_WITH_DIRECT: with recipients
-typedef struct Addressing {
-  RequestEnvelope::Mode mode;
-  std::list<std::string> recipients;
+typedef struct Addressing
+{
+    RequestEnvelope::Mode mode;
+    std::list<std::string> recipients;
 } Addressing;
 
 // Struct for application settings
-typedef struct ApplicationSettings {
-  std::string applicationId;
-  std::string certificationVersionId;
-  std::string externalId;
-  std::string locationCertsAndIds;
-  std::string teamsetContextId;
-  std::string connectionType;
-  bool acceptSelfSignedCertificate;
+typedef struct ApplicationSettings
+{
+    std::string applicationId;
+    std::string certificationVersionId;
+    std::string externalId;
+    std::string locationCertsAndIds;
+    std::string teamsetContextId;
+    std::string connectionType;
+    bool acceptSelfSignedCertificate;
 } ApplicationSettings;
 
 // Struct for agrirouter settings
-typedef struct AgrirouterSettings {
-  std::string registrationServicePath;
-  std::string landscape;
-  std::string cfHost;
-  std::string apiPrefix;
-  std::string registrationUrl;
+typedef struct AgrirouterSettings
+{
+    std::string registrationServicePath;
+    std::string landscape;
+    std::string cfHost;
+    std::string apiPrefix;
+    std::string registrationUrl;
 } AgrirouterSettings;
 
 // Struct for handling binary data
-typedef struct BinaryData {
+typedef struct BinaryData
+{
     unsigned char* data;
     int size;
 } BinaryData;
 
 // Function pointer for callback functions
-typedef size_t (*TokenCallback)(std::string token, Error error);
-typedef size_t (*GetMessagesCallback)( google::protobuf::RepeatedPtrField<CommonsMessage>, Error error);
+typedef size_t (*TokenCallback) (std::string token, Error error);
+typedef size_t (*GetMessagesCallback) ( google::protobuf::RepeatedPtrField<CommonsMessage>, Error error);
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_DEFINITIONS_H_

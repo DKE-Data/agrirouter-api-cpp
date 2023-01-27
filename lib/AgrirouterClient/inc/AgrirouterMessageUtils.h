@@ -12,7 +12,8 @@
 #include "third_party/cJSON/cJSON.h"
 
 // Convert message to JSON
-inline std::string messageToJson(const google::protobuf::Message *msg) {
+inline std::string messageToJson(const google::protobuf::Message *msg)
+{
     std::string jsonString;
     google::protobuf::util::JsonPrintOptions options;
     options.add_whitespace = true;
@@ -22,35 +23,41 @@ inline std::string messageToJson(const google::protobuf::Message *msg) {
 }
 
 // Convert JSON to message
-inline void jsonToMessage(const std::string &input, google::protobuf::Message * message) {
+inline void jsonToMessage(const std::string &input, google::protobuf::Message * message)
+{
     google::protobuf::util::JsonStringToMessage(input, message);
 }
 
 // Copied from https://stackoverflow.com/questions/2340730/are-there-c-equivalents-for-the-protocol-buffers-delimited-i-o-functions-in-ja/
-inline bool writeDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
-  // We create a new coded stream for each message.  Don't worry, this is fast.
-  google::protobuf::io::CodedOutputStream output(rawOutput);
+inline bool writeDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput)
+{
+    // We create a new coded stream for each message.  Don't worry, this is fast.
+    google::protobuf::io::CodedOutputStream output(rawOutput);
 
-  // Write the size.
-  const uint32_t size = message.ByteSizeLong();
-  output.WriteVarint32(size);
+    // Write the size.
+    const uint32_t size = message.ByteSizeLong();
+    output.WriteVarint32(size);
 
-  uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-  if (buffer != NULL) {
-    // Optimization:  The message fits in one buffer, so use the faster
-    // direct-to-array serialization path.
-    message.SerializeWithCachedSizesToArray(buffer);
-  } else {
-    // Slightly-slower path when the message is multiple buffers.
-    message.SerializeWithCachedSizes(&output);
-    if (output.HadError()) return false;
-  }
+    uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
+    if (buffer != NULL)
+    {
+        // Optimization:  The message fits in one buffer, so use the faster
+        // direct-to-array serialization path.
+        message.SerializeWithCachedSizesToArray(buffer);
+    }
+    else
+    {
+        // Slightly-slower path when the message is multiple buffers.
+        message.SerializeWithCachedSizes(&output);
+        if (output.HadError()) return false;
+    }
 
   return true;
 }
 
 // Copied from https://stackoverflow.com/questions/2340730/are-there-c-equivalents-for-the-protocol-buffers-delimited-i-o-functions-in-ja/
-inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message) {
+inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message)
+{
     // We create a new coded stream for each message.  Don't worry, this is fast,
     // and it makes sure the 64MB total size limit is imposed per-message rather
     // than on the whole stream.  (See the CodedInputStream interface for more
@@ -75,7 +82,9 @@ inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInpu
     return true;
 }
 
-inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t seqNo, const std::string &messageType, Addressing& addressing, const std::string &teamSetContextId) {
+inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t seqNo, const std::string &messageType,
+        Addressing& addressing, const std::string &teamSetContextId)
+{
 
     // Create request header
     RequestEnvelope header;
@@ -84,9 +93,11 @@ inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
     header.set_technical_message_type(messageType);
     header.set_mode(addressing.mode);
 
-    if ((addressing.mode == RequestEnvelope::DIRECT) || (addressing.mode == RequestEnvelope::PUBLISH_WITH_DIRECT)) {
+    if ((addressing.mode == RequestEnvelope::DIRECT) || (addressing.mode == RequestEnvelope::PUBLISH_WITH_DIRECT))
+    {
         // Add recipients
-        for (std::list<std::string>::iterator it = addressing.recipients.begin(); it != addressing.recipients.end(); ++it) {
+        for (std::list<std::string>::iterator it = addressing.recipients.begin(); it != addressing.recipients.end(); ++it)
+        {
             std::string recipient = (std::string) *it;
             std::string *r = header.add_recipients();
             *r = recipient;
@@ -99,17 +110,20 @@ inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
     header.mutable_timestamp()->set_nanos(timestamp.tv_usec * 1000);
 
     // Only add context id if it is present
-    if (!teamSetContextId.empty()) {
+    if (!teamSetContextId.empty())
+    {
         header.set_team_set_context_id(teamSetContextId);
     }
 
     return header;
 }
 
-inline RequestPayloadWrapper createRequestBody(Message *message) {
+inline RequestPayloadWrapper createRequestBody(Message *message)
+{
 
     // Check for validity
-    if (!message) {
+    if (!message)
+    {
         return RequestPayloadWrapper::default_instance();
     }
 
@@ -120,18 +134,21 @@ inline RequestPayloadWrapper createRequestBody(Message *message) {
     return body;
 }
 
-inline std::string encodeRequest(Request& request) {
+inline std::string encodeRequest(Request& request)
+{
 
     // Create string output strem to write request tp
     std::string result;
     StringOutputStream outputStream(&result);
 
-    if (!writeDelimitedTo(request.envelope, &outputStream)) {
+    if (!writeDelimitedTo(request.envelope, &outputStream))
+    {
         // Writing failed
         return "";
     }
 
-    if (!writeDelimitedTo(request.payloadWrapper, &outputStream)) {
+    if (!writeDelimitedTo(request.payloadWrapper, &outputStream))
+    {
         // Writing failed
         return "";
     }
@@ -142,15 +159,16 @@ inline std::string encodeRequest(Request& request) {
     return message;
 }
 
-inline std::string encodeResponse(Response& response) {
+inline std::string encodeResponse(Response& response)
+{
     /*
      * ToDo
      */
     return "";
 }
 
-inline Request decodeRequest(std::string& encoded) {
-
+inline Request decodeRequest(std::string& encoded)
+{
     Request request;
 
     // Base64 decoding and conversion to char*
@@ -164,7 +182,8 @@ inline Request decodeRequest(std::string& encoded) {
 
     // Parse length of envelope
     uint32_t envelopeLength;
-    if (!codedStream.ReadVarint32(&envelopeLength)) {
+    if (!codedStream.ReadVarint32(&envelopeLength))
+    {
         // Parsing failed
         delete decodedMsg;
         return Request();
@@ -172,9 +191,12 @@ inline Request decodeRequest(std::string& encoded) {
 
     // Parse envelope
     char *envelopeBuffer = new char[envelopeLength + 1];
-    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength)) {
+    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength))
+    {
         request.envelope.ParseFromArray(envelopeBuffer, envelopeLength);
-    } else {
+    }
+    else
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -183,7 +205,8 @@ inline Request decodeRequest(std::string& encoded) {
 
     // Parse length of payload
     uint32_t payloadLength;
-    if (!codedStream.ReadVarint32(&payloadLength)) {
+    if (!codedStream.ReadVarint32(&payloadLength))
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -192,9 +215,12 @@ inline Request decodeRequest(std::string& encoded) {
 
     // Parse payload
     char *payloadBuffer = new char[payloadLength + 1];
-    if (codedStream.ReadRaw(payloadBuffer, payloadLength)) {
+    if (codedStream.ReadRaw(payloadBuffer, payloadLength))
+    {
         request.payloadWrapper.ParseFromArray(payloadBuffer, payloadLength);
-    } else {
+    }
+    else
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -208,8 +234,8 @@ inline Request decodeRequest(std::string& encoded) {
     return request;
 }
 
-inline Response decodeResponse(std::string& encoded) {
-
+inline Response decodeResponse(std::string& encoded)
+{
     Response response;
 
     // Base64 decoding and conversion to char*
@@ -223,7 +249,8 @@ inline Response decodeResponse(std::string& encoded) {
 
     // Parse length of envelope
     uint32_t envelopeLength;
-    if (!codedStream.ReadVarint32(&envelopeLength)) {
+    if (!codedStream.ReadVarint32(&envelopeLength))
+    {
         // Parsing failed
         delete decodedMsg;
         return Response();
@@ -231,9 +258,12 @@ inline Response decodeResponse(std::string& encoded) {
 
     // Parse envelope
     char *envelopeBuffer = new char[envelopeLength + 1];
-    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength)) {
+    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength))
+    {
         response.envelope.ParseFromArray(envelopeBuffer, envelopeLength);
-    } else {
+    }
+    else
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -242,7 +272,8 @@ inline Response decodeResponse(std::string& encoded) {
 
     // Parse length of payload
     uint32_t payloadLength;
-    if (!codedStream.ReadVarint32(&payloadLength)) {
+    if (!codedStream.ReadVarint32(&payloadLength))
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -251,9 +282,12 @@ inline Response decodeResponse(std::string& encoded) {
 
     // Parse payload
     char *payloadBuffer = new char[payloadLength + 1];
-    if (codedStream.ReadRaw(payloadBuffer, payloadLength)) {
+    if (codedStream.ReadRaw(payloadBuffer, payloadLength))
+    {
         response.payloadWrapper.ParseFromArray(payloadBuffer, payloadLength);
-    } else {
+    }
+    else
+    {
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
@@ -269,12 +303,13 @@ inline Response decodeResponse(std::string& encoded) {
 }
 
 
-inline int getResponsesFromMessage(std::list<Response> *list, std::string *message) {
-
+inline int getResponsesFromMessage(std::list<Response> *list, std::string *message)
+{
     // Iterate through message to get list of responses
     cJSON *root = cJSON_Parse(message->c_str());
     //cJSON *item = cJSON_GetObjectItem(root, "message");
-    for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++) {
+    for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++)
+    {
         cJSON * subitem = cJSON_GetArrayItem(root, i);
         cJSON *command = cJSON_GetObjectItem(subitem, "command");
         cJSON *msg = cJSON_GetObjectItem(command, "message");
@@ -287,6 +322,5 @@ inline int getResponsesFromMessage(std::list<Response> *list, std::string *messa
 
     return EXIT_SUCCESS;
 }
-
 
 #endif
