@@ -31,8 +31,6 @@ Application::Application() {
 }
 
 Application::~Application() {
-  this->m_agrirouterClient->~AgrirouterClient();
-
   if (this->m_communicator != NULL) {
     delete this->m_communicator;
     this->m_communicator = NULL;
