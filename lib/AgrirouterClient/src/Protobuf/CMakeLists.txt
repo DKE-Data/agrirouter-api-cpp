@@ -1,0 +1,151 @@
+set(PROTOBUF_SDK_INCLUDES $ENV{PKG_CONFIG_SYSROOT_DIR}/usr/include)
+
+## proto path's
+set(PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+set(COMMONS_PROTO_PATH ${PROTO_PATH}/commons)
+set(CLOUD_PROVIDER_PROTO_PATH ${PROTO_PATH}/cloud-provider-integration)
+set(MESSAGING_PROTO_PATH ${PROTO_PATH}/messaging)
+
+# request
+set(MESSAGING_REQUEST_PROTO_PATH ${MESSAGING_PROTO_PATH}/request)
+set(MESSAGING_REQUEST_PAYLOAD_PROTO_PATH ${MESSAGING_REQUEST_PROTO_PATH}/payload)
+set(MESSAGING_REQUEST_PAYLOAD_ACCOUNT_PROTO_PATH ${MESSAGING_REQUEST_PAYLOAD_PROTO_PATH}/account)
+set(MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_PATH ${MESSAGING_REQUEST_PAYLOAD_PROTO_PATH}/efdi)
+set(MESSAGING_REQUEST_PAYLOAD_ENDPOINT_PROTO_PATH ${MESSAGING_REQUEST_PAYLOAD_PROTO_PATH}/endpoint)
+set(MESSAGING_REQUEST_PAYLOAD_FEED_PROTO_PATH ${MESSAGING_REQUEST_PAYLOAD_PROTO_PATH}/feed)
+
+# response
+set(MESSAGING_RESPONSE_PROTO_PATH ${MESSAGING_PROTO_PATH}/response)
+set(MESSAGING_RESPONSE_PAYLOAD_PROTO_PATH ${MESSAGING_RESPONSE_PROTO_PATH}/payload)
+set(MESSAGING_RESPONSE_PAYLOAD_ACCOUNT_PROTO_PATH ${MESSAGING_RESPONSE_PAYLOAD_PROTO_PATH}/account)
+set(MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_PROTO_PATH ${MESSAGING_RESPONSE_PAYLOAD_PROTO_PATH}/endpoint)
+set(MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH ${MESSAGING_RESPONSE_PAYLOAD_PROTO_PATH}/feed)
+
+## proto file's
+set(COMMON_MESSAGE_PROTO_FILE ${COMMONS_PROTO_PATH}/message.proto)
+set(COMMON_CHUNK_PROTO_FILE ${COMMONS_PROTO_PATH}/chunk.proto)
+set(CLOUD_VIRTUALIZED_PROTO_FILE ${CLOUD_PROVIDER_PROTO_PATH}/cloud-virtualized-app-registration.proto)
+
+# request
+set(MESSAGING_REQUEST_PROTO_FILE ${MESSAGING_REQUEST_PROTO_PATH}/request.proto)
+set(MESSAGING_REQUEST_PAYLOAD_ENDPOINTS_PROTO_FILE ${MESSAGING_REQUEST_PAYLOAD_ACCOUNT_PROTO_PATH}/endpoints.proto)
+set(MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_FILE ${MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_PATH}/grpc-efdi.proto)
+set(MESSAGING_REQUEST_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_PROTO_PATH}/capabilities.proto)
+set(MESSAGING_REQUEST_PAYLOAD_ENDPOINT_SUBSCRIPTION_PROTO_FILE ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_PROTO_PATH}/subscription.proto)
+set(MESSAGING_REQUEST_PAYLOAD_FEED_FILE ${MESSAGING_REQUEST_PAYLOAD_FEED_PROTO_PATH}/feed-requests.proto)
+
+# response
+set(MESSAGING_RESPONSE_PROTO_FILE ${MESSAGING_RESPONSE_PROTO_PATH}/response.proto)
+set(MESSAGING_RESPONSE_PAYLOAD_ENDPOINTS_PROTO_FILE ${MESSAGING_RESPONSE_PAYLOAD_ACCOUNT_PROTO_PATH}/endpoints.proto)
+set(MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE ${MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_PROTO_PATH}/capability.proto)
+set(MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_FILE ${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH}/feed-response.proto)
+
+set(PROTOC_CMD "protoc")
+
+## generating pd.h and pb.cc
+message(STATUS "Generate ${COMMON_MESSAGE_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${COMMON_MESSAGE_PROTO_FILE})
+
+message(STATUS "Generate ${COMMON_CHUNK_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${COMMON_CHUNK_PROTO_FILE})
+
+message(STATUS "Generate ${CLOUD_VIRTUALIZED_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${CLOUD_PROVIDER_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${CLOUD_VIRTUALIZED_PROTO_FILE})
+
+# request
+message(STATUS "Generate ${MESSAGING_REQUEST_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_REQUEST_PAYLOAD_ENDPOINTS_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PAYLOAD_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PAYLOAD_ENDPOINTS_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PAYLOAD_EFDI_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE})
+                        
+message(STATUS "Generate ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_SUBSCRIPTION_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PAYLOAD_ENDPOINT_SUBSCRIPTION_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_REQUEST_PAYLOAD_FEED_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_REQUEST_PAYLOAD_FEED_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_REQUEST_PAYLOAD_FEED_FILE})
+
+# response
+message(STATUS "Generate ${MESSAGING_RESPONSE_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_RESPONSE_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_RESPONSE_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_RESPONSE_PAYLOAD_ENDPOINTS_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_RESPONSE_PAYLOAD_ACCOUNT_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_RESPONSE_PAYLOAD_ENDPOINTS_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE})
+
+message(STATUS "Generate ${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_FILE}")
+execute_process(COMMAND ${PROTOC_CMD}
+                        "-I=${PROTOBUF_SDK_INCLUDES}"
+                        "-I=${PROTO_PATH}"
+                        "-I=${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH}"
+                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
+                        ${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_FILE})
+
+
+

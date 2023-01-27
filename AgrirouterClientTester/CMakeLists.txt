@@ -2,10 +2,6 @@
 # AgrirouterClientTest files
 ################################################################################
 
-#file(GLOB AgrirouterClientTest_INC_H
-#    "inc/*.h"
-#)
-
 file(GLOB AgrirouterClientTest_SRCS
     "src/*.cpp"
     "inc/*.h"

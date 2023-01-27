@@ -2,7 +2,6 @@
 #define AGRIROUTERCLIENTTESTER_INC_COMMUNICATOR_H_
 
 #include <stdint.h>
-#include <google/protobuf/message.h>
 #include <string>
 #include <list>
 

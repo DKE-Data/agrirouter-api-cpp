@@ -1,38 +1,42 @@
 #ifndef LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_
 #define LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_
 
-#include <AgrirouterMessage.h>
-#include <Definitions.h>
+#include "AgrirouterMessage.h"
+#include "Definitions.h"
 #include <google/protobuf/message.h>
 #include <string>
 
+/*
+ * ToDo: Define which parameters need a restart of the agrirouter client
+ */
+
 class Settings {
  public:
-  enum ConnectionType {
-    HTTP = 1,
-    MQTT = 2
-  };
+  enum ConnectionType { HTTP = 1, MQTT = 2 };
 
   typedef void (*onParameterChangeCallback)(int event, void *data, void *callbackCallee);
   typedef void (*onMessageCallback)(int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-  typedef void (*onErrorCallback)(int code, std::string message, std::string applicationMessageId, void *callbackCallee);
+  typedef void (*onErrorCallback)(int statusCode, int connectionProviderErrorCode, std::string curlMessage, std::string applicationMessageId, std::string content, void *callbackCallee);
 
   Settings();
   ~Settings();
 
   void callOnParameterChange(int event, void *data);
   void callOnMessage(Response *response, MessageParameters messageParameters);
-  void callOnError(int code, std::string message, MessageParameters messageParameters);
+  void callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage, MessageParameters messageParameters, std::string content);
 
   // On parameter change callback
-  void setOnParameterChangeCallback(onParameterChangeCallback onParameter, void* callbackCallee);
+  void setOnParameterChangeCallback(onParameterChangeCallback onParameter);
   onParameterChangeCallback getOnParameterChangeCallback();
   // On message change callback
-  void setOnMessageCallback(onMessageCallback onMessage, void* callbackCallee);
+  void setOnMessageCallback(onMessageCallback onMessage);
   onMessageCallback getOnMessageCallback();
   // On error change callback
-  void setOnErrorCallback(onErrorCallback onError, void* callbackCallee);
+  void setOnErrorCallback(onErrorCallback onError);
   onErrorCallback getOnErrorCallback();
+  // Callback callee
+  void setCallbackCallee(void *callbackCallee);
+  void *getCallbackCallee();
 
   ConnectionParameters getConnectionParameters(std::string absolutePath);
 
@@ -46,31 +50,34 @@ class Settings {
   std::string getApplicationId();
   void setCertificationVersionId(std::string certificationVersionId);
   std::string getCertificationVersionId();
-  void setExternalId(std::string externalId);
-  std::string getExternalId();
+  void setOnboardId(std::string onboardId);
+  std::string getOnboardId();
   void setGatewayId(std::string gatewayId);
   std::string getGatewayId();
   void setCertificateType(std::string certificateType);
   std::string getCertificateType();
 
   void setCertificate(std::string certificate);
-  std::string getCertificate();
+  std::string& getCertificate();
   void setCertificatePath(std::string certificatePath);
-  std::string getCertificatePath();
+  std::string& getCertificatePath();
   void setCaFilePath(std::string caFilePath);
-  std::string getCaFilePath();
+  std::string& getCaFilePath();
   void setPrivateKeyPath(std::string privateKeyPath);
-  std::string getPrivateKeyPath();
+  std::string& getPrivateKeyPath();
   void setPrivateKey(std::string privateKey);
-  std::string getPrivateKey();
+  std::string& getPrivateKey();
   void setEncodingType(std::string encodingType);
-  std::string getEncodingType();
+  std::string& getEncodingType();
   void setConnectionType(ConnectionType connectionType);
   ConnectionType getConnectionType();
   void setConnectionParameters(ConnectionParameters connectionParameters);
-  ConnectionParameters getConnectionParameters();
+  ConnectionParameters& getConnectionParameters();
   void setConnectionParametersPath(std::string connectionParametersPath);
-  std::string getConnectionParametersPath();
+  std::string& getConnectionParametersPath();
+
+  void setAcceptSelfSignedCertificate(bool a_accept);
+  bool acceptSelfSignedCertificate();
 
   void setPollingInterval(int pollingInterval);
   int getPollingInterval();
@@ -81,14 +88,7 @@ class Settings {
   onParameterChangeCallback onParameter;
   onMessageCallback onMessage;
   onErrorCallback onError;
-
-  void *parameterCallbackCallee;
-  void *messageCallbackCallee;
-  void *errorCallbackCallee;
-
-  bool setOnParameter;
-  bool setOnMessage;
-  bool setOnError;
+  void *callbackCallee;
 
   // For onboarding
   std::string authUsername;
@@ -96,7 +96,7 @@ class Settings {
   std::string accountId;
   std::string applicationId;
   std::string certificationVersionId;
-  std::string externalId;
+  std::string onboardId;
   std::string gatewayId;
   std::string certificateType;
 
@@ -110,6 +110,7 @@ class Settings {
   ConnectionType connectionType;
   ConnectionParameters connectionParameters;
   std::string connectionParametersPath;
+  bool m_acceptSelfSignedCertificate;
 
   // For general purposes
   int pollingInterval;

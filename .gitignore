@@ -18,4 +18,8 @@ RemoteSystemsTempFiles/
 Certs/
 .vscode/
 *~
+build/*
+cpplint/cpplint.py
 agrirouter_ids.json
+lib/AgrirouterClient/inc/Protobuf/*
+!lib/AgrirouterClient/inc/Protobuf/.gitkeep

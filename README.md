@@ -48,7 +48,10 @@ The configuration file `AgrirouterClientTesterConfig.json` looks like this
         "connectionType": "HTTP"
     },
     "agrirouterSettings": {
-        "url": "https://agrirouter-registration-service.cfapps.eu1.hana.ondemand.com/api/v1.0/registration/onboard"
+        "registrationServicePath" : "onboard.my",
+        "landscape" : "agrirouter",
+        "cfHost" : "com",
+        "apiPrefix" : "api/v1.0"
     }
 }
 ```

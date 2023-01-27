@@ -1,17 +1,17 @@
 #ifndef LIB_AGRIROUTERCLIENT_INC_DEFINITIONS_H_
 #define LIB_AGRIROUTERCLIENT_INC_DEFINITIONS_H_
 
-#include <commons/chunk.pb.h>
-#include <commons/message.pb.h>
-#include <messaging/request/request.pb.h>
-#include <messaging/response/response.pb.h>
-
-#include <messaging/request/payload/account/endpoints.pb.h>
-#include <messaging/request/payload/endpoint/capabilities.pb.h>
-#include <messaging/request/payload/endpoint/subscription.pb.h>
-#include <messaging/request/payload/feed/feed-requests.pb.h>
-#include <messaging/response/payload/account/endpoints.pb.h>
-#include <messaging/response/payload/feed/feed-response.pb.h>
+#include "commons/chunk.pb.h"
+#include "commons/message.pb.h"
+#include "messaging/request/request.pb.h"
+#include "messaging/response/response.pb.h"
+#include "messaging/request/payload/account/endpoints.pb.h"
+#include "messaging/request/payload/efdi/grpc-efdi.pb.h"
+#include "messaging/request/payload/endpoint/capabilities.pb.h"
+#include "messaging/request/payload/endpoint/subscription.pb.h"
+#include "messaging/request/payload/feed/feed-requests.pb.h"
+#include "messaging/response/payload/account/endpoints.pb.h"
+#include "messaging/response/payload/feed/feed-response.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -40,7 +40,7 @@
 #define MG_PARAMETER_ACCOUNT_ID (MG_PARAMETER_BASE + 3)
 #define MG_PARAMETER_APPLICATION_ID (MG_PARAMETER_BASE + 4)
 #define MG_PARAMETER_CERTIFICATION_VERSION_ID (MG_PARAMETER_BASE + 5)
-#define MG_PARAMETER_EXTERNAL_ID (MG_PARAMETER_BASE + 6)
+#define MG_PARAMETER_ONBOARD_ID (MG_PARAMETER_BASE + 6)
 #define MG_PARAMETER_GATEWAY_ID (MG_PARAMETER_BASE + 7)
 #define MG_PARAMETER_CERTIFICATE_TYPE (MG_PARAMETER_BASE + 8)
 #define MG_PARAMETER_CERTIFICATE (MG_PARAMETER_BASE + 9)
@@ -69,8 +69,13 @@
 #define MG_EV_GET_MESSAGES (MG_EV_BASE + GET_MESSAGES)
 #define MG_EV_TIMELOG (MG_EV_BASE + TIMELOG)
 
-// Size for chunked transfer
-const int CHUNKSIZE_IN_KB = 500000;
+// message types
+#define MESSAGE_TYPE_TASK_DATA "iso:11783:-10:taskdata:zip"
+#define MESSAGE_TYPE_TIME_LOG "iso:11783:-10:time_log:protobuf"
+#define MESSAGE_TYPE_DEVICE_DESCRIPTION "iso:11783:-10:device_description:protobuf"
+
+// Other definitions
+#define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
 
 // Protobuf typedefs
 typedef agrirouter::request::RequestEnvelope RequestEnvelope;
@@ -105,6 +110,13 @@ typedef agrirouter::feed::response::FailedMessageQueryResponse FailedMessageQuer
 typedef agrirouter::commons::Message CommonsMessage;
 typedef agrirouter::commons::Messages CommonsMessages;
 typedef agrirouter::commons::ChunkComponent ChunkComponent;
+
+typedef efdi::ISO11783_TaskData ISO11783_TaskData;
+typedef efdi::TimeLog TimeLog;
+typedef efdi::Time Time;
+typedef efdi::Task Task;
+typedef efdi::DataLogValue DataLogValue;
+typedef efdi::Position Position;
 
 typedef google::protobuf::Any Any;
 typedef google::protobuf::Timestamp Timestamp;
@@ -161,6 +173,7 @@ typedef struct ApplicationSettings {
   std::string locationCertsAndIds;
   std::string teamsetContextId;
   std::string connectionType;
+  bool acceptSelfSignedCertificate;
 } ApplicationSettings;
 
 // Struct for agrirouter settings
@@ -173,7 +186,9 @@ typedef struct AgrirouterSettings {
 } AgrirouterSettings;
 
 // Struct for handling binary data
-typedef struct BinaryData { unsigned char* data; int size;
+typedef struct BinaryData {
+    unsigned char* data;
+    int size;
 } BinaryData;
 
 // Function pointer for callback functions

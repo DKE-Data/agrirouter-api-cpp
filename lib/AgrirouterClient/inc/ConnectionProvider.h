@@ -1,7 +1,7 @@
 #ifndef LIB_AGRIROUTERCLIENT_INC_CONNECTIONPROVIDER_H_
 #define LIB_AGRIROUTERCLIENT_INC_CONNECTIONPROVIDER_H_
 
-#include <Settings.h>
+#include "Settings.h"
 
 #include <string>
 #include <vector>

@@ -7,6 +7,8 @@ project(AgrirouterClient)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+# protobuf paths
+set(PROTOBUF_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib/AgrirouterClient/inc/Protobuf")
 # Install to ${PROJECT_DIR}/install
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/install)
 # Enable verbose output from Makefile
@@ -78,24 +80,9 @@ FILE(GLOB protoFiles
     "${CMAKE_CURRENT_SOURCE_DIR}/proto/messaging/response/payload/efdi/*.proto"
     "${CMAKE_CURRENT_SOURCE_DIR}/proto/messaging/response/payload/endpoint/*.proto"
     "${CMAKE_CURRENT_SOURCE_DIR}/proto/messaging/response/payload/feed/*.proto"
-    "${CMAKE_CURRENT_SOURCE_DIR}/proto/registration/*.proto"
-    "${CMAKE_CURRENT_SOURCE_DIR}/proto/gateway/*.proto"
     "${CMAKE_CURRENT_SOURCE_DIR}/proto/cloud-provider-integration/*.proto"
 )
 add_custom_target(protos SOURCES ${protoFiles})
-
-################################################################################
-# Compile proto files and move to src, inc subfolder
-################################################################################
-execute_process (COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/proto/compileProtos.sh
-                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/proto
-                 RESULT_VARIABLE result)
-
-if (${result} STREQUAL "1")
-    message (SEND_ERROR "compileProtos.sh: protoc is not installed.")
-elseif (${result} STREQUAL "2")
-    message (SEND_ERROR "compileProtos.sh: protoc compiling failed.")
-endif()
 
 ################################################################################
 # Readme.md

@@ -1,7 +1,6 @@
 #ifndef AGRIROUTERCLIENTTESTER_INC_APPLICATION_H_
 #define AGRIROUTERCLIENTTESTER_INC_APPLICATION_H_
 
-#include <google/protobuf/message.h>
 #include <stdint.h>
 #include <string>
 #include <list>
@@ -35,7 +34,7 @@ class Application {
 
   static void onParameterChangeCallback(int event, void *data, void *callbackCallee);
   static void onMessageCallback(int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-  static void onErrorCallback(int code, std::string message, std::string applicationMessageId, void *callbackCallee);
+  static void onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string curlMessage, std::string applicationMessageId, std::string content, void *callbackCallee);
 };
 
 #endif  // AGRIROUTERCLIENTTESTER_INC_APPLICATION_H_

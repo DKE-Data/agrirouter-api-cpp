@@ -31,7 +31,7 @@ Application::Application() {
 }
 
 Application::~Application() {
-  this->m_agrirouterClient->terminate();
+  this->m_agrirouterClient->~AgrirouterClient();
 
   if (this->m_communicator != NULL) {
     delete this->m_communicator;
@@ -59,18 +59,22 @@ std::string Application::getCurrentWorkingDir() {
 
 int32_t Application::run(int32_t argc, char *argv[]) {
   // Set callback settings
-  m_settings->setOnParameterChangeCallback(onParameterChangeCallback, this);
-  m_settings->setOnMessageCallback(onMessageCallback, this);
-  m_settings->setOnErrorCallback(onErrorCallback, this);
+  m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
+  m_settings->setOnMessageCallback(onMessageCallback);
+  m_settings->setOnErrorCallback(onErrorCallback);
 
   printf("Read file %sAgrirouterClientTesterConfig.json\n", directory.c_str());
 
   // Load settings from file
-  this->m_agrirouterSettings = getAgrirouterSettings(directory + "AgrirouterClientTesterConfig.json");
+  std::string agrirouterSettings = directory + "AgrirouterClientTesterConfig.json";
+  this->m_agrirouterSettings = getAgrirouterSettings(agrirouterSettings);
   printf("AgrirouterSettings: \n\t%s\n", this->m_agrirouterSettings.registrationUrl.c_str());
 
-  this->m_applicationSettings = getApplicationSettings(directory + "AgrirouterClientTesterConfig.json");
-  printf("ApplicationSettings: \n\t%s \n\t%s \n\t%s \n\t%s \n\t%s\n", this->m_applicationSettings.applicationId.c_str(), this->m_applicationSettings.certificationVersionId.c_str(), this->m_applicationSettings.externalId.c_str(), this->m_applicationSettings.locationCertsAndIds.c_str(), this->m_applicationSettings.teamsetContextId.c_str());
+  std::string applicationSettings = directory + "AgrirouterClientTesterConfig.json";
+  this->m_applicationSettings = getApplicationSettings(applicationSettings);
+  printf("ApplicationSettings: \n\t%s \n\t%s \n\t%s \n\t%s \n\t%s\n", this->m_applicationSettings.applicationId.c_str(),
+          this->m_applicationSettings.certificationVersionId.c_str(), this->m_applicationSettings.externalId.c_str(),
+          this->m_applicationSettings.locationCertsAndIds.c_str(), this->m_applicationSettings.teamsetContextId.c_str());
 
   m_settings->setApplicationId(this->m_applicationSettings.applicationId);
   m_settings->setCertificationVersionId(this->m_applicationSettings.certificationVersionId);
@@ -94,7 +98,6 @@ int32_t Application::run(int32_t argc, char *argv[]) {
 
   // Initialize agrirouter client instance
   m_agrirouterClient = new AgrirouterClient(m_settings);
-  m_agrirouterClient->setContextId(this->m_applicationSettings.teamsetContextId);
   m_communicator = new Communicator(m_settings, m_agrirouterClient, m_agrirouterSettings);
 
   std::vector<std::string> cmdLineArgs(argv, argv + argc);
@@ -162,17 +165,17 @@ int32_t Application::run(int32_t argc, char *argv[]) {
     } else if (arg.find("--id") != std::string::npos) {
       size_t begin = arg.find("=");
       std::string message = arg.substr(begin + 1);
-
-      m_agrirouterClient->setContextId(message);
+      // ToDo set context id on message send
+      // m_agrirouterClient->setContextId(message);
 
     } else if (arg.find("--minutes") != std::string::npos) {
       size_t begin = arg.find("=");
       std::string message = arg.substr(begin + 1);
 
       int minutes = stringToInt(message);
-      ValidityPeriod *validityPeriod = getValidityPeriodForLastMinutes(minutes);
+      ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(minutes);
 
-      this->m_communicator->sendMessageQueryWithValidityPeriod(validityPeriod);
+      this->m_communicator->sendMessageQueryWithValidityPeriod(&validityPeriod);
 
     } else if (arg.find("--sender") != std::string::npos) {
       size_t begin = arg.find("=");
@@ -238,7 +241,8 @@ int32_t Application::run(int32_t argc, char *argv[]) {
 
       std::string messageId;
       std::string message = readBinaryFileAndBase64(path);
-      m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, const_cast<char *>(message.c_str()), message.size());
+      std::string teamsetContextId = this->m_applicationSettings.teamsetContextId;
+      m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size());
     }
   }
 
@@ -280,7 +284,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
 
         ConnectionParameters *parameters = reinterpret_cast<ConnectionParameters *>(data);
         printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n",  self->m_settings->getConnectionParametersPath().c_str());
-        saveConnectionParameters(parameters, self->m_settings->getConnectionParametersPath().c_str());
+        saveConnectionParameters(parameters, self->m_settings->getConnectionParametersPath());
 
         self->m_onboarding = false;
         break;
@@ -326,8 +330,9 @@ void Application::onMessageCallback(int event, Response *response, std::string a
         printf("type_url size %lu, size %lu\n", content->type_url().size(), content->value().size());
         printf("technical_message_type %s\n", h->technical_message_type().c_str());
         if (h->technical_message_type() == "iso:11783:-10:taskdata:zip") {
-          // printf("%s\n", content->value().c_str());
-          writeBase64EncodedBinaryFile(content->value(), self->directory + "received.zip");
+          std::string file = content->value();
+          std::string path = self->directory + "received.zip";
+          writeBase64EncodedBinaryFile(file, path);
         }
       }
 
@@ -345,7 +350,9 @@ void Application::onMessageCallback(int event, Response *response, std::string a
   }
 }
 
-void Application::onErrorCallback(int code, std::string message, std::string applicationMessageId, void *callbackCallee) {
+void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
+                                    std::string applicationMessageId, std::string content, void *callbackCallee) {
   printf("\n");
-  printf("On Error callback: %s, %i, %s\n", message.c_str(), code, applicationMessageId.c_str());
+  printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page content: %s\n",
+            statusCode, connectionProviderErrorCode, curlMessage.c_str(), applicationMessageId.c_str(), content.c_str());
 }

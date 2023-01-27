@@ -1,8 +1,8 @@
 #ifndef LIB_AGRIROUTERCLIENT_INC_AGRIROUTERMESSAGE_H_
 #define LIB_AGRIROUTERCLIENT_INC_AGRIROUTERMESSAGE_H_
 
-#include <Definitions.h>
-#include <Utils.h>
+#include "Definitions.h"
+#include "Utils.h"
 
 #include <string>
 
