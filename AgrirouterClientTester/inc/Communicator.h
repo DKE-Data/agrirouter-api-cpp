@@ -5,9 +5,9 @@
 #include <string>
 #include <list>
 
-#include <AgrirouterClient.h>
-#include <AgrirouterMessage.h>
-#include <Settings.h>
+#include "AgrirouterClient.h"
+#include "AgrirouterMessage.h"
+#include "Settings.h"
 
 class Communicator {
  private:

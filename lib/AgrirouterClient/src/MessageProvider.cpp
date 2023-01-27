@@ -133,42 +133,42 @@ AgrirouterMessage MessageProvider::getTimelogMessage(std::string *messageId, int
 }
 
 AgrirouterMessage MessageProvider::getImageMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
-	const std::string &teamSetContextId, char *image, int size)
+    const std::string &teamSetContextId, char *image, int size)
 {
-	std::string messageType = "img:png";
+    std::string messageType = "img:png";
   return getMessage(messageId, addressing, seqNo, teamSetContextId, image, size, messageType);
 }
 
 AgrirouterMessage MessageProvider::getTaskdataZipMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
-	  const std::string &teamSetContextId, char *taskdataZip, int size)
+      const std::string &teamSetContextId, char *taskdataZip, int size)
 {
-	std::string messageType = MESSAGE_TYPE_TASK_DATA;
+    std::string messageType = MESSAGE_TYPE_TASK_DATA;
   return getMessage(messageId, addressing, seqNo, teamSetContextId, taskdataZip, size, messageType);
 }
 
 AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing& addressing, int32_t seqNo, 
   const std::string &teamSetContextId, char *unchunkedData, int size, std::string& technicalMessageType)
 {
-	AgrirouterMessage message;
+    AgrirouterMessage message;
 
-	std::string applicationMessageId;
-	if (messageId->empty()) {
-		applicationMessageId = createUuid();
-	} else {
-		applicationMessageId = *messageId;
-	}
-	Request request;
-	request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
-	google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
-	payload->set_value(unchunkedData);
-	return AgrirouterMessage(request);
+    std::string applicationMessageId;
+    if (messageId->empty()) {
+        applicationMessageId = createUuid();
+    } else {
+        applicationMessageId = *messageId;
+    }
+    Request request;
+    request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
+    google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
+    payload->set_value(unchunkedData);
+    return AgrirouterMessage(request);
 }
 
 AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
   uint16_t numberOfChunk, uint16_t numberOfChunks, const std::string &teamSetContextId, 
   const std::string &chunkContextId, std::string data, uint32_t size, std::string& technicalMessageType)
 {
-	AgrirouterMessage message;
+    AgrirouterMessage message;
 
   *messageId = createUuid();
 
@@ -184,5 +184,5 @@ AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Add
   google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
   payload->set_value(data);
 
-	return AgrirouterMessage(request);
+    return AgrirouterMessage(request);
 }

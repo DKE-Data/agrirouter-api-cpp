@@ -5,13 +5,13 @@
 #include <string>
 #include <list>
 
-#include <AgrirouterClient.h>
-#include <AgrirouterMessage.h>
-#include <Settings.h>
-#include <Communicator.h>
+#include "AgrirouterClient.h"
+#include "AgrirouterMessage.h"
+#include "Settings.h"
+#include "Communicator.h"
 
 class Application {
- private:
+  private:
   Settings *m_settings;
   AgrirouterClient *m_agrirouterClient;
   Communicator *m_communicator;

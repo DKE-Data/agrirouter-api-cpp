@@ -129,10 +129,10 @@ void AgrirouterClient::sendTimelog(Addressing& addressing, std::string *messageI
 }
 
 void AgrirouterClient::sendChunk(AgrirouterMessage& message) {
-	message.request().envelope.set_application_message_seq_no(getNextSeqNo());
-	std::string applicationMessageId = message.request().envelope.application_message_id();
+    message.request().envelope.set_application_message_seq_no(getNextSeqNo());
+    std::string applicationMessageId = message.request().envelope.application_message_id();
 
-	sendMessage(&message, MG_EV_NON_TELEMETRY, &applicationMessageId);
+    sendMessage(&message, MG_EV_NON_TELEMETRY, &applicationMessageId);
 }
 
 void AgrirouterClient::sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size) {

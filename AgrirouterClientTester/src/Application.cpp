@@ -1,4 +1,4 @@
-#include <Application.h>
+#include "Application.h"
 
 #include <stdio.h>  /* defines FILENAME_MAX */
 // #define WINDOWS  /* uncomment this line to get current working directory for windows.*/
@@ -10,10 +10,10 @@
 #define GetCurrentDir getcwd
 #endif
 
-#include <AgrirouterClient.h>
-#include <AgrirouterMessageUtils.h>
-#include <Registration.h>
-#include <Utils.h>
+#include "AgrirouterClient.h"
+#include "AgrirouterMessageUtils.h"
+#include "Registration.h"
+#include "Utils.h"
 
 #include <algorithm>
 #include <iostream>
@@ -22,7 +22,8 @@
 #include <string>
 #include <vector>
 
-Application::Application() {
+Application::Application()
+{
   directory = getCurrentWorkingDir();
   m_settings = new Settings();
 
