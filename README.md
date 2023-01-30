@@ -60,7 +60,7 @@ The configuration file `AgrirouterClientTesterConfig.json` looks like this
 
 The project is devided into 2 parts: the [lib](lib/AgrirouterClient) and an [example application](AgrirouterClientTester) that is using the compiled lib.
 
-Before creating a pull request, please execute the lint program in folder [cpplint](cpplint) and remove all occuring errors.
+Before creating a pull request, please build the application and remove all occuring errors.
 
 ## How to install Protobuf C++ Compiler <a name="compiler"></a>
 
