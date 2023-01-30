@@ -105,7 +105,7 @@ inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
     }
 
     // Get current timestamp
-    struct timeval timestamp = getTimestamp();
+    timeval timestamp = getTimestamp();
     header.mutable_timestamp()->set_seconds(timestamp.tv_sec);
     header.mutable_timestamp()->set_nanos(timestamp.tv_usec * 1000);
 

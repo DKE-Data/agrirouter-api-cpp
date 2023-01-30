@@ -1,14 +1,14 @@
 #include "Registration.h"
 
 #include "Utils.h"
+#include "../third_party/cJSON/cJSON.h"
+
 #include <curl/curl.h>
 #include <stdio.h>
 #include <cstring>
 #include <string>
 #include <iostream>
 #include <vector>
-
-#include "../third_party/cJSON/cJSON.h"
 
 Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings)
 {

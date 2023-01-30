@@ -296,7 +296,7 @@ inline std::string readFile(std::string& absolutePath)
     return "";
 }
 
-inline void writeFile(const char *data, int size, std::string& absolutePath)
+inline void writeFile(const char *data, std::string& absolutePath)
 {
     std::ofstream file;
 
@@ -508,15 +508,15 @@ inline AgrirouterSettings getAgrirouterSettings(std::string& absolutePath)
  * Timestamp operations
  */
 
-inline struct timeval getTimestamp()
+inline timeval getTimestamp()
 {
-    struct timeval tp;
+    timeval tp;
     gettimeofday(&tp, NULL);
 
     return tp;
 }
 
-inline google::protobuf::Timestamp getTimestampFromTimeval(struct timeval tv)
+inline google::protobuf::Timestamp getTimestampFromTimeval(timeval tv)
 {
     google::protobuf::Timestamp timestamp = google::protobuf::Timestamp();
     timestamp.set_seconds(tv.tv_sec);
@@ -527,7 +527,7 @@ inline google::protobuf::Timestamp getTimestampFromTimeval(struct timeval tv)
 
 inline google::protobuf::Timestamp getCurrentTimestamp()
 {
-    struct timeval tv = getTimestamp();
+    timeval tv = getTimestamp();
 
     return getTimestampFromTimeval(tv);
 }
@@ -540,7 +540,7 @@ inline ValidityPeriod getValidityPeriodForLastMinutes(int minutes)
     google::protobuf::Timestamp *t = validityPeriod.mutable_sentto();
     *t = to;
 
-    struct timeval tv = getTimestamp();
+    timeval tv = getTimestamp();
     tv.tv_sec -= minutes * 60;
 
     google::protobuf::Timestamp from = getTimestampFromTimeval(tv);

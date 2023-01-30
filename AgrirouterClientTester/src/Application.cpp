@@ -290,7 +290,7 @@ int32_t Application::run(int32_t argc, char *argv[])
         }
     }
 
-    struct timeval timeout;
+    timeval timeout;
     while (m_onboarding)
     {
         timeout.tv_sec = 1;

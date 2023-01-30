@@ -14,11 +14,11 @@ class CurlConnectionProvider : public ConnectionProvider
         ~CurlConnectionProvider();
 
         // Struct to use curl chunked callbacks
-        struct MemoryStruct
+        typedef struct MemoryStruct 
         {
             char *memory;
             size_t size;
-        };
+        } MemoryStruct;
 
         void sendMessage(MessageParameters messageParameters);
         void sendMessageWithChunkedResponse(MessageParameters messageParameters);
@@ -33,12 +33,12 @@ class CurlConnectionProvider : public ConnectionProvider
         bool m_polling;
 
         void setCurlUrl(CURL *hnd);
-        struct curl_slist *setCurlHeaders(CURL *hnd, struct curl_slist *slist);
+        curl_slist *setCurlHeaders(CURL *hnd, curl_slist *slist);
         void setCurlBody(CURL *hnd);
         void setChunkedCurlCallback(CURL *hnd, MemoryStruct *chunk);
         void setCurlSSL(CURL *hnd);
         void executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, MessageParameters messageParameters);
-        void cleanupChunkedCurl(CURL *hnd, struct curl_slist *slist, MemoryStruct *chunk);
+        void cleanupChunkedCurl(CURL *hnd, curl_slist *slist, MemoryStruct *chunk);
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_SRC_CONNECTIONPROVIDER_CURLCONNECTIONPROVIDER_H_
