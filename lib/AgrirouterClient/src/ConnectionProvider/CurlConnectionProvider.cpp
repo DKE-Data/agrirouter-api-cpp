@@ -96,8 +96,7 @@ void CurlConnectionProvider::getMessages(void)
     this->cleanupChunkedCurl(hnd, slist, &chunk);
 }
 
-size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size,
-        size_t nmemb, void *member) 
+size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
 {
     size_t realsize = size * nmemb;
     static int pollCount = 1;
@@ -111,7 +110,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size,
     if (currentPollingTime >= self->settings->getPollingMaxTime())
     {
         self->callback(content, realsize, 1, self->member);
-    } 
+    }
     else if (message == "[]")
     {
         if (self->settings->getPollingInterval() == 0)
@@ -254,7 +253,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
     if (curlCode != CURLE_OK)
     {
         std::string curlMessage = "";
-        
+
         // get content if there is some content
         std::string content(chunk->memory, chunk->size);
 

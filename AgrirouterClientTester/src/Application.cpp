@@ -150,7 +150,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "  \t\t\te.g. --url=https://register-url.com\n";
             std::cout << "  --taskdata=<PATH>\t\tsend taskdata.zip file that is saved at given path\n";
             std::cout << "  \t\t\te.g. --taskdata=/home/TASKDATA.zip\n";
-
         }
         else if (arg == "-c")
         {
@@ -185,7 +184,6 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             std::string externalId = "test:uuid:" + createUuid();
             this->m_communicator->onboard(message, externalId);
-
         }
         else if (arg.find("--id") != std::string::npos)
         {
@@ -204,7 +202,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(minutes);
 
             this->m_communicator->sendMessageQueryWithValidityPeriod(&validityPeriod);
-
         }
         else if (arg.find("--sender") != std::string::npos)
         {
@@ -214,7 +211,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::list<std::string> senders;
             senders.push_back(message);
             this->m_communicator->sendMessageQueryWithSender(senders);
-
         }
         else if (arg.find("--query-id") != std::string::npos)
         {
@@ -224,7 +220,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::list<std::string> messageIds;
             messageIds.push_back(message);
             this->m_communicator->sendMessageQueryWithId(messageIds);
-
         }
         else if (arg.find("--confirm") != std::string::npos)
         {
@@ -236,7 +231,6 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             std::string messageId;
             this->m_agrirouterClient->sendMessagesConfirm(&messageId, &messageConfirm);
-
         }
         else if (arg.find("--delete-sender") != std::string::npos)
         {
@@ -259,7 +253,6 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             std::string messageId;
             this->m_agrirouterClient->sendMessagesDelete(&messageId, &messageDelete);
-
         }
         else if (arg.find("--recipient") != std::string::npos)
         {
@@ -268,7 +261,6 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             m_addressing.mode = RequestEnvelope::PUBLISH_WITH_DIRECT;
             m_addressing.recipients.push_back(message);
-
         }
         else if (arg.find("--url") != std::string::npos)
         {
@@ -276,7 +268,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::string url = arg.substr(begin + 1);
 
             this->m_agrirouterSettings.registrationUrl = url;
-
         }
         else if (arg.find("--taskdata") != std::string::npos)
         {

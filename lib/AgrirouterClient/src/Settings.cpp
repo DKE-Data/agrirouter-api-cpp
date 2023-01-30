@@ -2,10 +2,7 @@
 
 #include <string>
 
-Settings::Settings() 
-    : m_acceptSelfSignedCertificate(false) 
-{}
-
+Settings::Settings() : m_acceptSelfSignedCertificate(false) {}
 Settings::~Settings() {}
 
 void Settings::callOnParameterChange(int event, void *data)
@@ -19,10 +16,10 @@ void Settings::callOnMessage(Response *response, MessageParameters messageParame
                   messageParameters.applicationMessageId, this->callbackCallee);
 }
 
-void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage, 
+void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
         MessageParameters messageParameters, std::string content)
 {
-    this->onError(statusCode, connectionProviderErrorCode, curlMessage, 
+    this->onError(statusCode, connectionProviderErrorCode, curlMessage,
                   messageParameters.applicationMessageId, content, this->callbackCallee);
 }
 

@@ -7,7 +7,7 @@
 #include <string>
 #include <math.h>
 
-MessageProvider::MessageProvider(Settings *settings, uint32_t chunkSize) 
+MessageProvider::MessageProvider(Settings *settings, uint32_t chunkSize)
 {
     this->m_settings = settings;
     this->m_chunkSize = chunkSize;
@@ -15,7 +15,7 @@ MessageProvider::MessageProvider(Settings *settings, uint32_t chunkSize)
 
 MessageProvider::~MessageProvider() {}
 
-AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, 
+AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo,
         std::string technicalMessageType, std::string typeUrl, const std::string &teamSetContextId, Message *message)
 {
     Addressing addressing;
@@ -25,14 +25,14 @@ AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, 
                                         typeUrl, teamSetContextId, message);
 }
 
-AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing, 
+AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing,
         std::string technicalMessageType, std::string typeUrl, const std::string &teamSetContextId, Message *message)
 {
     std::string applicationMessageId;
     if (messageId->empty())
     {
         applicationMessageId = createUuid();
-    } 
+    }
     else
     {
         applicationMessageId = *messageId;
@@ -48,7 +48,7 @@ AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, 
     return AgrirouterMessage(request);
 }
 
-AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing, 
+AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing,
         std::string technicalMessageType, std::string typeUrl, const std::string &teamSetContextId, char *message, int size)
 {
     std::string applicationMessageId;
@@ -84,7 +84,7 @@ AgrirouterMessage MessageProvider::getSubscriptionMessage(std::string *messageId
                               "endpoint.Subscription", teamSetContextId, subscription);
 }
 
-AgrirouterMessage MessageProvider::getListEndpointsMessage(std::string *messageId, int32_t seqNo, 
+AgrirouterMessage MessageProvider::getListEndpointsMessage(std::string *messageId, int32_t seqNo,
         const std::string &teamSetContextId, ListEndpointsQuery *listEndpointsQuery)
 {
     return getAgrirouterMessage(messageId, seqNo, "dke:list_endpoints", "types.agrirouter.com/agrirouter.request.payload."
@@ -154,7 +154,7 @@ AgrirouterMessage MessageProvider::getTaskdataZipMessage(std::string *messageId,
     return getMessage(messageId, addressing, seqNo, teamSetContextId, taskdataZip, size, messageType);
 }
 
-AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing& addressing, int32_t seqNo, 
+AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
         const std::string &teamSetContextId, char *unchunkedData, int size, std::string& technicalMessageType)
 {
     AgrirouterMessage message;
@@ -176,7 +176,7 @@ AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing
 }
 
 AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
-        uint16_t numberOfChunk, uint16_t numberOfChunks, const std::string &teamSetContextId, 
+        uint16_t numberOfChunk, uint16_t numberOfChunks, const std::string &teamSetContextId,
         const std::string &chunkContextId, std::string data, uint32_t size, std::string& technicalMessageType)
 {
     AgrirouterMessage message;

@@ -25,7 +25,7 @@ class Communicator {
         void onboard(std::string registrationCode, std::string externalId);
         void sendCapabilities();
         void sendSubscription();
-        
+
         void getListEndpointsFiltered();
         void getListEndpointsUnfiltered();
 
