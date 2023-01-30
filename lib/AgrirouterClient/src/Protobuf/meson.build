@@ -1,7 +1,6 @@
-protoc_exe = find_program('protoc')
-
-pymodule = import('python3')
-python3 = pymodule.find_python()
+import('python')
+python3 = find_program('python3')
+protoc = find_program('protoc')
 
 res = run_command(python3, '-c', 'import os; print(os.environ["PKG_CONFIG_SYSROOT_DIR"])')
 if res.returncode() == 0
@@ -11,7 +10,7 @@ else
 endif
 
 protobuf_generator = generator(
-    protoc_exe,
+    protoc,
     output    : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
     arguments : [
       '-I=' + meson.current_source_dir(),

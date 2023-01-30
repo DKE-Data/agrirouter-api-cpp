@@ -22,19 +22,21 @@ agrirouter_client_tester_sources = [
 
 if get_option('prod')
     message('production build')
-    linker_flags=['-s', '-lcurl', '-luuid']
+    linker_flags=['-s']
 else 
     message('debug build')
-    linker_flags=['-lcurl', '-luuid']
+    linker_flags=[]
 endif
 
 proto_dep = dependency('protobuf')
+curl_dep = dependency('libcurl')
+uuid_dep = dependency('uuid')
 
 agrirouterClientTester_exe = executable(
     'agrirouterClientTester',
     sources: agrirouter_client_tester_sources,
     include_directories: agrirouter_client_tester_include_dir,
-    dependencies: [libagrirouter_dep, proto_dep],
+    dependencies: [libagrirouter_dep, proto_dep, curl_dep, uuid_dep],
     link_args : linker_flags,
     install : false
 )
