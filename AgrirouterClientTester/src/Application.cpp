@@ -181,8 +181,9 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::string message = arg.substr(begin + 1);
 
             m_onboarding = true;
-
-            std::string externalId = "test:uuid:" + createUuid();
+            this->m_settings->setCallbackCallee(this);
+            
+            std::string externalId = this->m_applicationSettings.externalId;
             this->m_communicator->onboard(message, externalId);
         }
         else if (arg.find("--id") != std::string::npos)
