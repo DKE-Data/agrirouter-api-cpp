@@ -1,6 +1,6 @@
 #!/bin/sh
 scriptname=${0##*/}
-lib_path="${PWD}/../lib/AgrirouterClient"
+lib_path="${PWD}/../../"
 
 error ()
 {
@@ -36,13 +36,15 @@ done
 echo "$scriptname: Moving output files to library subfolders."
 for file in $(find . -name '*.pb.h')
 do
-    mv $file ${lib_path}/inc/Protobuf/$file
+    destination_path="${lib_path}inc/Protobuf/$file"
+    mkdir -p $(dirname $destination_path) && mv $file $destination_path
 done
 
 for file in $(find . -name '*.pb.*')
 do
-    mv $file ${lib_path}/src/Protobuf/$file
+    destination_path="${lib_path}inc/Protobuf/$file"
+    mkdir -p $(dirname $destination_path) && mv $file $destination_path
 done
-exit 0
+echo "Protobuf generated successful"
 
 
