@@ -61,8 +61,10 @@ The configuration file `AgrirouterClientTesterConfig.json` looks like this
 ```
 ### Start the agrirouter client tester
 1. To use the tool change the applicationSettings in the configuration file. <br>
-2. `./AgrirouterClientTest --help` (Use one of the command line arguments) <br>
-3. For e.g. onboarding to get certificates`./AgrirouterClientTest --onboard=123456789`
+2. Show help of the agrirouter client tester <br>
+   `./AgrirouterClientTest --help`
+3. For e.g. onboarding to get certificates <br>
+   `./AgrirouterClientTest --onboard=123456789`
 ### Other hints
 
 The project is devided into 2 parts: the [lib](lib/AgrirouterClient) and an [example application](AgrirouterClientTester) that is using the compiled lib.
@@ -78,7 +80,7 @@ For example Debian/Ubuntu
 1. Update sources <br>
    `sudo apt update`
 2. Install protoc and protobuf <br>
-`sudo apt install protobuf-compiler libprotobuf-dev libprotoc-dev`
+   `sudo apt install protobuf-compiler libprotobuf-dev libprotoc-dev`
 
 ### Install manuell
 #### Download packages
