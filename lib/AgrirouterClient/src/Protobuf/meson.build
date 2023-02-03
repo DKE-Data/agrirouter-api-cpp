@@ -1,23 +1,22 @@
-import('python')
 python3 = find_program('python3')
 protoc = find_program('protoc')
 
 res = run_command(python3, '-c', 'import os; print(os.environ["PKG_CONFIG_SYSROOT_DIR"])')
 if res.returncode() == 0
-  sdk_var = res.stdout().strip() + '/usr/include/'
+    sdk_var = res.stdout().strip() + '/usr/include/'
 else 
-  sdk_var = meson.current_source_dir()
+    sdk_var = meson.current_source_dir()
 endif
 
 protobuf_generator = generator(
     protoc,
     output    : ['@BASENAME@.pb.cc', '@BASENAME@.pb.h'],
     arguments : [
-      '-I=' + meson.current_source_dir(),
-      '-I=' + sdk_var,
-      '--cpp_out=@BUILD_DIR@',
-      '@INPUT@'
-      ]
+        '-I=' + meson.current_source_dir(),
+        '-I=' + sdk_var,
+        '--cpp_out=@BUILD_DIR@',
+        '@INPUT@'
+    ]
 )
 
 agrirouter_protobuf_files = protobuf_generator.process(
@@ -38,14 +37,14 @@ agrirouter_protobuf_files = protobuf_generator.process(
 )
 
 agrirouter_proto_lib = static_library(
-  'agrirouter_proto',
-  agrirouter_protobuf_files
+    'agrirouter_proto',
+    agrirouter_protobuf_files
 )
 
 agrirouter_proto_lib_include_dir = agrirouter_proto_lib.private_dir_include()
 
 agrirouter_protobuf_dep = declare_dependency(
-  link_with: agrirouter_proto_lib,
-  include_directories: agrirouter_proto_lib_include_dir
+    link_with: agrirouter_proto_lib,
+    include_directories: agrirouter_proto_lib_include_dir
 )
 
