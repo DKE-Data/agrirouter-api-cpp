@@ -2,7 +2,7 @@ project(
     'agrirouter-api-cpp'
     , 'c'
     , 'cpp' 
-    , meson_version : '>=0.56.0'
+    , meson_version : '>=0.53.0'
     , default_options : [
         'buildtype=minsize'
         , 'warning_level=1'
