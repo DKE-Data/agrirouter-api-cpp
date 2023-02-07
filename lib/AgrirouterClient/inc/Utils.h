@@ -46,7 +46,7 @@ inline std::string uint32ToString(uint32_t number)
 inline std::string int64ToString(int64_t number)
 {
     char num[64];
-    snprintf(num, sizeof(num), "%li", number);
+    snprintf(num, sizeof(num), "%lli", number);
     std::string int64AsString = std::string(num);
 
     return std::string(int64AsString);

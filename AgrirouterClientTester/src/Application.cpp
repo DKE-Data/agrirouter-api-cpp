@@ -341,11 +341,11 @@ void Application::onMessageCallback(int event, Response *response, std::string a
     std::list<std::string> messageIds;
 
     std::string envelope = messageToJson(&response->envelope);
-    printf("Envelope (size %lu): %s\n", envelope.size(), envelope.c_str());
+    printf("Envelope (size %u): %s\n", envelope.size(), envelope.c_str());
 
     if (((response->envelope.response_code() != 200) || (response->envelope.response_code() != 201)) && (response->payloadWrapper.details().value().size() != 0))
         {
-        printf("Payload type_url: \"%s\", payload size: %lu\n", response->payloadWrapper.details().type_url().c_str(), response->payloadWrapper.details().value().size());
+        printf("Payload type_url: \"%s\", payload size: %u\n", response->payloadWrapper.details().type_url().c_str(), response->payloadWrapper.details().value().size());
 
         if (response->payloadWrapper.details().type_url() == "types.agrirouter.com/agrirouter.feed.response.HeaderQueryResponse")
         {
@@ -373,7 +373,7 @@ void Application::onMessageCallback(int event, Response *response, std::string a
                 MessageQueryResponse::Header *h = feedMessage->mutable_header();
                 google::protobuf::Any *content = feedMessage->mutable_content();
 
-                printf("type_url size %lu, size %lu\n", content->type_url().size(), content->value().size());
+                printf("type_url size %u, size %u\n", content->type_url().size(), content->value().size());
                 printf("technical_message_type %s\n", h->technical_message_type().c_str());
                 if (h->technical_message_type() == "iso:11783:-10:taskdata:zip") {
                 std::string file = content->value();
