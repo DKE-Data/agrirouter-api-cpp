@@ -10,9 +10,9 @@
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
     this->m_polling = false;
-    this->settings = settings;
-    this->body = "";
-    this->url = "";
+    this->m_settings = settings;
+    this->m_body = "";
+    this->m_url = "";
 }
 
 CurlConnectionProvider::~CurlConnectionProvider() {}
@@ -106,14 +106,14 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
 
     timeval tv;
 
-    int currentPollingTime = pollCount * self->settings->getPollingInterval();
-    if (currentPollingTime >= self->settings->getPollingMaxTime())
+    int currentPollingTime = pollCount * self->m_settings->getPollingInterval();
+    if (currentPollingTime >= self->m_settings->getPollingMaxTime())
     {
-        self->callback(content, realsize, 1, self->member);
+        self->m_callback(content, realsize, 1, self->m_member);
     }
     else if (message == "[]")
     {
-        if (self->settings->getPollingInterval() == 0)
+        if (self->m_settings->getPollingInterval() == 0)
         {
             // No polling required
             // Call callback of caller with member=this->member
@@ -121,7 +121,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
         }
 
         // Poll for messages depending on intervall
-        tv.tv_sec = self->settings->getPollingInterval();
+        tv.tv_sec = self->m_settings->getPollingInterval();
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
 
@@ -131,7 +131,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
     else
     {
         // Received entire message: call callback
-        self->callback(content, realsize, 1, self->member);
+        self->m_callback(content, realsize, 1, self->m_member);
     }
 
     // Has to be returned for successful curl communication
@@ -165,22 +165,22 @@ size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
 
 void CurlConnectionProvider::setCurlUrl(CURL *hnd)
 {
-    if (this->url != "")
+    if (this->m_url != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_URL, this->url.c_str());
+        curl_easy_setopt(hnd, CURLOPT_URL, this->m_url.c_str());
     }
 }
 
 curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 {
     slist = NULL;
-    for (size_t i = 0; i < this->headers.size(); i++)
+    for (size_t i = 0; i < this->m_headers.size(); i++)
     {
-        slist = curl_slist_append(slist, this->headers[i].c_str());
+        slist = curl_slist_append(slist, this->m_headers[i].c_str());
     }
 
     // Only set header if header array contains elements
-    if (this->headers.size() > 0)
+    if (this->m_headers.size() > 0)
     {
         curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist);
     }
@@ -190,9 +190,9 @@ curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 
 void CurlConnectionProvider::setCurlBody(CURL *hnd)
 {
-    if (this->body != "")
+    if (this->m_body != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, this->body.c_str());
+        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, this->m_body.c_str());
     }
 }
 
@@ -208,23 +208,23 @@ void CurlConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chu
 
 void CurlConnectionProvider::setCurlSSL(CURL *hnd)
 {
-    if (this->settings->getCertificatePath() != "")
+    if (this->m_settings->getCertificatePath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLCERT, this->settings->getCertificatePath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLCERT, this->m_settings->getCertificatePath().c_str());
     }
 
     // Set private key
-    if (this->settings->getPrivateKeyPath() != "")
+    if (this->m_settings->getPrivateKeyPath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLKEY, this->settings->getPrivateKeyPath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLKEY, this->m_settings->getPrivateKeyPath().c_str());
     }
 
-    if (this->settings->getConnectionParameters().secret != "")
+    if (this->m_settings->getConnectionParameters().secret != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, this->settings->getConnectionParameters().secret.c_str());
+        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, this->m_settings->getConnectionParameters().secret.c_str());
     }
 
-    if (this->settings->acceptSelfSignedCertificate())
+    if (this->m_settings->acceptSelfSignedCertificate())
     {
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYHOST, 0);
@@ -267,7 +267,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             curlMessage = std::string(curl_easy_strerror(curlCode));
         }
 
-        this->settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, content);
+        this->m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, content);
     }
     else
     {
@@ -284,7 +284,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             // get content if there is some content
             std::string content(chunk->memory, chunk->size);
 
-            this->settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, content);
+            this->m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, content);
             return;
         }
 
@@ -296,7 +296,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         else
         {
             // No polling, call callback instead
-            (this->callback)(chunk->memory, chunk->size, 1, this->member);
+            (this->m_callback)(chunk->memory, chunk->size, 1, this->m_member);
         }
     }
 }

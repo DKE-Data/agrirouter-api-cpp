@@ -36,15 +36,7 @@ void AgrirouterClient::init(Settings *settings)
     m_seqNo = 0;
     m_settings = settings;
     m_messageProvider = new MessageProvider(settings, this->m_chunkSize);
-
-    if (settings->getConnectionType() == Settings::HTTP)
-    {
-        m_connectionProvider = new CurlConnectionProvider(settings);
-    }
-    else if (settings->getConnectionType() == Settings::MQTT)
-    {
-        // ToDo: MQTT needs to be implemented
-    }
+    m_connectionProvider = new CurlConnectionProvider(settings);
 }
 
 AgrirouterClient::~AgrirouterClient()

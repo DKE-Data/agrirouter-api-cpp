@@ -384,8 +384,8 @@ inline ConnectionParameters getConnectionParametersFromJSON(std::string params)
     // Check for MQTT (gatewayId "2")
     if (parameters.gatewayId == "2")
     {
-        parameters.host = cJSON_GetObjectItem(root, "host")->valuestring,
-        parameters.port = cJSON_GetObjectItem(root, "port")->valuestring;
+        parameters.host = cJSON_GetObjectItem(root, "host")->valuestring;
+        parameters.port = cJSON_GetObjectItem(root, "port")->valueint;
         parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
     }
 
@@ -449,7 +449,7 @@ inline void saveConnectionParameters(ConnectionParameters *parameters, std::stri
 {
     std::string credentials = getConnectionParametersAsJSON(parameters);
     writeFile(credentials, absolutePath);
-    }
+}
 
 inline ApplicationSettings getApplicationSettings(std::string& absolutePath)
 {

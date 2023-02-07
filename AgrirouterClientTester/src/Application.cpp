@@ -64,9 +64,10 @@ std::string Application::getCurrentWorkingDir()
 int32_t Application::run(int32_t argc, char *argv[])
 {
     // Set callback settings
-    m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
-    m_settings->setOnMessageCallback(onMessageCallback);
-    m_settings->setOnErrorCallback(onErrorCallback);
+    this->m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
+    this->m_settings->setOnMessageCallback(onMessageCallback);
+    this->m_settings->setOnErrorCallback(onErrorCallback);
+    this->m_settings->setCallbackCallee(this);
 
     printf("Read file %sAgrirouterClientTesterConfig.json\n", directory.c_str());
 
@@ -86,10 +87,9 @@ int32_t Application::run(int32_t argc, char *argv[])
     m_settings->setCertificatePath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_cert.pem");
     m_settings->setPrivateKeyPath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_key.pem");
     m_settings->setConnectionParametersPath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_ids.json");
-    // m_settings->setCaFilePath("");
 
     ConnectionParameters conn = m_settings->getConnectionParameters(m_settings->getConnectionParametersPath());
-    printf("ConnectionParameters: \n\tgatewayId %s \n\thost %s \n\tport %s\n\tclientId %s\n\tsecret %s\n", conn.gatewayId.c_str(), conn.host.c_str(), conn.port.c_str(), conn.clientId.c_str(), conn.secret.c_str());
+    printf("ConnectionParameters: \n\tgatewayId: %s \n\thost: %s \n\tport: %i\n\tclientId: %s\n\tsecret: %s\n", conn.gatewayId.c_str(), conn.host.c_str(), conn.port, conn.clientId.c_str(), conn.secret.c_str());
 
     m_settings->setEncodingType("base64");
     if (this->m_applicationSettings.connectionType == "HTTP")
@@ -100,7 +100,6 @@ int32_t Application::run(int32_t argc, char *argv[])
     }
     else if (this->m_applicationSettings.connectionType == "MQTT")
     {
-        // ToDo: MQTT needs to be implemented
         m_settings->setConnectionType(Settings::MQTT);
     }
 
@@ -181,7 +180,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::string message = arg.substr(begin + 1);
 
             m_onboarding = true;
-            this->m_settings->setCallbackCallee(this);
             
             std::string externalId = this->m_applicationSettings.externalId;
             this->m_communicator->onboard(message, externalId);
@@ -317,15 +315,14 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
                 dataAsString = reinterpret_cast<std::string *>(data);
                 printf("MG_PARAMETER_PRIVATE_KEY: %s\npath: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
                 writeFile(dataAsString->c_str(), self->m_settings->getPrivateKeyPath());
-
                 break;
 
             case MG_PARAMETER_CONNECTION_PARAMETERS:
 
                 ConnectionParameters *parameters = reinterpret_cast<ConnectionParameters *>(data);
-                printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n",  self->m_settings->getConnectionParametersPath().c_str());
+                printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n", self->m_settings->getConnectionParametersPath().c_str());
                 saveConnectionParameters(parameters, self->m_settings->getConnectionParametersPath());
-
+                printf("Onboarding Complete\n");
                 self->m_onboarding = false;
                 break;
         }

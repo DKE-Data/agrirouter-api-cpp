@@ -149,7 +149,7 @@ typedef struct ConnectionParameters
     std::string commandsUrl;
     std::string gatewayId;
     std::string host;
-    std::string port;
+    uint16_t port;
     std::string clientId;
 } ConnectionParameters;
 

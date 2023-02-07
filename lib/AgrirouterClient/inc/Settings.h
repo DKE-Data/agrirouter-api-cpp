@@ -87,36 +87,36 @@ class Settings
         int getPollingMaxTime();
 
     private:
-        onParameterChangeCallback onParameter;
-        onMessageCallback onMessage;
-        onErrorCallback onError;
-        void *callbackCallee;
+        onParameterChangeCallback m_onParameter;
+        onMessageCallback m_onMessage;
+        onErrorCallback m_onError;
+        void *m_callbackCallee;
 
         // For onboarding
-        std::string authUsername;
-        std::string authPassword;
-        std::string accountId;
-        std::string applicationId;
-        std::string certificationVersionId;
-        std::string onboardId;
-        std::string gatewayId;
-        std::string certificateType;
+        std::string m_authUsername;
+        std::string m_authPassword;
+        std::string m_accountId;
+        std::string m_applicationId;
+        std::string m_certificationVersionId;
+        std::string m_onboardId;
+        std::string m_gatewayId;
+        std::string m_certificateType;
 
         // For sending and receiving messages
-        std::string certificate;
-        std::string certificatePath;
-        std::string caFilePath;
-        std::string privateKey;
-        std::string privateKeyPath;
-        std::string encodingType;
-        ConnectionType connectionType;
-        ConnectionParameters connectionParameters;
-        std::string connectionParametersPath;
+        std::string m_certificate;
+        std::string m_certificatePath;
+        std::string m_caFilePath;
+        std::string m_privateKey;
+        std::string m_privateKeyPath;
+        std::string m_encodingType;
+        ConnectionType m_connectionType;
+        ConnectionParameters m_connectionParameters;
+        std::string m_connectionParametersPath;
         bool m_acceptSelfSignedCertificate;
 
         // For general purposes
-        int pollingInterval;
-        int pollingMaxTime;
+        int m_pollingInterval;
+        int m_pollingMaxTime;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_

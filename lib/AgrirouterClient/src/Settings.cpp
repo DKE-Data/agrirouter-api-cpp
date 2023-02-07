@@ -7,20 +7,20 @@ Settings::~Settings() {}
 
 void Settings::callOnParameterChange(int event, void *data)
 {
-    this->onParameter(event, data, this->callbackCallee);
+    this->m_onParameter(event, data, this->m_callbackCallee);
 }
 
 void Settings::callOnMessage(Response *response, MessageParameters messageParameters)
 {
-    this->onMessage(messageParameters.event, response,
-                  messageParameters.applicationMessageId, this->callbackCallee);
+    this->m_onMessage(messageParameters.event, response,
+                  messageParameters.applicationMessageId, this->m_callbackCallee);
 }
 
 void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
         MessageParameters messageParameters, std::string content)
 {
-    this->onError(statusCode, connectionProviderErrorCode, curlMessage,
-                  messageParameters.applicationMessageId, content, this->callbackCallee);
+    this->m_onError(statusCode, connectionProviderErrorCode, curlMessage,
+                  messageParameters.applicationMessageId, content, this->m_callbackCallee);
 }
 
 ConnectionParameters Settings::getConnectionParameters(std::string absolutePath)
@@ -37,226 +37,226 @@ ConnectionParameters Settings::getConnectionParameters(std::string absolutePath)
 
 void Settings::setOnParameterChangeCallback(onParameterChangeCallback onParameter)
 {
-    this->onParameter = onParameter;
+    this->m_onParameter = onParameter;
 }
 
 Settings::onParameterChangeCallback Settings::getOnParameterChangeCallback()
 {
-    return this->onParameter;
+    return this->m_onParameter;
 }
 
 void Settings::setOnMessageCallback(onMessageCallback onMessage)
 {
-    this->onMessage = onMessage;
+    this->m_onMessage = onMessage;
 }
 
 Settings::onMessageCallback Settings::getOnMessageCallback()
 {
-    return this->onMessage;
+    return this->m_onMessage;
 }
 
 void Settings::setOnErrorCallback(onErrorCallback onError)
 {
-    this->onError = onError;
+    this->m_onError = onError;
 }
 
 Settings::onErrorCallback Settings::getOnErrorCallback()
 {
-    return this->onError;
+    return this->m_onError;
 }
 
 void Settings::setCallbackCallee(void *callbackCallee)
 {
-    this->callbackCallee = callbackCallee;
+    this->m_callbackCallee = callbackCallee;
 }
 
-void *Settings::getCallbackCallee() { return this->callbackCallee; }
+void *Settings::getCallbackCallee() { return this->m_callbackCallee; }
 
 void Settings::setAuthUsername(std::string authUsername)
 {
-    this->authUsername = authUsername;
-    this->onParameter(MG_PARAMETER_AUTH_USERNAME,
+    this->m_authUsername = authUsername;
+    this->m_onParameter(MG_PARAMETER_AUTH_USERNAME,
                     static_cast<void *>(&authUsername),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getAuthUsername() { return this->authUsername; }
+std::string Settings::getAuthUsername() { return this->m_authUsername; }
 
 void Settings::setAuthPassword(std::string authPassword)
 {
-    this->authPassword = authPassword;
-    this->onParameter(MG_PARAMETER_AUTH_PASSWORD,
+    this->m_authPassword = authPassword;
+    this->m_onParameter(MG_PARAMETER_AUTH_PASSWORD,
                     static_cast<void *>(&authPassword),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getAuthPassword() { return this->authPassword; }
+std::string Settings::getAuthPassword() { return this->m_authPassword; }
 
 void Settings::setAccountId(std::string accountId)
 {
-    this->accountId = accountId;
-    this->onParameter(MG_PARAMETER_ACCOUNT_ID,
+    this->m_accountId = accountId;
+    this->m_onParameter(MG_PARAMETER_ACCOUNT_ID,
                     static_cast<void *>(&accountId),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getAccountId() { return this->accountId; }
+std::string Settings::getAccountId() { return this->m_accountId; }
 
 void Settings::setApplicationId(std::string applicationId)
 {
-    this->applicationId = applicationId;
-    this->onParameter(MG_PARAMETER_APPLICATION_ID,
+    this->m_applicationId = applicationId;
+    this->m_onParameter(MG_PARAMETER_APPLICATION_ID,
                     static_cast<void *>(&applicationId),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getApplicationId() { return this->applicationId; }
+std::string Settings::getApplicationId() { return this->m_applicationId; }
 
 void Settings::setCertificationVersionId(std::string certificationVersionId)
 {
-    this->certificationVersionId = certificationVersionId;
-    this->onParameter(MG_PARAMETER_CERTIFICATION_VERSION_ID,
+    this->m_certificationVersionId = certificationVersionId;
+    this->m_onParameter(MG_PARAMETER_CERTIFICATION_VERSION_ID,
                     static_cast<void *>(&certificationVersionId),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
 std::string Settings::getCertificationVersionId()
 {
-    return this->certificationVersionId;
+    return this->m_certificationVersionId;
 }
 
 void Settings::setOnboardId(std::string onboardId)
 {
-    this->onboardId = onboardId;
-    this->onParameter(MG_PARAMETER_ONBOARD_ID,
+    this->m_onboardId = onboardId;
+    this->m_onParameter(MG_PARAMETER_ONBOARD_ID,
                     static_cast<void *>(&onboardId),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getOnboardId() { return this->onboardId; }
+std::string Settings::getOnboardId() { return this->m_onboardId; }
 
 void Settings::setGatewayId(std::string gatewayId)
 {
-    this->gatewayId = gatewayId;
-    this->onParameter(MG_PARAMETER_GATEWAY_ID,
+    this->m_gatewayId = gatewayId;
+    this->m_onParameter(MG_PARAMETER_GATEWAY_ID,
                     static_cast<void *>(&gatewayId),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getGatewayId() { return this->gatewayId; }
+std::string Settings::getGatewayId() { return this->m_gatewayId; }
 
 void Settings::setCertificateType(std::string certificateType)
 {
-    this->certificateType = certificateType;
-    this->onParameter(MG_PARAMETER_CERTIFICATE_TYPE,
+    this->m_certificateType = certificateType;
+    this->m_onParameter(MG_PARAMETER_CERTIFICATE_TYPE,
                     static_cast<void *>(&certificateType),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string Settings::getCertificateType() { return this->certificateType; }
+std::string Settings::getCertificateType() { return this->m_certificateType; }
 
 void Settings::setCertificate(std::string certificate)
 {
-    this->certificate = certificate;
-    this->onParameter(MG_PARAMETER_CERTIFICATE,
+    this->m_certificate = certificate;
+    this->m_onParameter(MG_PARAMETER_CERTIFICATE,
                     static_cast<void *>(&certificate),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getCertificate() { return this->certificate; }
+std::string& Settings::getCertificate() { return this->m_certificate; }
 
 void Settings::setCertificatePath(std::string certificatePath)
 {
-    this->certificatePath = certificatePath;
-    this->onParameter(MG_PARAMETER_CERTIFICATE_PATH,
+    this->m_certificatePath = certificatePath;
+    this->m_onParameter(MG_PARAMETER_CERTIFICATE_PATH,
                     static_cast<void *>(&certificatePath),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getCaFilePath() { return this->caFilePath; }
+std::string& Settings::getCaFilePath() { return this->m_caFilePath; }
 
 void Settings::setCaFilePath(std::string caFilePath)
 {
-    this->caFilePath = caFilePath;
-    this->onParameter(MG_PARAMETER_CERTIFICATE_PATH,
+    this->m_caFilePath = caFilePath;
+    this->m_onParameter(MG_PARAMETER_CERTIFICATE_PATH,
                     static_cast<void *>(&caFilePath),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getCertificatePath() { return this->certificatePath; }
+std::string& Settings::getCertificatePath() { return this->m_certificatePath; }
 
 void Settings::setPrivateKey(std::string privateKey)
 {
-    this->privateKey = privateKey;
-    this->onParameter(MG_PARAMETER_PRIVATE_KEY,
+    this->m_privateKey = privateKey;
+    this->m_onParameter(MG_PARAMETER_PRIVATE_KEY,
                     static_cast<void *>(&privateKey),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getPrivateKey() { return this->privateKey; }
+std::string& Settings::getPrivateKey() { return this->m_privateKey; }
 
 void Settings::setPrivateKeyPath(std::string privateKeyPath)
 {
-    this->privateKeyPath = privateKeyPath;
-    this->onParameter(MG_PARAMETER_PRIVATE_KEY_PATH,
+    this->m_privateKeyPath = privateKeyPath;
+    this->m_onParameter(MG_PARAMETER_PRIVATE_KEY_PATH,
                     static_cast<void *>(&privateKeyPath),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getPrivateKeyPath() { return this->privateKeyPath; }
+std::string& Settings::getPrivateKeyPath() { return this->m_privateKeyPath; }
 
 void Settings::setEncodingType(std::string encodingType)
 {
-    this->encodingType = encodingType;
-    this->onParameter(MG_PARAMETER_ENCODING_TYPE,
+    this->m_encodingType = encodingType;
+    this->m_onParameter(MG_PARAMETER_ENCODING_TYPE,
                     static_cast<void *>(&encodingType),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-std::string& Settings::getEncodingType() { return this->encodingType; }
+std::string& Settings::getEncodingType() { return this->m_encodingType; }
 
 void Settings::setConnectionType(ConnectionType connectionType)
 {
-    this->connectionType = connectionType;
-    this->onParameter(MG_PARAMETER_CONNECTION_TYPE,
+    this->m_connectionType = connectionType;
+    this->m_onParameter(MG_PARAMETER_CONNECTION_TYPE,
                     static_cast<void *>(&connectionType),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
 Settings::ConnectionType Settings::getConnectionType()
 {
-  return this->connectionType;
+  return this->m_connectionType;
 }
 
 void Settings::setConnectionParameters(ConnectionParameters connectionParameters)
 {
-    this->connectionParameters = connectionParameters;
-    this->onParameter(MG_PARAMETER_CONNECTION_PARAMETERS,
-                    static_cast<void *>(&connectionParameters),
-                    this->callbackCallee);
+    this->m_connectionParameters = connectionParameters;
+    this->m_onParameter(MG_PARAMETER_CONNECTION_PARAMETERS,
+                    static_cast<void *>(&this->m_connectionParameters),
+                    this->m_callbackCallee);
 }
 
 ConnectionParameters& Settings::getConnectionParameters()
 {
-    return this->connectionParameters;
+    return this->m_connectionParameters;
 }
 
 void Settings::setConnectionParametersPath(std::string connectionParametersPath)
 {
-    this->connectionParametersPath = connectionParametersPath;
-    this->onParameter(MG_PARAMETER_CONNECTION_PARAMETERS_PATH,
+    this->m_connectionParametersPath = connectionParametersPath;
+    this->m_onParameter(MG_PARAMETER_CONNECTION_PARAMETERS_PATH,
                     static_cast<void *>(&connectionParametersPath),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
 std::string& Settings::getConnectionParametersPath()
 {
-    return this->connectionParametersPath;
+    return this->m_connectionParametersPath;
 }
 
 void Settings::setAcceptSelfSignedCertificate(bool a_accept)
 {
-    m_acceptSelfSignedCertificate = a_accept;
+    this->m_acceptSelfSignedCertificate = a_accept;
 }
 
 bool Settings::acceptSelfSignedCertificate()
@@ -266,20 +266,20 @@ bool Settings::acceptSelfSignedCertificate()
 
 void Settings::setPollingInterval(int pollingInterval)
 {
-    this->pollingInterval = pollingInterval;
-    this->onParameter(MG_PARAMETER_POLLING_INTERVAL,
+    this->m_pollingInterval = pollingInterval;
+    this->m_onParameter(MG_PARAMETER_POLLING_INTERVAL,
                     static_cast<void *>(&pollingInterval),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-int Settings::getPollingInterval() { return this->pollingInterval; }
+int Settings::getPollingInterval() { return this->m_pollingInterval; }
 
 void Settings::setPollingMaxTime(int pollingMaxTime)
 {
-    this->pollingMaxTime = pollingMaxTime;
-    this->onParameter(MG_PARAMETER_POLLING_MAX_TIME,
+    this->m_pollingMaxTime = pollingMaxTime;
+    this->m_onParameter(MG_PARAMETER_POLLING_MAX_TIME,
                     static_cast<void *>(&pollingMaxTime),
-                    this->callbackCallee);
+                    this->m_callbackCallee);
 }
 
-int Settings::getPollingMaxTime() { return this->pollingMaxTime; }
+int Settings::getPollingMaxTime() { return this->m_pollingMaxTime; }
