@@ -410,37 +410,30 @@ inline ConnectionParameters getSavedConnectionParameters(std::string& absolutePa
 
 inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameters) 
 {
-    std::string credentials = "{";
+    std::string credentials = "";
+    cJSON *root;
 
-    credentials += "\n\t\"deviceAlternateId\": \"";
-    credentials += parameters->deviceAlternateId;
-    credentials += "\",\n\t\"capabilityAlternateId\": \"";
-    credentials += parameters->capabilityAlternateId;
-    credentials += "\",\n\t\"sensorAlternateId\": \"";
-    credentials += parameters->sensorAlternateId;
-    credentials += "\",\n\t\"certificateType\": \"";
-    credentials += parameters->certificateType;
-    credentials += "\",\n\t\"secret\": \"";
-    credentials += parameters->secret;
-    credentials += "\",\n\t\"measures\": \"";
-    credentials += parameters->measuresUrl;
-    credentials += "\",\n\t\"commands\": \"";
-    credentials += parameters->commandsUrl;
-    credentials += "\",\n\t\"gatewayId\": \"";
-    credentials += parameters->gatewayId;
+    root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "deviceAlternateId", parameters->deviceAlternateId.c_str());
+    cJSON_AddStringToObject(root, "capabilityAlternateId", parameters->capabilityAlternateId.c_str());
+    cJSON_AddStringToObject(root, "sensorAlternateId", parameters->sensorAlternateId.c_str());
+    cJSON_AddStringToObject(root, "certificateType", parameters->certificateType.c_str());
+    cJSON_AddStringToObject(root, "secret", parameters->secret.c_str());
+    cJSON_AddStringToObject(root, "measures", parameters->measuresUrl.c_str());
+    cJSON_AddStringToObject(root, "commands", parameters->commandsUrl.c_str());
+    cJSON_AddStringToObject(root, "gatewayId", parameters->gatewayId.c_str());
 
-    // Check for MQTT (gatewayId "2")
+    // Check for MQTT
     if (parameters->gatewayId == "2")
     {
-        credentials += "\",\n\t\"host\": \"";
-        credentials += parameters->host;
-        credentials += "\",\n\t\"port\": ";
-        credentials += parameters->port;
-        credentials += ",\n\t\"clientId\": \"";
-        credentials += parameters->clientId;
+        cJSON_AddStringToObject(root, "host", parameters->host.c_str());
+        cJSON_AddNumberToObject(root, "port", parameters->port);
+        cJSON_AddStringToObject(root, "clientId", parameters->clientId.c_str());
     }
 
-    credentials += "\"\n}";
+    credentials = cJSON_PrintUnformatted(root);
+
+    cJSON_Delete(root);
 
     return credentials;
 }

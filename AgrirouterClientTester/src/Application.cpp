@@ -89,7 +89,20 @@ int32_t Application::run(int32_t argc, char *argv[])
     m_settings->setConnectionParametersPath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_ids.json");
 
     ConnectionParameters conn = m_settings->getConnectionParameters(m_settings->getConnectionParametersPath());
-    printf("ConnectionParameters: \n\tgatewayId: %s \n\thost: %s \n\tport: %i\n\tclientId: %s\n\tsecret: %s\n", conn.gatewayId.c_str(), conn.host.c_str(), conn.port, conn.clientId.c_str(), conn.secret.c_str());
+
+    if(conn.sensorAlternateId.empty())
+    {
+        std::string firstArg = argv[1];
+        if(firstArg.find("--onboard") == std::string::npos)
+        {
+            printf("No ConnectionParameters found. Please call onboarding. \"agrirouterClientTester --onboard=<agrirouter TAN>\"\n");
+        }
+    }
+    else
+    {
+        printf("ConnectionParameters: \n\tgatewayId: %s \n\thost: %s \n\tport: %i\n\tclientId: %s\n\tsecret: %s\n", 
+                conn.gatewayId.c_str(), conn.host.c_str(), conn.port, conn.clientId.c_str(), conn.secret.c_str());
+    }
 
     m_settings->setEncodingType("base64");
     if (this->m_applicationSettings.connectionType == "HTTP")
@@ -305,7 +318,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
             case MG_PARAMETER_CERTIFICATE:
 
                 dataAsString = reinterpret_cast<std::string *>(data);
-                printf("MG_PARAMETER_CERTIFICATE: %s\npath: %s\n", dataAsString->c_str(), self->m_settings->getCertificatePath().c_str());
+                printf("MG_PARAMETER_CERTIFICATE: %s\ncertificate path: %s\n", dataAsString->c_str(), self->m_settings->getCertificatePath().c_str());
                 writeFile(*dataAsString, self->m_settings->getCertificatePath());
 
                 break;
@@ -313,7 +326,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
             case MG_PARAMETER_PRIVATE_KEY:
 
                 dataAsString = reinterpret_cast<std::string *>(data);
-                printf("MG_PARAMETER_PRIVATE_KEY: %s\npath: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
+                printf("MG_PARAMETER_PRIVATE_KEY: %s\nprivate key path: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
                 writeFile(dataAsString->c_str(), self->m_settings->getPrivateKeyPath());
                 break;
 
