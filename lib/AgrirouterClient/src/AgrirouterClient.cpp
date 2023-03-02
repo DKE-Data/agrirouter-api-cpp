@@ -2,6 +2,7 @@
 
 #include "AgrirouterMessageUtils.h"
 #include "CurlConnectionProvider.h"
+#include "MqttConnectionProvider.h"
 #include "Definitions.h"
 #include "Registration.h"
 
@@ -33,10 +34,18 @@ AgrirouterClient::AgrirouterClient(Settings *settings, uint32_t chunkSize)
 
 void AgrirouterClient::init(Settings *settings)
 {
-    m_seqNo = 0;
-    m_settings = settings;
-    m_messageProvider = new MessageProvider(settings, this->m_chunkSize);
-    m_connectionProvider = new CurlConnectionProvider(settings);
+    this->m_seqNo = 0;
+    this->m_settings = settings;
+    this->m_messageProvider = new MessageProvider(settings, this->m_chunkSize);
+
+    if (settings->getConnectionType() == Settings::HTTP)
+    {
+        this->m_connectionProvider = new CurlConnectionProvider(settings);
+    }
+    else if (settings->getConnectionType() == Settings::MQTT)
+    {
+        this->m_connectionProvider = new MqttConnectionProvider(settings);
+    }
 }
 
 AgrirouterClient::~AgrirouterClient()
@@ -56,8 +65,28 @@ AgrirouterClient::~AgrirouterClient()
 
 void AgrirouterClient::registerDeviceWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
-    Registration registration = Registration(m_connectionProvider, m_settings);
+    Registration registration = Registration(m_connectionProvider, m_settings, this);
+    registration.setCallback(registrationCallback);
     registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
+}
+
+void AgrirouterClient::registrationCallback(bool success, void *member)
+{
+    AgrirouterClient *self = static_cast<AgrirouterClient*>(member);
+    if(success) 
+    {
+        // reinit connection provider after onboard to new subscribe to the new topics
+        if (self->m_connectionProvider != NULL)
+        {
+            delete self->m_connectionProvider;
+            self->m_connectionProvider = NULL;
+        }
+        self->init(self->m_settings);
+    }
+    else
+    {
+        printf("Onboarding failed\n");
+    }
 }
 
 int32_t AgrirouterClient::getNextSeqNo()
@@ -173,7 +202,7 @@ void AgrirouterClient::requestMessages()
     m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().commandsUrl);
     m_connectionProvider->setHeaders(headers);
     m_connectionProvider->setCallback(requestMessagesCallback);
-    m_connectionProvider->setMember(static_cast<void *>(this));
+    m_connectionProvider->setMember(this);
 
     m_connectionProvider->getMessages();
 }
@@ -261,7 +290,7 @@ size_t AgrirouterClient::messageCallback(char *content, size_t size, size_t nmem
 int AgrirouterClient::sendMessage(AgrirouterMessage *agrirouterMessage, int event, std::string *messageId)
 {
     MessageParameters messageParameters;
-    messageParameters.member = static_cast<void *>(this);
+    messageParameters.member = this;
     messageParameters.event = event;
     messageParameters.applicationMessageId = *messageId;
 
@@ -304,7 +333,7 @@ void AgrirouterClient::getMessages(AgrirouterClient *self, ConnectionProvider::C
     self->m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().commandsUrl);
     self->m_connectionProvider->setHeaders(headers);
     self->m_connectionProvider->setCallback(callback);
-    self->m_connectionProvider->setMember(static_cast<void *>(self));
+    self->m_connectionProvider->setMember(self);
 
     self->m_connectionProvider->getMessages();
 }

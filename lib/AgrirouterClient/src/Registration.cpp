@@ -1,6 +1,7 @@
 #include "Registration.h"
 
 #include "Utils.h"
+#include "CurlConnectionProvider.h"
 #include "../third_party/cJSON/cJSON.h"
 
 #include <curl/curl.h>
@@ -10,10 +11,11 @@
 #include <iostream>
 #include <vector>
 
-Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings)
+Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings, void *member)
 {
-    m_settings = settings;
-    m_connectionProvider = connectionProvider;
+    this->m_settings = settings;
+    this->m_connectionProvider = connectionProvider;
+    this->m_member = member;
 }
 
 Registration::~Registration() {}
@@ -41,17 +43,20 @@ void Registration::sendOnboard(AgrirouterSettings& agrirouterSettings)
         m_settings->getGatewayId() + "\",\"certificateType\":\"" + "PEM" + "\"}";
 
     std::string url = agrirouterSettings.registrationUrl;
-    m_connectionProvider->setBody(body);
-    m_connectionProvider->setUrl(url);
-    m_connectionProvider->setHeaders(headers);
-    m_connectionProvider->setCallback(sendOnboardCallback);
-    m_connectionProvider->setMember(static_cast<void *>(this));
+
+    // change to curl connection provider, because onbarding is every time http
+    CurlConnectionProvider connectionProvider = CurlConnectionProvider(this->m_settings);
+    connectionProvider.setBody(body);
+    connectionProvider.setUrl(url);
+    connectionProvider.setHeaders(headers);
+    connectionProvider.setCallback(sendOnboardCallback);
+    connectionProvider.setMember(this);
 
     // ToDo: any application message id available?
     MessageParameters messageParameters;
     messageParameters.member = static_cast<void *>(this);
 
-    m_connectionProvider->onboard(messageParameters);
+    connectionProvider.onboard(messageParameters);
 }
 
 size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmemb, void *member)
@@ -113,6 +118,8 @@ void Registration::parseCertificates(std::string& message, void *member)
     self->m_settings->setConnectionParameters(parameters);
 
     cJSON_Delete(root);
+
+    self->m_callback(true, self->m_member);
 }
 
 bool Registration::containsError(std::string& message)
@@ -120,4 +127,9 @@ bool Registration::containsError(std::string& message)
     // Checks if string contains "statusCode" and "message" and returns the result
     // as a boolean
     return ((message.find("statusCode") != std::string::npos) && (message.find("message") != std::string::npos));
+}
+
+void Registration::setCallback(RegistrationCallback registrationCallback)
+{
+     this->m_callback = registrationCallback;
 }

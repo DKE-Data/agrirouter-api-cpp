@@ -20,6 +20,7 @@ class Application {
         ApplicationSettings m_applicationSettings;
 
         bool m_onboarding;
+        bool m_running;
         Addressing m_addressing;
 
     public:

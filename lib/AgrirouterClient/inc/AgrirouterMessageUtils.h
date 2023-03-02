@@ -253,7 +253,7 @@ inline Response decodeResponse(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
-        return Response();
+        return response;
     }
 
     // Parse envelope
@@ -267,7 +267,7 @@ inline Response decodeResponse(std::string& encoded)
         // Parsing failed
         delete decodedMsg;
         delete [] envelopeBuffer;
-        return Response();
+        return response;
     }
 
     // Parse length of payload
@@ -307,10 +307,10 @@ inline int getResponsesFromMessage(std::list<Response> *list, std::string *messa
 {
     // Iterate through message to get list of responses
     cJSON *root = cJSON_Parse(message->c_str());
-    //cJSON *item = cJSON_GetObjectItem(root, "message");
+
     for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++)
     {
-        cJSON * subitem = cJSON_GetArrayItem(root, i);
+        cJSON *subitem = cJSON_GetArrayItem(root, i);
         cJSON *command = cJSON_GetObjectItem(subitem, "command");
         cJSON *msg = cJSON_GetObjectItem(command, "message");
         std::string str = msg->valuestring;

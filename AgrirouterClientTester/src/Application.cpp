@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <thread>
 #include <list>
 #include <map>
 #include <string>
@@ -28,6 +29,7 @@ Application::Application()
     m_settings = new Settings();
 
     m_onboarding = false;
+    m_running = true;
     m_addressing.mode = RequestEnvelope::PUBLISH;
 }
 
@@ -162,6 +164,8 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "  \t\t\te.g. --url=https://register-url.com\n";
             std::cout << "  --taskdata=<PATH>\t\tsend taskdata.zip file that is saved at given path\n";
             std::cout << "  \t\t\te.g. --taskdata=/home/TASKDATA.zip\n";
+
+            this->m_running = false;
         }
         else if (arg == "-c")
         {
@@ -286,15 +290,15 @@ int32_t Application::run(int32_t argc, char *argv[])
             size_t begin = arg.find("=");
             std::string path = arg.substr(begin + 1);
 
-            std::string messageId;
+            std::string messageId = createUuid();
             std::string message = readBinaryFileAndBase64(path);
             std::string teamsetContextId = this->m_applicationSettings.teamsetContextId;
             m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size());
         }
     }
-
+    
     timeval timeout;
-    while (m_onboarding)
+    while (m_running)
     {
         timeout.tv_sec = 1;
         select(0, NULL, NULL, NULL, &timeout);
@@ -307,7 +311,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
 {
     printf("Parameter change (event %d)\n", event);
 
-    Application *self = reinterpret_cast<Application *>(callbackCallee);
+    Application *self = static_cast<Application *>(callbackCallee);
 
     std::string *dataAsString;
 
@@ -317,7 +321,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
         {
             case MG_PARAMETER_CERTIFICATE:
 
-                dataAsString = reinterpret_cast<std::string *>(data);
+                dataAsString = static_cast<std::string *>(data);
                 printf("MG_PARAMETER_CERTIFICATE: %s\ncertificate path: %s\n", dataAsString->c_str(), self->m_settings->getCertificatePath().c_str());
                 writeFile(*dataAsString, self->m_settings->getCertificatePath());
 
@@ -325,18 +329,19 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
 
             case MG_PARAMETER_PRIVATE_KEY:
 
-                dataAsString = reinterpret_cast<std::string *>(data);
+                dataAsString = static_cast<std::string *>(data);
                 printf("MG_PARAMETER_PRIVATE_KEY: %s\nprivate key path: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
                 writeFile(dataAsString->c_str(), self->m_settings->getPrivateKeyPath());
                 break;
 
             case MG_PARAMETER_CONNECTION_PARAMETERS:
 
-                ConnectionParameters *parameters = reinterpret_cast<ConnectionParameters *>(data);
+                ConnectionParameters *parameters = static_cast<ConnectionParameters *>(data);
                 printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n", self->m_settings->getConnectionParametersPath().c_str());
                 saveConnectionParameters(parameters, self->m_settings->getConnectionParametersPath());
                 printf("Onboarding Complete\n");
                 self->m_onboarding = false;
+                self->m_running = false;
                 break;
         }
     }
@@ -346,7 +351,7 @@ void Application::onMessageCallback(int event, Response *response, std::string a
 {
     printf("\n");
     printf("Message callback (event %d)\n", event);
-    Application *self = reinterpret_cast<Application *>(callbackCallee);
+    Application *self = static_cast<Application *>(callbackCallee);
     std::string msg;
     std::list<std::string> messageIds;
 
@@ -408,12 +413,17 @@ void Application::onMessageCallback(int event, Response *response, std::string a
             printf("ListEndpointsResponse: %s\n", msg.c_str());
         }
     }
+
+    self->m_running = false;
 }
 
 void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
                                     std::string applicationMessageId, std::string content, void *callbackCallee)
 {
+    Application *self = static_cast<Application *>(callbackCallee);
     printf("\n");
     printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page content: %s\n",
                 statusCode, connectionProviderErrorCode, curlMessage.c_str(), applicationMessageId.c_str(), content.c_str());
+    
+    self->m_running = false;
 }

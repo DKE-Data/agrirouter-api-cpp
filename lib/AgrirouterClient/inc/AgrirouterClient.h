@@ -44,6 +44,7 @@ class AgrirouterClient {
         // Request messages
         void requestMessages();
         static size_t requestMessagesCallback(char *content, size_t size, size_t nmemb, void *member);
+        static void registrationCallback(bool success, void *member);
 
         // Getter and Setter
         int32_t getNextSeqNo();

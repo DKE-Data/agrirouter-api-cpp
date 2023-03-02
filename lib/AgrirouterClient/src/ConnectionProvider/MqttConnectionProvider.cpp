@@ -1,52 +1,80 @@
-#include "CurlConnectionProvider.h"
+#include "MqttConnectionProvider.h"
 
 #include "AgrirouterClient.h"
+#include "AgrirouterMessageUtils.h"
 #include "Utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
-CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
+MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 {
     this->m_polling = false;
     this->m_settings = settings;
     this->m_body = "";
     this->m_url = "";
+    this->init();
 }
 
-CurlConnectionProvider::~CurlConnectionProvider() {}
+MqttConnectionProvider::~MqttConnectionProvider()
+{
+    if (this->m_mqttClient != NULL)
+    {
+        delete this->m_mqttClient;
+    }
+}
 
-void CurlConnectionProvider::sendMessage(MessageParameters messageParameters)
+void MqttConnectionProvider::init()
+{
+    ConnectionParameters conn = this->m_settings->getConnectionParameters();
+    this->m_mqttClient = new MqttClient(conn.clientId, conn.host, conn.port, this->m_settings);
+    this->m_mqttClient->init();
+    
+    // set message callback
+    this->m_mqttClient->setMember(this);
+    this->m_mqttClient->setMqttCallback(requestMqttCallback);
+
+    // subscribe to commands only subscribe when topic is valid (onboarding is done)
+    if(conn.commandsUrl.length() > 0)
+    {
+        this->m_mqttClient->subscribe(conn.commandsUrl, 2);
+    }
+}
+
+size_t MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int payloadlen, void *member)
+{
+    MqttConnectionProvider *self = static_cast<MqttConnectionProvider *>(member);
+    char* msg = (char*) payload;
+       
+    // If msg starts with '{', it is not an array as it comes from curl, so add the square brackets
+    if (strncmp(msg, "{", 1) == 0)
+    {
+        std::string message = std::string(msg, payloadlen);
+        message = "[" + message + "]";
+        payloadlen = message.length();
+        msg = strdup(message.c_str());
+    }
+
+    (self->m_callback)(msg, payloadlen, 1, &self->m_messageParameters);
+
+    return payloadlen;
+}
+
+void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
 {
     this->m_polling = false;
     this->sendMessageWithChunkedResponse(messageParameters);
 }
 
-void CurlConnectionProvider::sendMessageWithChunkedResponse(MessageParameters messageParameters)
+void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters messageParameters)
 {
-    // Initializations
-    CURL *hnd;
-
-    MemoryStruct chunk;
-    // Will be grown as needed by the realloc above
-    chunk.memory = static_cast<char*>(malloc(1));
-    // No data at this point
-    chunk.size = 0;
-
-    curl_slist *slist = NULL;
-    hnd = curl_easy_init();
-
-    this->setCurlUrl(hnd);
-    slist = this->setCurlHeaders(hnd, slist);
-    this->setCurlBody(hnd);
-    this->setCurlSSL(hnd);
-    this->setChunkedCurlCallback(hnd, &chunk);
-    this->executeChunkedCurl(hnd, &chunk, messageParameters);
-    this->cleanupChunkedCurl(hnd, slist, &chunk);
+    printf("Send message mqtt with message: '%s' and application id: '%s' \n", this->m_body.c_str(), messageParameters.applicationMessageId.c_str());
+    this->m_mqttClient->publish(this->m_settings->getConnectionParameters().measuresUrl, this->m_body, 2);
+    this->m_messageParameters = messageParameters;
 }
 
-void CurlConnectionProvider::onboard(MessageParameters messageParameters)
+void MqttConnectionProvider::onboard(MessageParameters messageParameters)
 {
     // Initializations
     CURL *hnd;
@@ -68,7 +96,7 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters)
     this->cleanupChunkedCurl(hnd, slist, &chunk);
 }
 
-void CurlConnectionProvider::getMessages(void)
+void MqttConnectionProvider::getMessages(void)
 {
     this->m_polling = true;
 
@@ -96,12 +124,12 @@ void CurlConnectionProvider::getMessages(void)
     this->cleanupChunkedCurl(hnd, slist, &chunk);
 }
 
-size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
+size_t MqttConnectionProvider::getMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
 {
     size_t realsize = size * nmemb;
     static int pollCount = 1;
 
-    CurlConnectionProvider *self = static_cast<CurlConnectionProvider*>(member);
+    MqttConnectionProvider *self = static_cast<MqttConnectionProvider*>(member);
     std::string message(content, realsize);
 
     timeval tv;
@@ -139,11 +167,11 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
 }
 
 // For chunked curl responses see: https://curl.haxx.se/libcurl/c/getinmemory.html
-size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
+size_t MqttConnectionProvider::chunkedResponseCallback(char *content,
         size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
-    MemoryStruct *mem = static_cast<MemoryStruct *>(userp);
+    MemoryStruct *mem = static_cast<MemoryStruct*>(userp);
 
     int memorySize = mem->size + realsize + 1;
     mem->memory = static_cast<char*>(realloc(mem->memory, memorySize));
@@ -163,7 +191,7 @@ size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
     return realsize;
 }
 
-void CurlConnectionProvider::setCurlUrl(CURL *hnd)
+void MqttConnectionProvider::setCurlUrl(CURL *hnd)
 {
     if (this->m_url != "")
     {
@@ -171,7 +199,7 @@ void CurlConnectionProvider::setCurlUrl(CURL *hnd)
     }
 }
 
-curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
+curl_slist *MqttConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 {
     slist = NULL;
     for (size_t i = 0; i < this->m_headers.size(); i++)
@@ -188,7 +216,7 @@ curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
     return slist;
 }
 
-void CurlConnectionProvider::setCurlBody(CURL *hnd)
+void MqttConnectionProvider::setCurlBody(CURL *hnd)
 {
     if (this->m_body != "")
     {
@@ -197,16 +225,16 @@ void CurlConnectionProvider::setCurlBody(CURL *hnd)
 }
 
 // For chunked curl responses see: https://curl.haxx.se/libcurl/c/getinmemory.html
-void CurlConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chunk)
+void MqttConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chunk)
 {
     /* send all data to this function  */
     curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, chunkedResponseCallback);
 
     /* we pass our 'chunk' struct to the callback function */
-    curl_easy_setopt(hnd, CURLOPT_WRITEDATA, static_cast<void *>(chunk));
+    curl_easy_setopt(hnd, CURLOPT_WRITEDATA, static_cast<void*>(chunk));
 }
 
-void CurlConnectionProvider::setCurlSSL(CURL *hnd)
+void MqttConnectionProvider::setCurlSSL(CURL *hnd)
 {
     if (this->m_settings->getCertificatePath() != "")
     {
@@ -232,7 +260,7 @@ void CurlConnectionProvider::setCurlSSL(CURL *hnd)
 }
 
 // For chunked curl responses see: https://curl.haxx.se/libcurl/c/getinmemory.html
-void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, MessageParameters messageParameters)
+void MqttConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, MessageParameters messageParameters)
 {
     CURLcode curlCode;
 
@@ -302,7 +330,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
 }
 
 // For chunked curl responses see: https://curl.haxx.se/libcurl/c/getinmemory.html
-void CurlConnectionProvider::cleanupChunkedCurl(CURL *hnd, curl_slist *slist, MemoryStruct *chunk)
+void MqttConnectionProvider::cleanupChunkedCurl(CURL *hnd, curl_slist *slist, MemoryStruct *chunk)
 {
     curl_easy_cleanup(hnd);
     hnd = NULL;

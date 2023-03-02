@@ -11,7 +11,7 @@
 class Registration
 {
     public:
-        Registration(ConnectionProvider *connectionProvider, Settings *settings);
+        Registration(ConnectionProvider *connectionProvider, Settings *settings, void *member);
         ~Registration();
 
         /**
@@ -43,9 +43,21 @@ class Registration
         */
         void parseCertificates(std::string& message, void *member);
 
+        /**
+        * Define registration callback
+        */
+        typedef void (*RegistrationCallback)(bool success, void *member);
+
+        /**
+        * Set a callback function for callback
+        */
+        void setCallback(RegistrationCallback registrationCallback);
+
     private:
         ConnectionProvider *m_connectionProvider;
         Settings *m_settings;
+        void *m_member;
+        RegistrationCallback m_callback;
 
         std::string m_registrationCode;
 };
