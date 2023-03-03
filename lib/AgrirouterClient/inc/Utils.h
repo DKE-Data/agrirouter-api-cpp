@@ -530,14 +530,14 @@ inline ValidityPeriod getValidityPeriodForLastMinutes(int minutes)
     ValidityPeriod validityPeriod = ValidityPeriod();
 
     google::protobuf::Timestamp to = getCurrentTimestamp();
-    google::protobuf::Timestamp *t = validityPeriod.mutable_sentto();
+    google::protobuf::Timestamp *t = validityPeriod.mutable_sent_to();
     *t = to;
 
     timeval tv = getTimestamp();
     tv.tv_sec -= minutes * 60;
 
     google::protobuf::Timestamp from = getTimestampFromTimeval(tv);
-    google::protobuf::Timestamp *f = validityPeriod.mutable_sentfrom();
+    google::protobuf::Timestamp *f = validityPeriod.mutable_sent_from();
     *f = from;
 
     return validityPeriod;

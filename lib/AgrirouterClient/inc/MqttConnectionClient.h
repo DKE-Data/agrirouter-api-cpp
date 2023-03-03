@@ -41,7 +41,7 @@ private:
     MqttCallback m_mqttCallback;
     void *m_member;
 
-	static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
+    static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);
     static void disconnectCallback(struct mosquitto *mosq, void *obj, int result);
     static void publishCallback(struct mosquitto *mosq, void *obj, int messageId);

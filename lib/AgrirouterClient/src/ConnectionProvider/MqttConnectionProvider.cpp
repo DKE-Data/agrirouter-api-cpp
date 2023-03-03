@@ -77,7 +77,7 @@ void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
 void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters messageParameters)
 {
     printf("Send message mqtt with message: '%s' and application id: '%s' \n", this->m_body.c_str(), messageParameters.applicationMessageId.c_str());
-    this->m_mqttClient->publish(this->m_settings->getConnectionParameters().measuresUrl, this->m_body, 2);
+    this->m_mqttClient->publish(this->m_url, this->m_body, 2);
     this->m_messageParameters = messageParameters;
 }
 
