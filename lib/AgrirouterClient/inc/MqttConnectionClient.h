@@ -5,11 +5,11 @@
 #include "Settings.h"
 #include "third_party/mosquitto/mosquitto.h"
 
-class MqttClient {
+class MqttConnectionClient {
 
 public:
-    MqttClient(std::string &clientId, std::string &address, int port, Settings *settings);
-    ~MqttClient();
+    MqttConnectionClient(std::string &clientId, std::string &address, int port, Settings *settings);
+    ~MqttConnectionClient();
 
     // Function pointer for callback functions
     typedef size_t (*MqttCallback)(char *topic, void *payload, int payloadlen, void *member);
@@ -28,7 +28,7 @@ public:
 
     bool isConnected();
 
-    static MqttClient *mqttClient;
+    static MqttConnectionClient *mqttClient;
 
 private:
     struct mosquitto *m_mosq;

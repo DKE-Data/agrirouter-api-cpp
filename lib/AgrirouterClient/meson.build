@@ -2,7 +2,7 @@
 subdir('src/Protobuf')
 
 agrirouter_lib_sources = [
-    'src/Mqtt/MqttClient.cpp',
+    'src/ConnectionProvider/MqttConnectionClient.cpp',
     'src/ConnectionProvider/ConnectionProvider.cpp',
     'src/ConnectionProvider/CurlConnectionProvider.cpp',
     'src/ConnectionProvider/MqttConnectionProvider.cpp',
