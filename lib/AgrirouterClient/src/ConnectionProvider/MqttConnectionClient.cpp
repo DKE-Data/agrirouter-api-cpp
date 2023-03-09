@@ -191,24 +191,26 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     self->m_connected = false;
 
+    // reasonCode 0 disconnect is called by client, so no reconnect on destruct mqtt client 
     if(reasonCode > 0)
     {
         std::string errorMessage = "MqttConnectionClient: disconnect unexpected " + std::to_string(reasonCode) + ": " + mosquitto_connack_string(reasonCode);
         printf("%s\n", errorMessage.c_str());
         (self->m_mqttErrorCallback) (reasonCode, errorMessage, "", self->m_member);
-    }
+    
 
-    // try to reconnect
-    int reconn = mosquitto_reconnect(self->m_mosq);
-    if (reconn == MOSQ_ERR_SUCCESS)
-    {
-        printf("MqttConnectionClient: Reconnected\n");
-    }
-    else
-    {
-        std::string errorMessage = "MqttConnectionClient: reconnect failed " + std::to_string(reconn) + ": " + mosquitto_strerror(reconn);
-        printf("%s\n", errorMessage.c_str());
-        (self->m_mqttErrorCallback) (reconn, errorMessage, "", self->m_member);
+        // try to reconnect
+        int reconn = mosquitto_reconnect(self->m_mosq);
+        if (reconn == MOSQ_ERR_SUCCESS)
+        {
+            printf("MqttConnectionClient: Reconnected\n");
+        }
+        else
+        {
+            std::string errorMessage = "MqttConnectionClient: reconnect failed " + std::to_string(reconn) + ": " + mosquitto_strerror(reconn);
+            printf("%s\n", errorMessage.c_str());
+            (self->m_mqttErrorCallback) (reconn, errorMessage, "", self->m_member);
+        }
     }
 }
 
