@@ -65,7 +65,7 @@ AgrirouterClient::~AgrirouterClient()
 
 void AgrirouterClient::registerDeviceWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
-    Registration registration = Registration(m_connectionProvider, m_settings, this);
+    Registration registration = Registration(this->m_connectionProvider, this->m_settings, this);
     registration.setCallback(registrationCallback);
     registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
 }
@@ -311,13 +311,13 @@ int AgrirouterClient::sendMessage(AgrirouterMessage *agrirouterMessage, int even
     headers.push_back("Content-type: application/json");
     headers.push_back("Accept: application/json");
 
-    m_connectionProvider->setBody(message);
-    m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().measuresUrl);
-    m_connectionProvider->setHeaders(headers);
-    m_connectionProvider->setCallback(messageCallback);
-    m_connectionProvider->setMember(&messageParameters);
+    this->m_connectionProvider->setBody(message);
+    this->m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().measuresUrl);
+    this->m_connectionProvider->setHeaders(headers);
+    this->m_connectionProvider->setCallback(messageCallback);
+    this->m_connectionProvider->setMember(&messageParameters);
 
-    m_connectionProvider->sendMessage(messageParameters);
+    this->m_connectionProvider->sendMessage(messageParameters);
 
     return EXIT_SUCCESS;
 }

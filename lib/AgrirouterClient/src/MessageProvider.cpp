@@ -64,7 +64,7 @@ AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, 
     request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
 
     google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
-    payload->set_value(message, size);
+    payload->mutable_value()->assign(std::string(message, size));
     payload->set_type_url(typeUrl);
 
     return AgrirouterMessage(request);
@@ -171,7 +171,7 @@ AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing
     Request request;
     request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId);
     google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
-    payload->set_value(unchunkedData);
+    payload->mutable_value()->assign(std::string(unchunkedData));
     return AgrirouterMessage(request);
 }
 
@@ -193,7 +193,7 @@ AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Add
     chunk->set_total_size(size);
 
     google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
-    payload->set_value(data);
+    payload->mutable_value()->assign(data);
 
     return AgrirouterMessage(request);
 }

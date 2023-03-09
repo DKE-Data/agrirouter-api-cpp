@@ -21,7 +21,8 @@ class MqttConnectionProvider : public ConnectionProvider
             size_t size;
         } MemoryStruct;
 
-        static size_t requestMqttCallback(char *topic, void *payload, int payloadlen, void *member);
+        static void requestMqttCallback(char *topic, void *payload, int payloadlen, void *member);
+        static void requestMqttErrorCallback(int errorCode, std::string message, std::string content, void *member);
 
         void sendMessage(MessageParameters messageParameters);
         void sendMessageWithChunkedResponse(MessageParameters messageParameters);
@@ -31,7 +32,6 @@ class MqttConnectionProvider : public ConnectionProvider
         void onboard(MessageParameters messageParameters);
 
     private:
-        bool m_polling;
         MqttConnectionClient *m_mqttClient;
         MessageParameters m_messageParameters;
 

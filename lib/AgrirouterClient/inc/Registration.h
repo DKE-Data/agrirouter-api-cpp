@@ -40,8 +40,10 @@ class Registration
 
         /**
         * To get key and pem outof onboard message.
+        * 
+        *  @return parsed ConnectionParameters from message
         */
-        void parseCertificates(std::string& message, void *member);
+        ConnectionParameters parseParametersAndCertificates(std::string& message, void *member);
 
         /**
         * Define registration callback

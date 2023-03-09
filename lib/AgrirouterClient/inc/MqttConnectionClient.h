@@ -12,7 +12,8 @@ public:
     ~MqttConnectionClient();
 
     // Function pointer for callback functions
-    typedef size_t (*MqttCallback)(char *topic, void *payload, int payloadlen, void *member);
+    typedef void (*MqttCallback)(char *topic, void *payload, int payloadlen, void *member);
+    typedef void (*MqttErrorCallback)(int errorCode, std::string message, std::string content, void *member);
     typedef int (*pw_callback)(char *buf, int size, int rwflag, void *userdata);
 
     int init();
@@ -23,6 +24,8 @@ public:
 
     void setMqttCallback(MqttCallback callback);
     MqttCallback getMqttCallback();
+    void setMqttErrorCallback(MqttErrorCallback errorCallback);
+    MqttErrorCallback getMqttErrorCallback();
     void setMember(void* member);
     void* getMember();
 
@@ -39,6 +42,7 @@ private:
     bool m_connected;
     Settings *m_settings;
     MqttCallback m_mqttCallback;
+    MqttErrorCallback m_mqttErrorCallback;
     void *m_member;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);

@@ -69,6 +69,12 @@
 #define MG_EV_GET_MESSAGES (MG_EV_BASE + GET_MESSAGES)
 #define MG_EV_TIMELOG (MG_EV_BASE + TIMELOG)
 
+// error messages
+#define MG_ERROR_BASE 300
+#define MG_ERROR_MISSING_ENDPOINT (MG_ERROR_BASE + 1)
+#define MG_ERROR_MISSING_OR_EXPIRED_CERTIFICATE (MG_ERROR_BASE + 2)
+#define MG_ERROR_NOT_VALID_TOPIC (MG_ERROR_BASE + 3)
+
 // message types
 #define MESSAGE_TYPE_TASK_DATA "iso:11783:-10:taskdata:zip"
 #define MESSAGE_TYPE_TIME_LOG "iso:11783:-10:time_log:protobuf"

@@ -96,7 +96,7 @@ inline void fillAnyMessage(Any *any, Message *message)
 
     if (message->SerializeToArray(msg, size))
     {
-        any->set_value(msg, size);
+        any->mutable_value()->assign(std::string(msg, size));
     }
     else
     {

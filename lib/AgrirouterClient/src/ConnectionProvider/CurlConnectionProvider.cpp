@@ -255,7 +255,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         std::string curlMessage = "";
 
         // get content if there is some content
-        std::string content(chunk->memory, chunk->size);
+        std::string errorContent(chunk->memory, chunk->size);
 
         // get the curl message
         if(strlen(errbuf))
@@ -267,7 +267,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             curlMessage = std::string(curl_easy_strerror(curlCode));
         }
 
-        this->m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, content);
+        this->m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, errorContent);
     }
     else
     {
@@ -282,9 +282,9 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         {
             // Something went wrong
             // get content if there is some content
-            std::string content(chunk->memory, chunk->size);
+            std::string errorContent(chunk->memory, chunk->size);
 
-            this->m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, content);
+            this->m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
             return;
         }
 

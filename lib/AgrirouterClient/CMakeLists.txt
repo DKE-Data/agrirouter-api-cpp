@@ -22,8 +22,11 @@ file(GLOB SRCS
     "inc/Protobuf/messaging/response/payload/account/endpoints.pb.cc"
     "inc/Protobuf/messaging/response/payload/endpoint/capability.pb.cc"
     "inc/Protobuf/messaging/response/payload/feed/feed-response.pb.cc"
+    "inc/Protobuf/messaging/response/payload/feed/push-notification.pb.cc"
     "inc/Protobuf/messaging/response/response.pb.cc"
+    "inc/Protobuf/settings/dh-settings.pb.cc"
     "third_party/cJSON/*.c"
+    "third_party/mosquitto/*.h"
 )
 
 ################################################################################
@@ -43,4 +46,4 @@ install(FILES ${INC_H} DESTINATION include/AgrirouterClient)
 ################################################################################
 # Link protobuf lib
 ################################################################################
-target_link_libraries(AgrirouterClient protobuf curl uuid)
+target_link_libraries(AgrirouterClient protobuf curl uuid, mosquitto)

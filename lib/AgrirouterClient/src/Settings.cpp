@@ -16,11 +16,11 @@ void Settings::callOnMessage(Response *response, MessageParameters messageParame
                   messageParameters.applicationMessageId, this->m_callbackCallee);
 }
 
-void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
-        MessageParameters messageParameters, std::string content)
+void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage,
+        MessageParameters messageParameters, std::string errorContent)
 {
-    this->m_onError(statusCode, connectionProviderErrorCode, curlMessage,
-                  messageParameters.applicationMessageId, content, this->m_callbackCallee);
+    this->m_onError(statusCode, connectionProviderErrorCode, errorMessage,
+                  messageParameters.applicationMessageId, errorContent, this->m_callbackCallee);
 }
 
 ConnectionParameters Settings::getConnectionParameters(std::string absolutePath)
@@ -228,12 +228,16 @@ Settings::ConnectionType Settings::getConnectionType()
   return this->m_connectionType;
 }
 
-void Settings::setConnectionParameters(ConnectionParameters connectionParameters)
+// withCallback default is true
+void Settings::setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback)
 {
     this->m_connectionParameters = connectionParameters;
-    this->m_onParameter(MG_PARAMETER_CONNECTION_PARAMETERS,
+    if(withCallback)
+    {
+        this->m_onParameter(MG_PARAMETER_CONNECTION_PARAMETERS,
                     static_cast<void *>(&this->m_connectionParameters),
                     this->m_callbackCallee);
+    }
 }
 
 ConnectionParameters& Settings::getConnectionParameters()

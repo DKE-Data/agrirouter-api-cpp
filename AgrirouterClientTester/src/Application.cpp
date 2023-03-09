@@ -417,13 +417,13 @@ void Application::onMessageCallback(int event, Response *response, std::string a
     self->m_running = false;
 }
 
-void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
-                                    std::string applicationMessageId, std::string content, void *callbackCallee)
+void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string errorMessage,
+                                    std::string applicationMessageId, std::string errorContent, void *callbackCallee)
 {
     Application *self = static_cast<Application *>(callbackCallee);
     printf("\n");
-    printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page content: %s\n",
-                statusCode, connectionProviderErrorCode, curlMessage.c_str(), applicationMessageId.c_str(), content.c_str());
+    printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page errorContent: %s\n",
+                statusCode, connectionProviderErrorCode, errorMessage.c_str(), applicationMessageId.c_str(), errorContent.c_str());
     
     self->m_running = false;
 }

@@ -67,16 +67,22 @@ size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmem
 
     if (containsError(message))
     {
-        // printf("Received error: %s", message.c_str());
+        // printf("Received error: %s\n", message.c_str());
     }
 
-    // Get key and pem
-    self->parseCertificates(message, self);
+    ConnectionParameters parameters = self->parseParametersAndCertificates(message, self);
+
+    // set new secret and topic to can create mqtt connection before init agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters, false);
+    self->m_callback(true, self->m_member);
+
+    // set second time connection parameters with callback to agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters);
 
     return realsize;
 }
 
-void Registration::parseCertificates(std::string& message, void *member)
+ConnectionParameters Registration::parseParametersAndCertificates(std::string& message, void *member)
 {
     Registration *self = static_cast<Registration *>(member);
 
@@ -115,11 +121,9 @@ void Registration::parseCertificates(std::string& message, void *member)
     self->m_settings->setCertificate(certificate);
     self->m_settings->setPrivateKey(privKey);
 
-    self->m_settings->setConnectionParameters(parameters);
-
     cJSON_Delete(root);
 
-    self->m_callback(true, self->m_member);
+    return parameters;
 }
 
 bool Registration::containsError(std::string& message)
@@ -131,5 +135,5 @@ bool Registration::containsError(std::string& message)
 
 void Registration::setCallback(RegistrationCallback registrationCallback)
 {
-     this->m_callback = registrationCallback;
+    this->m_callback = registrationCallback;
 }

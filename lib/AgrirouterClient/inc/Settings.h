@@ -17,15 +17,15 @@ class Settings
 
         typedef void (*onParameterChangeCallback) (int event, void *data, void *callbackCallee);
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string curlMessage, 
-                                            std::string applicationMessageId, std::string content, void *callbackCallee);
+        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage, 
+                                            std::string applicationMessageId, std::string errorContent, void *callbackCallee);
 
         Settings();
         ~Settings();
 
         void callOnParameterChange(int event, void *data);
         void callOnMessage(Response *response, MessageParameters messageParameters);
-        void callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage, MessageParameters messageParameters, std::string content);
+        void callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage, MessageParameters messageParameters, std::string errorContent);
 
         // On parameter change callback
         void setOnParameterChangeCallback(onParameterChangeCallback onParameter);
@@ -73,7 +73,7 @@ class Settings
         std::string& getEncodingType();
         void setConnectionType(ConnectionType connectionType);
         ConnectionType getConnectionType();
-        void setConnectionParameters(ConnectionParameters connectionParameters);
+        void setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback = true);
         ConnectionParameters& getConnectionParameters();
         void setConnectionParametersPath(std::string connectionParametersPath);
         std::string& getConnectionParametersPath();
