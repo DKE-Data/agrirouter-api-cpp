@@ -81,6 +81,15 @@
 #define MESSAGE_TYPE_TIME_LOG "iso:11783:-10:time_log:protobuf"
 #define MESSAGE_TYPE_DEVICE_DESCRIPTION "iso:11783:-10:device_description:protobuf"
 
+// loglevel
+#define MG_LFL_CRI 1  // critical  
+#define MG_LFL_ERR 2  // error  
+#define MG_LFL_WRN 3  // warning  
+#define MG_LFL_MSG 4  // message  
+#define MG_LFL_NTC 5  // notice  
+#define MG_LFL_TRC 6  // trace  
+#define MG_LFL_DBG 7  // debug  
+
 // Other definitions
 #define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
 

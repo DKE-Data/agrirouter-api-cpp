@@ -19,6 +19,7 @@ class Settings
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
         typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage, 
                                             std::string applicationMessageId, std::string errorContent, void *callbackCallee);
+        typedef void (*onLoggingCallback) (int logLevel, std::string logMessage, void *callbackCallee);
 
         Settings();
         ~Settings();
@@ -26,6 +27,7 @@ class Settings
         void callOnParameterChange(int event, void *data);
         void callOnMessage(Response *response, MessageParameters messageParameters);
         void callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage, MessageParameters messageParameters, std::string errorContent);
+        void callOnLog(int logLevel, std::string logMessage);
 
         // On parameter change callback
         void setOnParameterChangeCallback(onParameterChangeCallback onParameter);
@@ -36,6 +38,9 @@ class Settings
         // On error change callback
         void setOnErrorCallback(onErrorCallback onError);
         onErrorCallback getOnErrorCallback();
+        // On logging change callback
+        void setOnLoggingCallback(onLoggingCallback onLogging);
+        onLoggingCallback getOnLoggingCallback();
         // Callback callee
         void setCallbackCallee(void *callbackCallee);
         void *getCallbackCallee();
@@ -94,6 +99,7 @@ class Settings
         onParameterChangeCallback m_onParameter;
         onMessageCallback m_onMessage;
         onErrorCallback m_onError;
+        onLoggingCallback m_onLog;
         void *m_callbackCallee;
 
         // For onboarding

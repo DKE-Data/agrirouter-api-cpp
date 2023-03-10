@@ -53,12 +53,12 @@ int MqttConnectionClient::init()
         int tlsInsecure = mosquitto_tls_insecure_set(this->m_mosq, false);
         if(tlsInsecure == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: tlsInsecure set successful - %i: %s\n", tlsInsecure, mosquitto_strerror(tlsInsecure));
+            this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: tlsInsecure set successful - " + std::to_string(tlsInsecure) + ": " + mosquitto_strerror(tlsInsecure));
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: tlsInsecure set failed " + std::to_string(tlsInsecure) + ": " + mosquitto_strerror(tlsInsecure);
-            printf("%s\n", errorMessage.c_str());
+            this->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (this->m_mqttErrorCallback) (tlsInsecure, errorMessage, "", this->m_member);
             return EXIT_FAILURE;
         }
@@ -66,12 +66,12 @@ int MqttConnectionClient::init()
         int tlsOptsSet = mosquitto_tls_opts_set(this->m_mosq, 1, NULL, NULL);
         if(tlsOptsSet == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: tlsOptsSet set successful - %i: %s\n", tlsOptsSet, mosquitto_strerror(tlsOptsSet));
+            this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: tlsOptsSet set successful - " + std::to_string(tlsOptsSet) + ": " + mosquitto_strerror(tlsOptsSet));
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: tlsOptsSet set failed " + std::to_string(tlsOptsSet) + ": " + mosquitto_strerror(tlsOptsSet);
-            printf("%s\n", errorMessage.c_str());
+            this->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (this->m_mqttErrorCallback) (tlsOptsSet, errorMessage, "", this->m_member);
             return EXIT_FAILURE;
         }
@@ -83,12 +83,12 @@ int MqttConnectionClient::init()
         int tlsSet = mosquitto_tls_set(this->m_mosq, nullptr, caCerts.c_str(), client_certificate.c_str(), client_key.c_str(), onPWCallback);
         if(tlsSet == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: tlsSet set successful - %i: %s\n", tlsSet, mosquitto_strerror(tlsSet));
+            this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: tlsSet set successful - " + std::to_string(tlsSet) + ": " + mosquitto_strerror(tlsSet));
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: tlsSet set failed " + std::to_string(tlsSet) + ": " + mosquitto_strerror(tlsSet);
-            printf("%s\n", errorMessage.c_str());
+            this->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MISSING_OR_EXPIRED_CERTIFICATE) + "\",\"message\":\"" + errorMessage + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
             (this->m_mqttErrorCallback) (MG_ERROR_MISSING_OR_EXPIRED_CERTIFICATE, "MqttConnectionClient: MQTT TLS Failed", errorJSON, this->m_member);
             return EXIT_FAILURE;
@@ -97,12 +97,12 @@ int MqttConnectionClient::init()
         int connect = mosquitto_connect_async(this->m_mosq, this->m_host.c_str(), this->m_port, 20);
         if(connect == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: connect set successful - %i: %s\n", connect, mosquitto_strerror(connect));
+            this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
-            printf("%s\n", errorMessage.c_str());
+            this->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (this->m_mqttErrorCallback) (connect, errorMessage, "", this->m_member);
             return EXIT_FAILURE;
         }
@@ -110,12 +110,12 @@ int MqttConnectionClient::init()
         int loop = mosquitto_loop_start(this->m_mosq);
         if(loop == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: loop start successful - %i: %s\n", loop, mosquitto_strerror(loop));
+            this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: loop set successful - " + std::to_string(loop) + ": " + mosquitto_strerror(loop));
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: loop start failed " + std::to_string(loop) + ": " + mosquitto_strerror(loop);
-            printf("%s\n", errorMessage.c_str());
+            this->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (this->m_mqttErrorCallback) (loop, errorMessage, "", this->m_member);
             return EXIT_FAILURE;
         }
@@ -127,7 +127,7 @@ int MqttConnectionClient::init()
     }
     else
     {
-        printf("MqttConnectionClient not connect to broker\n");
+        this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient not connect to broker");
     }
     return EXIT_FAILURE;
 }
@@ -169,17 +169,18 @@ int MqttConnectionClient::onPWCallback(char *buf, int size, int rwflag, void *us
 
 void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, int reasonCode)
 {
-    printf("MqttConnectionClient: connect callback with result: '%i'\n", reasonCode);
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect callback with result: " + std::to_string(reasonCode));
+
     self->m_connected = true;
     if(reasonCode == 0)
     {
-        printf("MqttConnectionClient: Connected to MQTT Broker (%s:%i)\n", self->m_host.c_str(), self->m_port);
+        self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port));
     }
     else
     {
         std::string errorMessage = "MqttConnectionClient: Failed Connected to MQTT Broker " + std::to_string(reasonCode) + ": " + mosquitto_connack_string(reasonCode);
-        printf("%s\n", errorMessage.c_str());
+        self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
         (self->m_mqttErrorCallback) (reasonCode, errorMessage, "", self->m_member);
     }
    
@@ -187,15 +188,15 @@ void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, in
 
 void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj, int reasonCode)
 {
-    printf("MqttConnectionClient: disconnect callback with result: '%i:%s'\n", reasonCode, mosquitto_strerror(reasonCode));
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: disconnect callback with result: '" + std::to_string(reasonCode) + ":" + mosquitto_strerror(reasonCode) + "'");
     self->m_connected = false;
 
     // reasonCode 0 disconnect is called by client, so no reconnect on destruct mqtt client 
     if(reasonCode > 0)
     {
         std::string errorMessage = "MqttConnectionClient: disconnect unexpected " + std::to_string(reasonCode) + ": " + mosquitto_connack_string(reasonCode);
-        printf("%s\n", errorMessage.c_str());
+        self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
         (self->m_mqttErrorCallback) (reasonCode, errorMessage, "", self->m_member);
     
 
@@ -203,12 +204,12 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
         int reconn = mosquitto_reconnect(self->m_mosq);
         if (reconn == MOSQ_ERR_SUCCESS)
         {
-            printf("MqttConnectionClient: Reconnected\n");
+            self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Reconnected");
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: reconnect failed " + std::to_string(reconn) + ": " + mosquitto_strerror(reconn);
-            printf("%s\n", errorMessage.c_str());
+            self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (self->m_mqttErrorCallback) (reconn, errorMessage, "", self->m_member);
         }
     }
@@ -216,17 +217,19 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
 
 void MqttConnectionClient::publishCallback(struct mosquitto *mosq, void *obj, int messageId)
 {
-    printf("MqttConnectionClient: [MsgId: %d] publish OK\n", messageId);
+    MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] publish OK");
 }
 
 void MqttConnectionClient::loggingCallback(struct mosquitto *mosq, void *obj, int level, const char *message)
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
-    printf("MqttConnectionClient: logging callback with message: '%s' and Log level: '%i'\n", message, level);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: logging callback with message: '" + std::string(message) + 
+            "' and Log level: '" + std::to_string(level) + "'");
 
     if(std::string(message).find("tls_process_server_certificate:certificate verify failed") != std::string::npos)
     {
-        printf("%s\n", message);
+        self->m_settings->callOnLog(MG_LFL_ERR, message);
         std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MISSING_OR_EXPIRED_CA_CERTIFICATE) + "\",\"message\":\"" + message + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
         (self->m_mqttErrorCallback) (MG_ERROR_MISSING_OR_EXPIRED_CA_CERTIFICATE, "MqttConnectionClient: MQTT TLS verify server certificate Failed", errorJSON, self->m_member);
     }
@@ -234,19 +237,19 @@ void MqttConnectionClient::loggingCallback(struct mosquitto *mosq, void *obj, in
 
 void MqttConnectionClient::subscribeCallback(struct mosquitto *mosq, void *obj, int messageId, int qosCount, const int *grantedQos)
 {
-    printf("MqttConnectionClient: [MsgId: %d] subscribe callback\n", messageId);
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] subscribe callback");
 
     for(int8_t i = 0; i < qosCount; i++)
     {
         if(grantedQos[i] == 2)
         {
-            printf("MqttConnectionClient: subscribe callback count %i OK\n", i);
+            self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: subscribe callback count " + std::to_string(i) + " OK");
         }
         else
         {
             std::string errorMessage = "MqttConnectionClient: subscribe callback count " + std::to_string(i) + " failed with " + std::to_string(grantedQos[i]);           
-            printf("%s\n", errorMessage.c_str());
+            self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (self->m_mqttErrorCallback) (grantedQos[i], errorMessage, "", self->m_member);
         }
     }
@@ -254,40 +257,51 @@ void MqttConnectionClient::subscribeCallback(struct mosquitto *mosq, void *obj, 
 
 void MqttConnectionClient::unsubscribeCallback(struct mosquitto *mosq, void *obj, int messageId)
 {
-    printf("MqttConnectionClient: unsubscribe callback\n");
+    MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: unsubscribe callback");
 }
 
 void MqttConnectionClient::messageCallback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message)
 {
-    printf("MqttConnectionClient: [MsgId: %d] messageCallback on topic %s with qos %i\n", message->mid, message->topic, message->qos);
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(message->mid) + "] messageCallback on topic " + 
+                    message->topic + " with qos " + std::to_string(message->qos));
+
     (self->m_mqttCallback)(message->topic, message->payload, message->payloadlen, self->m_member);
 }
 
 void MqttConnectionClient::subscribe(std::string &topic, int qos)
 {
-    printf("MqttConnectionClient: [MsgId: %d] subscribing on topic %s with qos %i\n", this->m_messageId, topic.c_str(), qos);
+    this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(this->m_messageId) + "] subscribing on topic " + 
+                   topic.c_str() + " with qos " + std::to_string(qos));
+
     mosquitto_subscribe(this->m_mosq, &(this->m_messageId), topic.c_str(), qos);
     ++this->m_messageId;
 }
 
 void MqttConnectionClient::publish(std::string &topic, std::string &payload, int qos)
 {
-    printf("MqttConnectionClient: [MsgId: %d] publishing on topic %s with qos %i and payload-length %i\n", this->m_messageId, topic.c_str(), qos, payload.length());
+    this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(this->m_messageId) + "] publishing on topic " + 
+                   topic.c_str() + " with qos " + std::to_string(qos) + " and payload-length " + std::to_string(payload.length()));
+
     mosquitto_publish(this->m_mosq, &(this->m_messageId), topic.c_str(), strlen(payload.c_str()), payload.c_str(), qos, 0);
     ++this->m_messageId;
 }
 
 void MqttConnectionClient::publish(std::string &topic, char *payload, int size, int qos)
 {
-    printf("MqttConnectionClient: [MsgId: %d] publishing on topic %s with qos %i and payload-length %i\n", this->m_messageId, topic.c_str(), qos, size);
+    this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(this->m_messageId) + "] publishing on topic " + 
+                   topic.c_str() + " with qos " + std::to_string(qos) + " and size " + std::to_string(size));
+
     mosquitto_publish(this->m_mosq, &(this->m_messageId), topic.c_str(), size, payload, qos, false);
     ++this->m_messageId;
 }
 
 void MqttConnectionClient::publish(std::string &topic, char *payload, int size, int qos, bool retain)
 {
-    printf("MqttConnectionClient: [MsgId: %d] publishing on topic %s with qos %i and payload-length %i and retain %s\n", this->m_messageId, topic.c_str(), qos, size, retain ? "true":"false");
+    this->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(this->m_messageId) + "] publishing on topic " + 
+                   topic.c_str() + " with qos " + std::to_string(qos) + " and size " + std::to_string(size) + " and retain " + std::to_string(retain));
+
     mosquitto_publish(this->m_mosq, &(this->m_messageId), topic.c_str(), size, payload, qos, retain);
     ++this->m_messageId;
 }

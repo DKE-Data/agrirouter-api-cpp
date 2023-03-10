@@ -27,6 +27,11 @@ void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std:
                   messageParameters.applicationMessageId, errorContent, this->m_callbackCallee);
 }
 
+void Settings::callOnLog(int logLevel, std::string logMessage)
+{
+    this->m_onLog(logLevel, logMessage, this->m_callbackCallee);
+}
+
 ConnectionParameters Settings::getConnectionParameters(std::string absolutePath)
 {
     ConnectionParameters parameters = getSavedConnectionParameters(absolutePath);
@@ -67,6 +72,16 @@ void Settings::setOnErrorCallback(onErrorCallback onError)
 Settings::onErrorCallback Settings::getOnErrorCallback()
 {
     return this->m_onError;
+}
+
+void Settings::setOnLoggingCallback(onLoggingCallback onLog)
+{
+    this->m_onLog = onLog;
+}
+
+Settings::onLoggingCallback Settings::getOnLoggingCallback()
+{
+    return this->m_onLog;
 }
 
 void Settings::setCallbackCallee(void *callbackCallee)
