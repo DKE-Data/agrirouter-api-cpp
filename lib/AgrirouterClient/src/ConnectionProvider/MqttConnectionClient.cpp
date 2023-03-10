@@ -221,7 +221,15 @@ void MqttConnectionClient::publishCallback(struct mosquitto *mosq, void *obj, in
 
 void MqttConnectionClient::loggingCallback(struct mosquitto *mosq, void *obj, int level, const char *message)
 {
+    MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     printf("MqttConnectionClient: logging callback with message: '%s' and Log level: '%i'\n", message, level);
+
+    if(std::string(message).find("tls_process_server_certificate:certificate verify failed") != std::string::npos)
+    {
+        printf("%s\n", message);
+        std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MISSING_OR_EXPIRED_CA_CERTIFICATE) + "\",\"message\":\"" + message + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
+        (self->m_mqttErrorCallback) (MG_ERROR_MISSING_OR_EXPIRED_CA_CERTIFICATE, "MqttConnectionClient: MQTT TLS verify server certificate Failed", errorJSON, self->m_member);
+    }
 }
 
 void MqttConnectionClient::subscribeCallback(struct mosquitto *mosq, void *obj, int messageId, int qosCount, const int *grantedQos)
