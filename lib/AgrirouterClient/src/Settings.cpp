@@ -2,7 +2,11 @@
 
 #include <string>
 
-Settings::Settings() : m_acceptSelfSignedCertificate(false) {}
+Settings::Settings() 
+    : m_certificateCaPath("/etc/ssl/certs/"),
+      m_acceptSelfSignedCertificate(false)
+{}
+
 Settings::~Settings() {}
 
 void Settings::callOnParameterChange(int event, void *data)
@@ -256,6 +260,16 @@ void Settings::setConnectionParametersPath(std::string connectionParametersPath)
 std::string& Settings::getConnectionParametersPath()
 {
     return this->m_connectionParametersPath;
+}
+
+void Settings::setCertificateCaPath(std::string certificateCaPath)
+{
+    this->m_certificateCaPath = certificateCaPath;
+}
+
+std::string& Settings::getCertificateCaPath()
+{
+    return this->m_certificateCaPath;
 }
 
 void Settings::setAcceptSelfSignedCertificate(bool a_accept)

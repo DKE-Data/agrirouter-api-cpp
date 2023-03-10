@@ -76,7 +76,7 @@ int MqttConnectionClient::init()
             return EXIT_FAILURE;
         }
 
-        std::string caCerts = "/etc/ssl/certs/";
+        std::string caCerts = this->m_settings->getCertificateCaPath();
         std::string client_certificate = this->m_settings->getCertificatePath();
         std::string client_key = this->m_settings->getPrivateKeyPath();
 

@@ -78,6 +78,10 @@ class Settings
         void setConnectionParametersPath(std::string connectionParametersPath);
         std::string& getConnectionParametersPath();
 
+        // path to root certificate to check agrirouter certificate (Default set /etc/ssl/certs/)
+        void setCertificateCaPath(std::string certificateCaPath);
+        std::string& getCertificateCaPath();
+
         void setAcceptSelfSignedCertificate(bool a_accept);
         bool acceptSelfSignedCertificate();
 
@@ -112,6 +116,7 @@ class Settings
         ConnectionType m_connectionType;
         ConnectionParameters m_connectionParameters;
         std::string m_connectionParametersPath;
+        std::string m_certificateCaPath;
         bool m_acceptSelfSignedCertificate;
 
         // For general purposes
