@@ -1,5 +1,5 @@
-#ifndef LIB_AGRIROUTERCLIENT_INC_MQTTCLIENT_H_
-#define LIB_AGRIROUTERCLIENT_INC_MQTTCLIENT_H_
+#ifndef LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_
+#define LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_
 
 #include "Definitions.h"
 #include "Settings.h"
@@ -34,16 +34,18 @@ public:
     static MqttConnectionClient *mqttClient;
 
 private:
-    struct mosquitto *m_mosq;
-    int m_port;
+    struct mosquitto *m_mosq;    
     std::string m_host;
+    int m_port;
     std::string m_clientId;
+
     int m_messageId;
     bool m_connected;
+    void *m_member;    
     Settings *m_settings;
+
     MqttCallback m_mqttCallback;
-    MqttErrorCallback m_mqttErrorCallback;
-    void *m_member;
+    MqttErrorCallback m_mqttErrorCallback;    
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);
@@ -55,4 +57,4 @@ private:
     static void messageCallback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
 };
 
-#endif // LIB_AGRIROUTERCLIENT_INC_MQTTCLIENT_H_
+#endif // LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_

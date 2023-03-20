@@ -96,7 +96,7 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     }
     else
     {
-        this->m_mqttClient->publish(this->m_url, this->m_body, 2);        
+        this->m_mqttClient->publish(this->m_url, this->m_body, 2); // Qos 2
     }
     this->m_messageParameters = messageParameters;
 }

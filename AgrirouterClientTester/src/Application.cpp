@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <thread>
 #include <list>
 #include <map>
 #include <string>

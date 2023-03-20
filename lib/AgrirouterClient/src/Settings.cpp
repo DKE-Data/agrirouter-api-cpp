@@ -247,8 +247,7 @@ Settings::ConnectionType Settings::getConnectionType()
   return this->m_connectionType;
 }
 
-// withCallback default is true
-void Settings::setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback)
+void Settings::setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback) // withCallback default is true
 {
     this->m_connectionParameters = connectionParameters;
     if(withCallback)

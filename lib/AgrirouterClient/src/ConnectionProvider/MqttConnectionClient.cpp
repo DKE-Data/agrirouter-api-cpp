@@ -2,13 +2,6 @@
 
 #include "third_party/mosquitto/mosquitto_internal.h"
 
-#include <openssl/asn1.h>
-#include <openssl/bio.h>
-#include <openssl/conf.h>
-#include <openssl/err.h>
-#include <openssl/pem.h>
-#include <openssl/x509.h>
-
 MqttConnectionClient::MqttConnectionClient(std::string &clientId, std::string &host, int port, Settings *settings)
 {
     this->m_clientId = clientId;
@@ -39,7 +32,7 @@ int MqttConnectionClient::init()
     {
         // set this to mosq for the pw_callback 
         // the function mosquitto_user_data_set(..) not working for this callback
-        // the direct to struct, not the best solution but it works
+        // the direct set to struct, not the best solution but it works
         this->m_mosq->userdata = this;
 
         mosquitto_connect_callback_set(this->m_mosq, connectCallback);

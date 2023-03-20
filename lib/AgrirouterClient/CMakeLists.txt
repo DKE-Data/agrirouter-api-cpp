@@ -46,4 +46,4 @@ install(FILES ${INC_H} DESTINATION include/AgrirouterClient)
 ################################################################################
 # Link protobuf lib
 ################################################################################
-target_link_libraries(AgrirouterClient protobuf curl uuid, mosquitto)
+target_link_libraries(AgrirouterClient protobuf curl uuid mosquitto)
