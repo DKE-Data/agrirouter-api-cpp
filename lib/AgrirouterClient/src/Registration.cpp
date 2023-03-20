@@ -67,7 +67,7 @@ size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmem
 
     if (containsError(message))
     {
-        // printf("Received error: %s\n", message.c_str());
+        self->m_settings->callOnLog(MG_LFL_ERR, "Received error: " + message);
     }
 
     ConnectionParameters parameters = self->parseParametersAndCertificates(message, self);

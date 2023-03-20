@@ -87,7 +87,8 @@ void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
 
 void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters messageParameters)
 {
-    printf("Send message mqtt with application id: '%s' \n", messageParameters.applicationMessageId.c_str());
+    this->m_settings->callOnLog(MG_LFL_NTC, "Send message mqtt with application id: '" + messageParameters.applicationMessageId + "'");
+
     if(this->m_url.find("http") != std::string::npos)
     {
         std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + this->m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
@@ -102,7 +103,7 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
 
 void MqttConnectionProvider::onboard(MessageParameters messageParameters)
 {
-   printf("Onboarding with MQTT is not possible");
+    this->m_settings->callOnLog(MG_LFL_CRI, "Onboarding with MQTT is not possible");
 }
 
 void MqttConnectionProvider::getMessages(void)

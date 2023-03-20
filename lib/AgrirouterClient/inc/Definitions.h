@@ -218,4 +218,10 @@ typedef struct BinaryData
 typedef size_t (*TokenCallback) (std::string token, Error error);
 typedef size_t (*GetMessagesCallback) ( google::protobuf::RepeatedPtrField<CommonsMessage>, Error error);
 
+static inline std::string getLogLevelText(int logLevel)
+{
+    std::string logLevelTexts[8] = {"", "CRITICAL", "ERROR   ", "WARNING ", "MESSAGE ", "NOTICE  ", "TRACE   ", "DEBUG   "};
+    return logLevelTexts[logLevel];
+}
+
 #endif  // LIB_AGRIROUTERCLIENT_INC_DEFINITIONS_H_

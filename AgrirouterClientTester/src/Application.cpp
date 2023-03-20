@@ -69,6 +69,7 @@ int32_t Application::run(int32_t argc, char *argv[])
     this->m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
     this->m_settings->setOnMessageCallback(onMessageCallback);
     this->m_settings->setOnErrorCallback(onErrorCallback);
+    this->m_settings->setOnLoggingCallback(onLogCallback);
     this->m_settings->setCallbackCallee(this);
 
     printf("Read file %sAgrirouterClientTesterConfig.json\n", directory.c_str());
@@ -426,4 +427,18 @@ void Application::onErrorCallback(int statusCode, int connectionProviderErrorCod
                 statusCode, connectionProviderErrorCode, errorMessage.c_str(), applicationMessageId.c_str(), errorContent.c_str());
     
     self->m_running = false;
+}
+
+void Application::onLogCallback(int logLevel, std::string logMessage, void *callbackCallee)
+{
+    if(logLevel < MG_LFL_TRC)
+    {
+        // build time for logging string
+        char buffer [80];
+        std::time_t timeNow = time(NULL);
+        std::tm *timeinfo = localtime(&timeNow);
+        strftime (buffer, 80, "%Y%m%d %H:%M:%S", timeinfo);
+
+        printf("[%s] [%s]: %s \n", &buffer[0], getLogLevelText(logLevel).c_str(), logMessage.c_str());
+    }
 }

@@ -85,7 +85,7 @@ void AgrirouterClient::registrationCallback(bool success, void *member)
     }
     else
     {
-        printf("Onboarding failed\n");
+        self->m_settings->callOnLog(MG_LFL_ERR, "Onboarding failed");
     }
 }
 

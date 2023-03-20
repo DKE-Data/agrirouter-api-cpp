@@ -36,6 +36,7 @@ class Application {
         static void onParameterChangeCallback(int event, void *data, void *callbackCallee);
         static void onMessageCallback(int event, Response *response, std::string applicationMessageId, void *callbackCallee);
         static void onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string errorMessage, std::string applicationMessageId, std::string errorContent, void *callbackCallee);
+        static void onLogCallback(int logLevel, std::string logMessage, void *callbackCallee);
 };
 
 #endif  // AGRIROUTERCLIENTTESTER_INC_APPLICATION_H_
