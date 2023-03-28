@@ -14,8 +14,6 @@
 #include <vector>
 #include <iterator>
 
-
-
 inline std::string createUuid()
 {
     uuid_t id;
@@ -333,12 +331,12 @@ inline void writeFile(const std::string &data, std::string& absolutePath)
     }
 }
 
-inline std::vector<unsigned char> readBinaryFile(std::string& absolutePath)
+inline std::string readBinaryFile(std::string& absolutePath)
 {
-    std::ifstream input(absolutePath.c_str(), std::ios::binary);
+    std::ifstream input(absolutePath.c_str(), std::ifstream::binary);
 
     // copies all data into buffer
-    std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
+    std::string buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
 
     return buffer;
 }
@@ -351,13 +349,9 @@ inline void writeBinaryFile(std::vector<unsigned char> buffer, std::string& abso
 
 inline std::string readBinaryFileAndBase64(std::string& absolutePath)
 {
-    std::vector<unsigned char> binaryFile = readBinaryFile(absolutePath);
-    unsigned char *file = new unsigned char[binaryFile.size()];
-    std::copy(binaryFile.begin(), binaryFile.end(), file);
-    binaryFile.clear();
-    std::string base64 = encodeBase64(file, binaryFile.size());
-
-    delete [] file;
+    // no check if file is there please check in application
+    std::string content = readBinaryFile(absolutePath);
+    std::string base64 = encodeBase64(reinterpret_cast<const BYTE*>(content.c_str()), content.size());
     return base64;
 }
 

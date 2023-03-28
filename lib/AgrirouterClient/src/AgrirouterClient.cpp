@@ -152,43 +152,44 @@ void AgrirouterClient::sendMessagesDelete(std::string *messageId, MessageDelete 
     sendMessage(&message, MG_EV_MESSAGE_DELETE, messageId);
 }
 
-void AgrirouterClient::sendDeviceDescription(Addressing& addressing, std::string *messageId, std::string& teamsetId, ISO11783_TaskData *taskdata)
+void AgrirouterClient::sendDeviceDescription(Addressing& addressing, std::string *messageId, std::string& teamsetId, ISO11783_TaskData *taskdata, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, getNextSeqNo(), addressing, teamsetId, taskdata);
+    AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, getNextSeqNo(), addressing, teamsetId, taskdata, fileName);
     sendMessage(&message, MG_EV_DEVICE_DESCRIPTION, messageId);
 }
 
-void AgrirouterClient::sendTimelog(Addressing& addressing, std::string *messageId, std::string& teamsetId, TimeLog *timelog)
+void AgrirouterClient::sendTimelog(Addressing& addressing, std::string *messageId, std::string& teamsetId, TimeLog *timelog, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, getNextSeqNo(), addressing, teamsetId, timelog);
+    AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, getNextSeqNo(), addressing, teamsetId, timelog, fileName);
     sendMessage(&message, MG_EV_TIMELOG, messageId);
 }
 
 void AgrirouterClient::sendChunk(AgrirouterMessage& message)
 {
+    // fileName already in AgrirouterMessage
     message.request().envelope.set_application_message_seq_no(getNextSeqNo());
     std::string applicationMessageId = message.request().envelope.application_message_id();
     sendMessage(&message, MG_EV_NON_TELEMETRY, &applicationMessageId);
 }
 
-void AgrirouterClient::sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size)
+void AgrirouterClient::sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getImageMessage(messageId, addressing, getNextSeqNo(), teamsetId, image, size);
+    AgrirouterMessage message = m_messageProvider->getImageMessage(messageId, addressing, getNextSeqNo(), teamsetId, image, size, fileName);
     sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
 }
 
-void AgrirouterClient::sendTaskdataZip(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *taskdataZip, int size)
+void AgrirouterClient::sendTaskdataZip(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *taskdataZip, int size, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getTaskdataZipMessage(messageId, addressing, getNextSeqNo(), teamsetId, taskdataZip, size);
+    AgrirouterMessage message = m_messageProvider->getTaskdataZipMessage(messageId, addressing, getNextSeqNo(), teamsetId, taskdataZip, size, fileName);
     sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
 }
 
 AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk,
         uint16_t numberOfChunks, const std::string &teamSetContextId, const std::string &chunkContextId, std::string& data,
-        uint32_t size, std::string& technicalMessageType)
+        uint32_t size, std::string& technicalMessageType, const std::string& fileName) // fileName default ""
 {
     return this->m_messageProvider->getChunkedMessage(messageId, addressing, getNextSeqNo(), numberOfChunk, numberOfChunks,
-                                                      teamSetContextId, chunkContextId, data, size, technicalMessageType);
+                                                      teamSetContextId, chunkContextId, data, size, technicalMessageType, fileName);
 }
 
 void AgrirouterClient::requestMessages()

@@ -30,16 +30,15 @@ class AgrirouterClient {
         void sendMessagesDelete(std::string *messageId, MessageDelete *messageDelete);
 
         // Messages with specific recipients
-        void sendDeviceDescription(Addressing& addressing, std::string *messageId, std::string& teamsetId, ISO11783_TaskData *taskdata);
-        void sendTimelog(Addressing& addressing, std::string *messageId, std::string& teamsetId, TimeLog *timelog);
-        void sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size);
-        void sendTaskdataZip(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *taskdataZip, int size);
+        void sendDeviceDescription(Addressing& addressing, std::string *messageId, std::string& teamsetId, ISO11783_TaskData *taskdata, const std::string& fileName = "");
+        void sendTimelog(Addressing& addressing, std::string *messageId, std::string& teamsetId, TimeLog *timelog, const std::string& fileName = "");
+        void sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size, const std::string& fileName = "");
+        void sendTaskdataZip(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *taskdataZip, int size, const std::string& fileName = "");
         void sendChunk(AgrirouterMessage& message);
 
-        AgrirouterMessage createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk, 
-                                                uint16_t numberOfChunks, const std::string &teamSetContextId,
-                                                const std::string &chunkContextId, std::string& data,
-                                                uint32_t size, std::string& technicalMessageType);
+        AgrirouterMessage createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk, uint16_t numberOfChunks, 
+                                                const std::string &teamSetContextId, const std::string &chunkContextId, std::string& data,
+                                                uint32_t size, std::string& technicalMessageType, const std::string& fileName = "");
 
         // Request messages
         void requestMessages();

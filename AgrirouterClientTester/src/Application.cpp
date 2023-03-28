@@ -144,8 +144,6 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "--------------------------------------------\n";
             std::cout << "  --onboard=<TAN>\tonboard CU with generated TAN/registration code\n";
             std::cout << "  \t\t\te.g. --onboard=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
-            std::cout << "  --id=<ID>\t\tset teamset context ID\n";
-            std::cout << "  \t\t\te.g. --id=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
             std::cout << "  --minutes=<MINUTES>\trequest messages of the last given minutes\n";
             std::cout << "  \t\t\te.g. --minutes=120\n";
             std::cout << "  --sender=<SENDER>\trequest messages of given sender\n";
@@ -160,7 +158,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "  \t\t\te.g. --delete-id=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
             std::cout << "  --recipient=<RECIPIENT>\tadd recipient for messages\n";
             std::cout << "  \t\t\te.g. --recipient=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
-            std::cout << "  --url=<URL>\t\tchange URL to communicate to\n";
+            std::cout << "  --url=<URL>\t\tchange registration URL to communicate to\n";
             std::cout << "  \t\t\te.g. --url=https://register-url.com\n";
             std::cout << "  --taskdata=<PATH>\t\tsend taskdata.zip file that is saved at given path\n";
             std::cout << "  \t\t\te.g. --taskdata=/home/TASKDATA.zip\n";
@@ -290,10 +288,20 @@ int32_t Application::run(int32_t argc, char *argv[])
             size_t begin = arg.find("=");
             std::string path = arg.substr(begin + 1);
 
+            // get filename
+            std::vector<std::string> partsOfPath = split(path, '/');
+            std::string filename = partsOfPath[partsOfPath.size() - 1];
+
             std::string messageId = createUuid();
+            bool exists = fileExists(path);
+            if(!exists)
+            {
+                onLogCallback(MG_LFL_ERR, "File not exists", NULL);
+            }
             std::string message = readBinaryFileAndBase64(path);
             std::string teamsetContextId = this->m_applicationSettings.teamsetContextId;
-            m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size());
+
+            m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size(), filename);
         }
     }
     

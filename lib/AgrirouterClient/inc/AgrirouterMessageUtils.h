@@ -83,7 +83,7 @@ inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInpu
 }
 
 inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t seqNo, const std::string &messageType,
-        Addressing& addressing, const std::string &teamSetContextId)
+        Addressing& addressing, const std::string &teamSetContextId, const std::string &fileName = "")
 {
 
     // Create request header
@@ -92,6 +92,19 @@ inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
     header.set_application_message_seq_no(seqNo);
     header.set_technical_message_type(messageType);
     header.set_mode(addressing.mode);
+
+    // set fileName when it is given
+    if(!fileName.empty())
+    {
+        // delete ending
+        std::size_t found = fileName.find_last_of('.');
+        std::string fileNameWithoutEnding = fileName;
+        if (found != std::string::npos)
+        {
+            fileNameWithoutEnding = fileNameWithoutEnding.substr(0, found);
+        }
+        header.mutable_metadata()->mutable_file_name()->assign(fileNameWithoutEnding);
+    }
 
     if ((addressing.mode == RequestEnvelope::DIRECT) || (addressing.mode == RequestEnvelope::PUBLISH_WITH_DIRECT))
     {
