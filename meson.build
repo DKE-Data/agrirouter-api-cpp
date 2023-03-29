@@ -12,14 +12,6 @@ project(
 
 subdir('lib/AgrirouterClient')
 
-agrirouter_client_tester_include_dir = include_directories('./AgrirouterClientTester/inc')
-
-agrirouter_client_tester_sources = [
-    './AgrirouterClientTester/src/Application.cpp',
-    './AgrirouterClientTester/src/Communicator.cpp',
-    './AgrirouterClientTester/src/main.cpp'
-]
-
 if get_option('prod')
     message('production build')
     linker_flags=['-s']
@@ -28,13 +20,23 @@ else
     linker_flags=[]
 endif
 
-uuid_dep = dependency('uuid')
+if get_option('buildTester')
+    agrirouter_client_tester_include_dir = include_directories('./AgrirouterClientTester/inc')
 
-agrirouterClientTester_exe = executable(
-    'agrirouterClientTester',
-    sources: agrirouter_client_tester_sources,
-    include_directories: agrirouter_client_tester_include_dir,
-    dependencies: [libagrirouter_dep, uuid_dep],
-    link_args : linker_flags,
-    install : false
-)
+    agrirouter_client_tester_sources = [
+        './AgrirouterClientTester/src/Application.cpp',
+        './AgrirouterClientTester/src/Communicator.cpp',
+        './AgrirouterClientTester/src/main.cpp'
+    ]
+
+    uuid_dep = dependency('uuid')
+
+    agrirouterClientTester_exe = executable(
+        'agrirouterClientTester',
+        sources: agrirouter_client_tester_sources,
+        include_directories: agrirouter_client_tester_include_dir,
+        dependencies: [libagrirouter_dep, uuid_dep],
+        link_args : linker_flags,
+        install : false
+    )
+endif
