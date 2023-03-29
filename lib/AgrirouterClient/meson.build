@@ -18,7 +18,6 @@ libagrirouter_include_dir = include_directories('./inc')
 
 proto_dep = dependency('protobuf')
 curl_dep = dependency('libcurl')
-mosquitto_dep = dependency('libmosquitto')
 ssl_dep = dependency('libssl')
 crypto_dep = dependency('libcrypto')
 
@@ -26,7 +25,7 @@ libagrirouter = static_library(
     'agrirouter',
     sources: agrirouter_lib_sources,
     include_directories: libagrirouter_include_dir,
-    dependencies: [agrirouter_protobuf_dep, curl_dep, mosquitto_dep, proto_dep, ssl_dep, crypto_dep]
+    dependencies: [agrirouter_protobuf_dep, curl_dep, proto_dep, ssl_dep, crypto_dep]
 )
 
 include_dirs = [
