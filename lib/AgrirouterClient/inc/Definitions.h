@@ -12,6 +12,7 @@
 #include "messaging/request/payload/feed/feed-requests.pb.h"
 #include "messaging/response/payload/account/endpoints.pb.h"
 #include "messaging/response/payload/feed/feed-response.pb.h"
+#include "messaging/response/payload/feed/push-notification.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -122,6 +123,8 @@ typedef agrirouter::feed::response::QueryMetrics QueryMetrics;
 typedef agrirouter::feed::response::HeaderQueryResponse HeaderQueryResponse;
 typedef agrirouter::feed::response::MessageQueryResponse MessageQueryResponse;
 typedef agrirouter::feed::response::FailedMessageQueryResponse FailedMessageQueryResponse;
+
+typedef agrirouter::feed::push::notification::PushNotification PushNotification;
 
 typedef agrirouter::commons::Message CommonsMessage;
 typedef agrirouter::commons::Messages CommonsMessages;
