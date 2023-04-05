@@ -182,10 +182,18 @@ AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Add
 {
     AgrirouterMessage message;
 
-    *messageId = createUuid();
+    std::string applicationMessageId;
+    if (messageId->empty())
+    {
+        applicationMessageId = createUuid();
+    }
+    else
+    {
+        applicationMessageId = *messageId;
+    }
 
     Request request;
-    request.envelope = createRequestHeader(*messageId, seqNo, technicalMessageType, addressing, teamSetContextId, fileName);
+    request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId, fileName);
     ChunkComponent *chunk = request.envelope.mutable_chunk_info();
     // Start counting at 1
     chunk->set_context_id(chunkContextId);
