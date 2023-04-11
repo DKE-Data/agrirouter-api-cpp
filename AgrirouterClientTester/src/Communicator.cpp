@@ -16,9 +16,9 @@ Communicator::Communicator() { }
 
 Communicator::Communicator(Settings *settings, AgrirouterClient *agrirouterClient, AgrirouterSettings agrirouterSettings)
 {
-    this->m_settings = settings;
-    this->m_agrirouterClient = agrirouterClient;
-    this->m_agrirouterSettings = agrirouterSettings;
+    m_settings = settings;
+    m_agrirouterClient = agrirouterClient;
+    m_agrirouterSettings = agrirouterSettings;
 }
 
 Communicator::~Communicator() { }
@@ -36,7 +36,7 @@ void Communicator::onboard(std::string registrationCode, std::string externalId)
     }
     m_settings->setCertificateType("PEM");
 
-    m_agrirouterClient->registerDeviceWithRegCode(registrationCode, this->m_agrirouterSettings);
+    m_agrirouterClient->registerDeviceWithRegCode(registrationCode, m_agrirouterSettings);
 }
 
 void Communicator::sendCapabilities()

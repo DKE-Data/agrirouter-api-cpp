@@ -9,8 +9,8 @@
 
 MessageProvider::MessageProvider(Settings *settings, uint32_t chunkSize)
 {
-    this->m_settings = settings;
-    this->m_chunkSize = chunkSize;
+    m_settings = settings;
+    m_chunkSize = chunkSize;
 }
 
 MessageProvider::~MessageProvider() {}

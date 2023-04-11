@@ -9,17 +9,17 @@
 
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
-    this->m_polling = false;
-    this->m_settings = settings;
-    this->m_body = "";
-    this->m_url = "";
+    m_polling = false;
+    m_settings = settings;
+    m_body = "";
+    m_url = "";
 }
 
 CurlConnectionProvider::~CurlConnectionProvider() {}
 
 void CurlConnectionProvider::sendMessage(MessageParameters messageParameters)
 {
-    this->m_polling = false;
+    m_polling = false;
     this->sendMessageWithChunkedResponse(messageParameters);
 }
 
@@ -70,7 +70,7 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters)
 
 void CurlConnectionProvider::getMessages(void)
 {
-    this->m_polling = true;
+    m_polling = true;
 
     // Initializations
     CURL *hnd;
@@ -165,22 +165,22 @@ size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
 
 void CurlConnectionProvider::setCurlUrl(CURL *hnd)
 {
-    if (this->m_url != "")
+    if (m_url != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_URL, this->m_url.c_str());
+        curl_easy_setopt(hnd, CURLOPT_URL, m_url.c_str());
     }
 }
 
 curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 {
     slist = NULL;
-    for (size_t i = 0; i < this->m_headers.size(); i++)
+    for (size_t i = 0; i < m_headers.size(); i++)
     {
-        slist = curl_slist_append(slist, this->m_headers[i].c_str());
+        slist = curl_slist_append(slist, m_headers[i].c_str());
     }
 
     // Only set header if header array contains elements
-    if (this->m_headers.size() > 0)
+    if (m_headers.size() > 0)
     {
         curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist);
     }
@@ -190,9 +190,9 @@ curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 
 void CurlConnectionProvider::setCurlBody(CURL *hnd)
 {
-    if (this->m_body != "")
+    if (m_body != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, this->m_body.c_str());
+        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, m_body.c_str());
     }
 }
 
@@ -208,23 +208,23 @@ void CurlConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chu
 
 void CurlConnectionProvider::setCurlSSL(CURL *hnd)
 {
-    if (this->m_settings->getCertificatePath() != "")
+    if (m_settings->getCertificatePath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLCERT, this->m_settings->getCertificatePath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLCERT, m_settings->getCertificatePath().c_str());
     }
 
     // Set private key
-    if (this->m_settings->getPrivateKeyPath() != "")
+    if (m_settings->getPrivateKeyPath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLKEY, this->m_settings->getPrivateKeyPath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLKEY, m_settings->getPrivateKeyPath().c_str());
     }
 
-    if (this->m_settings->getConnectionParameters().secret != "")
+    if (m_settings->getConnectionParameters().secret != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, this->m_settings->getConnectionParameters().secret.c_str());
+        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, m_settings->getConnectionParameters().secret.c_str());
     }
 
-    if (this->m_settings->acceptSelfSignedCertificate())
+    if (m_settings->acceptSelfSignedCertificate())
     {
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYHOST, 0);
@@ -267,7 +267,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             curlMessage = std::string(curl_easy_strerror(curlCode));
         }
 
-        this->m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, errorContent);
+        m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, errorContent);
     }
     else
     {
@@ -284,11 +284,11 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             // get content if there is some content
             std::string errorContent(chunk->memory, chunk->size);
 
-            this->m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
+            m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
             return;
         }
 
-        if (this->m_polling)
+        if (m_polling)
         {
             // Poll for new messages
             this->getMessagesCallback(chunk->memory, chunk->size, 1, this);
@@ -296,7 +296,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         else
         {
             // No polling, call callback instead
-            (this->m_callback)(chunk->memory, chunk->size, 1, this->m_member);
+            (m_callback)(chunk->memory, chunk->size, 1, m_member);
         }
     }
 }

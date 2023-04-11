@@ -35,22 +35,22 @@ Application::Application()
 
 Application::~Application()
 {
-    if (this->m_communicator != NULL)
+    if (m_communicator != NULL)
     {
-        delete this->m_communicator;
-        this->m_communicator = NULL;
+        delete m_communicator;
+        m_communicator = NULL;
     }
 
-    if (this->m_agrirouterClient != NULL)
+    if (m_agrirouterClient != NULL)
     {
-        delete this->m_agrirouterClient;
-        this->m_agrirouterClient = NULL;
+        delete m_agrirouterClient;
+        m_agrirouterClient = NULL;
     }
 
-    if (this->m_settings != NULL)
+    if (m_settings != NULL)
     {
-        delete this->m_settings;
-        this->m_settings = NULL;
+        delete m_settings;
+        m_settings = NULL;
     }
 }
 
@@ -66,30 +66,30 @@ std::string Application::getCurrentWorkingDir()
 int32_t Application::run(int32_t argc, char *argv[])
 {
     // Set callback settings
-    this->m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
-    this->m_settings->setOnMessageCallback(onMessageCallback);
-    this->m_settings->setOnErrorCallback(onErrorCallback);
-    this->m_settings->setOnLoggingCallback(onLogCallback);
-    this->m_settings->setCallbackCallee(this);
+    m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
+    m_settings->setOnMessageCallback(onMessageCallback);
+    m_settings->setOnErrorCallback(onErrorCallback);
+    m_settings->setOnLoggingCallback(onLogCallback);
+    m_settings->setCallbackCallee(this);
 
     printf("Read file %sAgrirouterClientTesterConfig.json\n", directory.c_str());
 
     // Load settings from file
     std::string agrirouterSettings = directory + "AgrirouterClientTesterConfig.json";
-    this->m_agrirouterSettings = getAgrirouterSettings(agrirouterSettings);
-    printf("AgrirouterSettings: \n\t%s\n", this->m_agrirouterSettings.registrationUrl.c_str());
+    m_agrirouterSettings = getAgrirouterSettings(agrirouterSettings);
+    printf("AgrirouterSettings: \n\t%s\n", m_agrirouterSettings.registrationUrl.c_str());
 
     std::string applicationSettings = directory + "AgrirouterClientTesterConfig.json";
-    this->m_applicationSettings = getApplicationSettings(applicationSettings);
-    printf("ApplicationSettings: \n\t%s \n\t%s \n\t%s \n\t%s \n\t%s\n", this->m_applicationSettings.applicationId.c_str(),
-            this->m_applicationSettings.certificationVersionId.c_str(), this->m_applicationSettings.externalId.c_str(),
-            this->m_applicationSettings.locationCertsAndIds.c_str(), this->m_applicationSettings.teamsetContextId.c_str());
+    m_applicationSettings = getApplicationSettings(applicationSettings);
+    printf("ApplicationSettings: \n\t%s \n\t%s \n\t%s \n\t%s \n\t%s\n", m_applicationSettings.applicationId.c_str(),
+            m_applicationSettings.certificationVersionId.c_str(), m_applicationSettings.externalId.c_str(),
+            m_applicationSettings.locationCertsAndIds.c_str(), m_applicationSettings.teamsetContextId.c_str());
 
-    m_settings->setApplicationId(this->m_applicationSettings.applicationId);
-    m_settings->setCertificationVersionId(this->m_applicationSettings.certificationVersionId);
-    m_settings->setCertificatePath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_cert.pem");
-    m_settings->setPrivateKeyPath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_key.pem");
-    m_settings->setConnectionParametersPath(this->m_applicationSettings.locationCertsAndIds + "/agrirouter_ids.json");
+    m_settings->setApplicationId(m_applicationSettings.applicationId);
+    m_settings->setCertificationVersionId(m_applicationSettings.certificationVersionId);
+    m_settings->setCertificatePath(m_applicationSettings.locationCertsAndIds + "/agrirouter_cert.pem");
+    m_settings->setPrivateKeyPath(m_applicationSettings.locationCertsAndIds + "/agrirouter_key.pem");
+    m_settings->setConnectionParametersPath(m_applicationSettings.locationCertsAndIds + "/agrirouter_ids.json");
 
     ConnectionParameters conn = m_settings->getConnectionParameters(m_settings->getConnectionParametersPath());
 
@@ -108,13 +108,13 @@ int32_t Application::run(int32_t argc, char *argv[])
     }
 
     m_settings->setEncodingType("base64");
-    if (this->m_applicationSettings.connectionType == "HTTP")
+    if (m_applicationSettings.connectionType == "HTTP")
     {
         m_settings->setConnectionType(Settings::HTTP);
         m_settings->setPollingInterval(2);
         m_settings->setPollingMaxTime(6);
     }
-    else if (this->m_applicationSettings.connectionType == "MQTT")
+    else if (m_applicationSettings.connectionType == "MQTT")
     {
         m_settings->setConnectionType(Settings::MQTT);
     }
@@ -164,31 +164,31 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "  --taskdata=<PATH>\t\tsend taskdata.zip file that is saved at given path\n";
             std::cout << "  \t\t\te.g. --taskdata=/home/TASKDATA.zip\n";
 
-            this->m_running = false;
+            m_running = false;
         }
         else if (arg == "-c")
         {
-            this->m_communicator->sendCapabilities();
+            m_communicator->sendCapabilities();
         }
         else if (arg == "-s")
         {
-            this->m_communicator->sendSubscription();
+            m_communicator->sendSubscription();
         }
         else if (arg == "-g")
         {
-            this->m_communicator->getMessages();
+            m_communicator->getMessages();
         }
         else if (arg == "-q")
         {
-            this->m_communicator->sendMessageQuery();
+            m_communicator->sendMessageQuery();
         }
         else if (arg == "-f")
         {
-            this->m_communicator->getListEndpointsFiltered();
+            m_communicator->getListEndpointsFiltered();
         }
         else if (arg == "-u")
         {
-            this->m_communicator->getListEndpointsUnfiltered();
+            m_communicator->getListEndpointsUnfiltered();
         }
         else if (arg.find("--onboard") != std::string::npos)
         {
@@ -197,8 +197,8 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             m_onboarding = true;
             
-            std::string externalId = this->m_applicationSettings.externalId;
-            this->m_communicator->onboard(message, externalId);
+            std::string externalId = m_applicationSettings.externalId;
+            m_communicator->onboard(message, externalId);
         }
         else if (arg.find("--id") != std::string::npos)
         {
@@ -216,7 +216,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             int minutes = stringToInt(message);
             ValidityPeriod validityPeriod = getValidityPeriodForLastMinutes(minutes);
 
-            this->m_communicator->sendMessageQueryWithValidityPeriod(&validityPeriod);
+            m_communicator->sendMessageQueryWithValidityPeriod(&validityPeriod);
         }
         else if (arg.find("--sender") != std::string::npos)
         {
@@ -225,7 +225,7 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             std::list<std::string> senders;
             senders.push_back(message);
-            this->m_communicator->sendMessageQueryWithSender(senders);
+            m_communicator->sendMessageQueryWithSender(senders);
         }
         else if (arg.find("--query-id") != std::string::npos)
         {
@@ -234,7 +234,7 @@ int32_t Application::run(int32_t argc, char *argv[])
 
             std::list<std::string> messageIds;
             messageIds.push_back(message);
-            this->m_communicator->sendMessageQueryWithId(messageIds);
+            m_communicator->sendMessageQueryWithId(messageIds);
         }
         else if (arg.find("--confirm") != std::string::npos)
         {
@@ -245,7 +245,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             messageConfirm.add_message_ids(message);
 
             std::string messageId;
-            this->m_agrirouterClient->sendMessagesConfirm(&messageId, &messageConfirm);
+            m_agrirouterClient->sendMessagesConfirm(&messageId, &messageConfirm);
         }
         else if (arg.find("--delete-sender") != std::string::npos)
         {
@@ -256,7 +256,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             messageDelete.add_senders(message);
 
             std::string messageId;
-            this->m_agrirouterClient->sendMessagesDelete(&messageId, &messageDelete);
+            m_agrirouterClient->sendMessagesDelete(&messageId, &messageDelete);
         }
         else if (arg.find("--delete-id") != std::string::npos)
         {
@@ -267,7 +267,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             messageDelete.add_message_ids(message);
 
             std::string messageId;
-            this->m_agrirouterClient->sendMessagesDelete(&messageId, &messageDelete);
+            m_agrirouterClient->sendMessagesDelete(&messageId, &messageDelete);
         }
         else if (arg.find("--recipient") != std::string::npos)
         {
@@ -282,7 +282,7 @@ int32_t Application::run(int32_t argc, char *argv[])
             size_t begin = arg.find("=");
             std::string url = arg.substr(begin + 1);
 
-            this->m_agrirouterSettings.registrationUrl = url;
+            m_agrirouterSettings.registrationUrl = url;
         }
         else if (arg.find("--taskdata") != std::string::npos)
         {
@@ -300,7 +300,7 @@ int32_t Application::run(int32_t argc, char *argv[])
                 onLogCallback(MG_LFL_ERR, "File not exists", NULL);
             }
             std::string message = readBinaryFileAndBase64(path);
-            std::string teamsetContextId = this->m_applicationSettings.teamsetContextId;
+            std::string teamsetContextId = m_applicationSettings.teamsetContextId;
 
             m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size(), filename);
         }

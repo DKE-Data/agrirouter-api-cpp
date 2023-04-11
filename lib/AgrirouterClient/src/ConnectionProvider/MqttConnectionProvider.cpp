@@ -10,37 +10,37 @@
 
 MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 {
-    this->m_settings = settings;
-    this->m_body = "";
-    this->m_url = "";
-    this->m_mqttClient = NULL;
+    m_settings = settings;
+    m_body = "";
+    m_url = "";
+    m_mqttClient = NULL;
     this->init();
 }
 
 MqttConnectionProvider::~MqttConnectionProvider()
 {
-    if (this->m_mqttClient != NULL)
+    if (m_mqttClient != NULL)
     {
-        delete this->m_mqttClient;
+        delete m_mqttClient;
     }
 }
 
 void MqttConnectionProvider::init()
 {
-    ConnectionParameters conn = this->m_settings->getConnectionParameters();
-    this->m_mqttClient = new MqttConnectionClient(conn.clientId, conn.host, conn.port, this->m_settings);
+    ConnectionParameters conn = m_settings->getConnectionParameters();
+    m_mqttClient = new MqttConnectionClient(conn.clientId, conn.host, conn.port, m_settings);
 
     // set message callback
-    this->m_mqttClient->setMember(this);
-    this->m_mqttClient->setMqttCallback(requestMqttCallback);
-    this->m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
+    m_mqttClient->setMember(this);
+    m_mqttClient->setMqttCallback(requestMqttCallback);
+    m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
 
-    this->m_mqttClient->init();
+    m_mqttClient->init();
 
     // subscribe to commands only subscribe when topic is valid (onboarding is done)
     if(conn.commandsUrl.length() > 0)
     {
-        this->m_mqttClient->subscribe(conn.commandsUrl, 2);
+        m_mqttClient->subscribe(conn.commandsUrl, 2);
     }
 }
 
@@ -87,23 +87,23 @@ void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
 
 void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters messageParameters)
 {
-    this->m_settings->callOnLog(MG_LFL_NTC, "Send message mqtt with application id: '" + messageParameters.applicationMessageId + "'");
+    m_settings->callOnLog(MG_LFL_NTC, "Send message mqtt with application id: '" + messageParameters.applicationMessageId + "'");
 
-    if(this->m_url.find("http") != std::string::npos)
+    if(m_url.find("http") != std::string::npos)
     {
-        std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + this->m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
-        this->m_settings->callOnError(0, MG_ERROR_NOT_VALID_TOPIC, "Not a vaild MQTT topic. New Onboarding needed", this->m_messageParameters, errorJSON);
+        std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
+        m_settings->callOnError(0, MG_ERROR_NOT_VALID_TOPIC, "Not a vaild MQTT topic. New Onboarding needed", m_messageParameters, errorJSON);
     }
     else
     {
-        this->m_mqttClient->publish(this->m_url, this->m_body, 2); // Qos 2
+        m_mqttClient->publish(m_url, m_body, 2); // Qos 2
     }
-    this->m_messageParameters = messageParameters;
+    m_messageParameters = messageParameters;
 }
 
 void MqttConnectionProvider::onboard(MessageParameters messageParameters)
 {
-    this->m_settings->callOnLog(MG_LFL_CRI, "Onboarding with MQTT is not possible");
+    m_settings->callOnLog(MG_LFL_CRI, "Onboarding with MQTT is not possible");
 }
 
 void MqttConnectionProvider::getMessages(void)

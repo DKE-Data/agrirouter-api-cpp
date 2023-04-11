@@ -16,56 +16,56 @@ AgrirouterClient::AgrirouterClient()
     // HTTP is default ConnectionProvider
     Settings *settings = new Settings();
     settings->setConnectionType(Settings::HTTP);
-    this->m_chunkSize = DEFAULT_CHUNK_SIZE;
+    m_chunkSize = DEFAULT_CHUNK_SIZE;
     this->init(settings);
 }
 
 AgrirouterClient::AgrirouterClient(Settings *settings)
 {
-    this->m_chunkSize = DEFAULT_CHUNK_SIZE;
+    m_chunkSize = DEFAULT_CHUNK_SIZE;
     this->init(settings);
 }
 
 AgrirouterClient::AgrirouterClient(Settings *settings, uint32_t chunkSize)
 {
-    this->m_chunkSize = chunkSize;
+    m_chunkSize = chunkSize;
     this->init(settings);
 }
 
 void AgrirouterClient::init(Settings *settings)
 {
-    this->m_seqNo = 0;
-    this->m_settings = settings;
-    this->m_messageProvider = new MessageProvider(settings, this->m_chunkSize);
+    m_seqNo = 0;
+    m_settings = settings;
+    m_messageProvider = new MessageProvider(settings, m_chunkSize);
 
     if (settings->getConnectionType() == Settings::HTTP)
     {
-        this->m_connectionProvider = new CurlConnectionProvider(settings);
+        m_connectionProvider = new CurlConnectionProvider(settings);
     }
     else if (settings->getConnectionType() == Settings::MQTT)
     {
-        this->m_connectionProvider = new MqttConnectionProvider(settings);
+        m_connectionProvider = new MqttConnectionProvider(settings);
     }
 }
 
 AgrirouterClient::~AgrirouterClient()
 {
-    if (this->m_messageProvider != NULL)
+    if (m_messageProvider != NULL)
     {
-        delete this->m_messageProvider;
-        this->m_messageProvider = NULL;
+        delete m_messageProvider;
+        m_messageProvider = NULL;
     }
 
-    if (this->m_connectionProvider != NULL)
+    if (m_connectionProvider != NULL)
     {
-        delete this->m_connectionProvider;
-        this->m_connectionProvider = NULL;
+        delete m_connectionProvider;
+        m_connectionProvider = NULL;
     }
 }
 
 void AgrirouterClient::registerDeviceWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
-    Registration registration = Registration(this->m_connectionProvider, this->m_settings, this);
+    Registration registration = Registration(m_connectionProvider, m_settings, this);
     registration.setCallback(registrationCallback);
     registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
 }
@@ -188,7 +188,7 @@ AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, A
         uint16_t numberOfChunks, const std::string &teamSetContextId, const std::string &chunkContextId, std::string& data,
         uint32_t size, std::string& technicalMessageType, const std::string& fileName) // fileName default ""
 {
-    return this->m_messageProvider->getChunkedMessage(messageId, addressing, getNextSeqNo(), numberOfChunk, numberOfChunks,
+    return m_messageProvider->getChunkedMessage(messageId, addressing, getNextSeqNo(), numberOfChunk, numberOfChunks,
                                                       teamSetContextId, chunkContextId, data, size, technicalMessageType, fileName);
 }
 
@@ -200,7 +200,7 @@ void AgrirouterClient::requestMessages()
     headers.push_back("Accept: application/json");
 
     m_connectionProvider->setBody("");
-    m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().commandsUrl);
+    m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
     m_connectionProvider->setHeaders(headers);
     m_connectionProvider->setCallback(requestMessagesCallback);
     m_connectionProvider->setMember(this);
@@ -260,7 +260,7 @@ void AgrirouterClient::callbackHandler(char *content, size_t size, MessageParame
     if (size == 0)
     {
         Response response = Response();
-        this->m_settings->callOnMessage(&response, messageParameters);
+        m_settings->callOnMessage(&response, messageParameters);
         this->getMessages(this, requestMessagesCallback);
     }
     else
@@ -273,7 +273,7 @@ void AgrirouterClient::callbackHandler(char *content, size_t size, MessageParame
         {
             Response response = (Response)*it;
             messageParameters.event = MG_EV_GET_MESSAGES;
-            this->m_settings->callOnMessage(&response, messageParameters);
+            m_settings->callOnMessage(&response, messageParameters);
         }
     }
 }
@@ -297,8 +297,8 @@ int AgrirouterClient::sendMessage(AgrirouterMessage *agrirouterMessage, int even
 
     timeval timestamp = getTimestamp();
 
-    std::string message = "{\"sensorAlternateId\":\"" + this->m_settings->getConnectionParameters().sensorAlternateId +
-        "\",\"capabilityAlternateId\":\"" + this->m_settings->getConnectionParameters().capabilityAlternateId +
+    std::string message = "{\"sensorAlternateId\":\"" + m_settings->getConnectionParameters().sensorAlternateId +
+        "\",\"capabilityAlternateId\":\"" + m_settings->getConnectionParameters().capabilityAlternateId +
         "\",\"measures\":[";
 
     message = message + "[\"" + agrirouterMessage->encodedRequest();
@@ -312,13 +312,13 @@ int AgrirouterClient::sendMessage(AgrirouterMessage *agrirouterMessage, int even
     headers.push_back("Content-type: application/json");
     headers.push_back("Accept: application/json");
 
-    this->m_connectionProvider->setBody(message);
-    this->m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().measuresUrl);
-    this->m_connectionProvider->setHeaders(headers);
-    this->m_connectionProvider->setCallback(messageCallback);
-    this->m_connectionProvider->setMember(&messageParameters);
+    m_connectionProvider->setBody(message);
+    m_connectionProvider->setUrl(m_settings->getConnectionParameters().measuresUrl);
+    m_connectionProvider->setHeaders(headers);
+    m_connectionProvider->setCallback(messageCallback);
+    m_connectionProvider->setMember(&messageParameters);
 
-    this->m_connectionProvider->sendMessage(messageParameters);
+    m_connectionProvider->sendMessage(messageParameters);
 
     return EXIT_SUCCESS;
 }
@@ -331,7 +331,7 @@ void AgrirouterClient::getMessages(AgrirouterClient *self, ConnectionProvider::C
     headers.push_back("Accept: application/json");
 
     self->m_connectionProvider->setBody("");
-    self->m_connectionProvider->setUrl(this->m_settings->getConnectionParameters().commandsUrl);
+    self->m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
     self->m_connectionProvider->setHeaders(headers);
     self->m_connectionProvider->setCallback(callback);
     self->m_connectionProvider->setMember(self);
