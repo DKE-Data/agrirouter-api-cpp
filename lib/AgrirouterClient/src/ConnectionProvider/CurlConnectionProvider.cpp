@@ -9,7 +9,7 @@
 
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
-    this->m_polling = false;
+    m_polling = false;
     this->settings = settings;
     this->body = "";
     this->url = "";
@@ -19,7 +19,7 @@ CurlConnectionProvider::~CurlConnectionProvider() {}
 
 void CurlConnectionProvider::sendMessage(MessageParameters messageParameters)
 {
-    this->m_polling = false;
+    m_polling = false;
     this->sendMessageWithChunkedResponse(messageParameters);
 }
 
@@ -70,7 +70,7 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters)
 
 void CurlConnectionProvider::getMessages(void)
 {
-    this->m_polling = true;
+    m_polling = true;
 
     // Initializations
     CURL *hnd;
@@ -288,7 +288,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             return;
         }
 
-        if (this->m_polling)
+        if (m_polling)
         {
             // Poll for new messages
             this->getMessagesCallback(chunk->memory, chunk->size, 1, this);

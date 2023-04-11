@@ -20,7 +20,7 @@ Registration::~Registration() {}
 
 void Registration::registerToAgrirouterWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
-    this->m_registrationCode = registrationCode;
+    m_registrationCode = registrationCode;
 
     this->sendOnboard(agrirouterSettings);
 }
@@ -30,7 +30,7 @@ void Registration::sendOnboard(AgrirouterSettings& agrirouterSettings)
     // Set headers
     std::vector<std::string> headers;
 
-    std::string authorization_header = "Authorization: Bearer " + this->m_registrationCode;
+    std::string authorization_header = "Authorization: Bearer " + m_registrationCode;
     headers.push_back(authorization_header);
     std::string content_type_header = "Content-Type: application/json";
     headers.push_back(content_type_header);
