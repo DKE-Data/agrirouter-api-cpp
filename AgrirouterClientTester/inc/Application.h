@@ -21,6 +21,7 @@ class Application {
 
         bool m_onboarding;
         bool m_running;
+        int8_t m_minLogLevel;
         Addressing m_addressing;
 
     public:

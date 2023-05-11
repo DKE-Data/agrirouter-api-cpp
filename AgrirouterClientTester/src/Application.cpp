@@ -31,6 +31,7 @@ Application::Application()
     m_onboarding = false;
     m_running = true;
     m_addressing.mode = RequestEnvelope::PUBLISH;
+    m_minLogLevel = MG_LFL_DBG; // set it to max loglevel
 }
 
 Application::~Application()
@@ -143,6 +144,8 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "--------------------------------------------\n";
             std::cout << "These are the CLI commands wiht arguments:\n";
             std::cout << "--------------------------------------------\n";
+            std::cout << "  --loglevel=<LOGLEVEL>\tset min loglevel from agrirouterclient lib\n";
+            std::cout << "  \t\t\te.g. --loglevel=6\n";
             std::cout << "  --onboard=<TAN>\tonboard CU with generated TAN/registration code\n";
             std::cout << "  \t\t\te.g. --onboard=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
             std::cout << "  --minutes=<MINUTES>\trequest messages of the last given minutes\n";
@@ -189,6 +192,14 @@ int32_t Application::run(int32_t argc, char *argv[])
         else if (arg == "-u")
         {
             m_communicator->getListEndpointsUnfiltered();
+        }
+        else if (arg.find("--loglevel") != std::string::npos)
+        {
+            size_t begin = arg.find("=");
+            std::string message = arg.substr(begin + 1);
+            
+            m_minLogLevel = std::stoi(message);
+            printf("Set Lib LogLevel to: %i\n", m_minLogLevel);
         }
         else if (arg.find("--onboard") != std::string::npos)
         {
@@ -439,7 +450,9 @@ void Application::onErrorCallback(int statusCode, int connectionProviderErrorCod
 
 void Application::onLogCallback(int logLevel, std::string logMessage, void *callbackCallee)
 {
-    if(logLevel < MG_LFL_TRC)
+    Application *self = static_cast<Application *>(callbackCallee);
+
+    if(logLevel < self->m_minLogLevel)
     {
         // build time for logging string
         char buffer [80];
