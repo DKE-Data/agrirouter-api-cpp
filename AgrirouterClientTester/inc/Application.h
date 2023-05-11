@@ -12,26 +12,28 @@
 
 class Application {
     private:
-        Settings *m_settings;
-        AgrirouterClient *m_agrirouterClient;
-        Communicator *m_communicator;
+        Settings *m_settings = nullptr;
+        AgrirouterClient *m_agrirouterClient = nullptr;
+        Communicator *m_communicator = nullptr;
 
-        AgrirouterSettings m_agrirouterSettings;
-        ApplicationSettings m_applicationSettings;
+        AgrirouterSettings m_agrirouterSettings = AgrirouterSettings();
+        ApplicationSettings m_applicationSettings = ApplicationSettings();
 
-        bool m_onboarding;
-        bool m_running;
-        int8_t m_minLogLevel;
-        Addressing m_addressing;
+        bool m_onboarding = false;
+        bool m_running = true;
+        int8_t m_minLogLevel = MG_LFL_DBG; // set it to max loglevel
+        Addressing m_addressing = Addressing();
 
     public:
         Application();
         ~Application();
 
+        std::string directory = "";
+
         int32_t run(int32_t argc, char *argv[]);
 
         void writeIds();
-        std::string directory;
+        
         std::string getCurrentWorkingDir();
 
         static void onParameterChangeCallback(int event, void *data, void *callbackCallee);

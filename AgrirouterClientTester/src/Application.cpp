@@ -28,10 +28,7 @@ Application::Application()
     directory = getCurrentWorkingDir();
     m_settings = new Settings();
 
-    m_onboarding = false;
-    m_running = true;
     m_addressing.mode = RequestEnvelope::PUBLISH;
-    m_minLogLevel = MG_LFL_DBG; // set it to max loglevel
 }
 
 Application::~Application()
