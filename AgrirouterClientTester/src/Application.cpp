@@ -33,22 +33,22 @@ Application::Application()
 
 Application::~Application()
 {
-    if (m_communicator != NULL)
+    if (m_communicator != nullptr)
     {
         delete m_communicator;
-        m_communicator = NULL;
+        m_communicator = nullptr;
     }
 
-    if (m_agrirouterClient != NULL)
+    if (m_agrirouterClient != nullptr)
     {
         delete m_agrirouterClient;
-        m_agrirouterClient = NULL;
+        m_agrirouterClient = nullptr;
     }
 
-    if (m_settings != NULL)
+    if (m_settings != nullptr)
     {
         delete m_settings;
-        m_settings = NULL;
+        m_settings = nullptr;
     }
 }
 
@@ -118,7 +118,17 @@ int32_t Application::run(int32_t argc, char *argv[])
     }
 
     // Initialize agrirouter client instance
+    if(m_agrirouterClient != nullptr)
+    {
+        delete m_agrirouterClient;
+        m_agrirouterClient = nullptr;
+    }
     m_agrirouterClient = new AgrirouterClient(m_settings);
+    if(m_communicator != nullptr)
+    {
+        delete m_communicator;
+        m_communicator = nullptr;
+    }
     m_communicator = new Communicator(m_settings, m_agrirouterClient, m_agrirouterSettings);
 
     std::vector<std::string> cmdLineArgs(argv, argv + argc);

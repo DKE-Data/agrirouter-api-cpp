@@ -39,7 +39,7 @@ inline bool writeDelimitedTo(const google::protobuf::MessageLite& message, googl
     output.WriteVarint32(size);
 
     uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-    if (buffer != NULL)
+    if (buffer != nullptr)
     {
         // Optimization:  The message fits in one buffer, so use the faster
         // direct-to-array serialization path.
@@ -199,6 +199,7 @@ inline Request decodeRequest(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         return Request();
     }
 
@@ -212,7 +213,9 @@ inline Request decodeRequest(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return Request();
     }
 
@@ -222,7 +225,9 @@ inline Request decodeRequest(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return Request();
     }
 
@@ -236,14 +241,20 @@ inline Request decodeRequest(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         delete [] payloadBuffer;
+        payloadBuffer = nullptr;
         return request;
     }
 
     delete decodedMsg;
+    decodedMsg = nullptr;
     delete [] envelopeBuffer;
+    envelopeBuffer = nullptr;
     delete [] payloadBuffer;
+    payloadBuffer = nullptr;
     return request;
 }
 
@@ -266,6 +277,7 @@ inline Response decodeResponse(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         return response;
     }
 
@@ -279,7 +291,9 @@ inline Response decodeResponse(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return response;
     }
 
@@ -289,7 +303,9 @@ inline Response decodeResponse(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return response;
     }
 
@@ -303,14 +319,20 @@ inline Response decodeResponse(const std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         delete [] payloadBuffer;
+        payloadBuffer = nullptr;
         return response;
     }
 
     delete decodedMsg;
+    decodedMsg = nullptr;
     delete [] envelopeBuffer;
+    envelopeBuffer = nullptr;
     delete [] payloadBuffer;
+    payloadBuffer = nullptr;
 
     return response;
 }

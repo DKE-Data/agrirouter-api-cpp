@@ -6,14 +6,13 @@ MqttConnectionClient::MqttConnectionClient(const std::string& clientId, const st
 {
     m_clientId = clientId;
     m_port = port;
-    m_mosq = NULL;
     m_host = host;
     m_settings = settings;
 }
 
 MqttConnectionClient::~MqttConnectionClient()
 {
-    if(m_mosq != NULL)
+    if(m_mosq != nullptr)
     {
         mosquitto_disconnect(m_mosq);
         mosquitto_destroy(m_mosq);
@@ -26,7 +25,7 @@ int MqttConnectionClient::init()
     mosquitto_lib_init();
     m_mosq = mosquitto_new(m_clientId.c_str(), false, (void *) this);
 
-    if (m_mosq != NULL)
+    if (m_mosq != nullptr)
     {
         // set this to mosq for the pw_callback 
         // the function mosquitto_user_data_set(..) not working for this callback

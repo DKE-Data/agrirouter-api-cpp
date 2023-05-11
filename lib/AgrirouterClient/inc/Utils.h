@@ -23,6 +23,7 @@ inline std::string createUuid()
     std::string uuidAsString = std::string(str);
 
     delete [] str;
+    str = nullptr;
     return uuidAsString;
 }
 
@@ -272,7 +273,7 @@ inline std::string readFile(const std::string& absolutePath)
         // Read file at given path
         FILE *file;
         file = fopen(absolutePath.c_str(), "r");
-        if (file != NULL)
+        if (file != nullptr)
         {
             while (1)
             {
@@ -304,7 +305,7 @@ inline void writeFile(const char *data, const std::string& absolutePath)
         file << data;
         file.close();
 
-        FILE *file = NULL;
+        FILE *file = nullptr;
         file = fopen(absolutePath.c_str(), "rb");
         fseek(file, 0, SEEK_END);
         fclose(file);

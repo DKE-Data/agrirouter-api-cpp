@@ -35,10 +35,21 @@ AgrirouterClient::AgrirouterClient(Settings *settings, uint32_t chunkSize)
 void AgrirouterClient::init(Settings *settings)
 {
     m_settings = settings;
+    if(m_messageProvider != nullptr)
+    {
+        delete m_messageProvider;
+        m_messageProvider = nullptr;
+    }
     m_messageProvider = new MessageProvider(settings, m_chunkSize);
 
-    if (settings->getConnectionType() == Settings::HTTP)
+    if(m_connectionProvider != nullptr)
     {
+        delete m_connectionProvider;
+        m_connectionProvider = nullptr;
+    }
+
+    if (settings->getConnectionType() == Settings::HTTP)
+    {        
         m_connectionProvider = new CurlConnectionProvider(settings);
     }
     else if (settings->getConnectionType() == Settings::MQTT)
@@ -49,16 +60,16 @@ void AgrirouterClient::init(Settings *settings)
 
 AgrirouterClient::~AgrirouterClient()
 {
-    if (m_messageProvider != NULL)
+    if (m_messageProvider != nullptr)
     {
         delete m_messageProvider;
-        m_messageProvider = NULL;
+        m_messageProvider = nullptr;
     }
 
-    if (m_connectionProvider != NULL)
+    if (m_connectionProvider != nullptr)
     {
         delete m_connectionProvider;
-        m_connectionProvider = NULL;
+        m_connectionProvider = nullptr;
     }
 }
 
@@ -75,10 +86,10 @@ void AgrirouterClient::registrationCallback(bool success, void *member)
     if(success) 
     {
         // reinit connection provider after onboard to new subscribe to the new topics
-        if (self->m_connectionProvider != NULL)
+        if (self->m_connectionProvider != nullptr)
         {
             delete self->m_connectionProvider;
-            self->m_connectionProvider = NULL;
+            self->m_connectionProvider = nullptr;
         }
         self->init(self->m_settings);
     }

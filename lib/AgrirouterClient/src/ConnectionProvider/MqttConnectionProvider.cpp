@@ -16,7 +16,7 @@ MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 
 MqttConnectionProvider::~MqttConnectionProvider()
 {
-    if (m_mqttClient != NULL)
+    if (m_mqttClient != nullptr)
     {
         delete m_mqttClient;
     }
@@ -25,6 +25,11 @@ MqttConnectionProvider::~MqttConnectionProvider()
 void MqttConnectionProvider::init()
 {
     ConnectionParameters conn = m_settings->getConnectionParameters();
+    if(m_mqttClient != nullptr)
+    {
+        delete m_mqttClient;
+        m_mqttClient = nullptr;
+    }
     m_mqttClient = new MqttConnectionClient(conn.clientId, conn.host, conn.port, m_settings);
 
     // set message callback
