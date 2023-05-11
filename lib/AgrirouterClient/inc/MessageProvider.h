@@ -56,8 +56,8 @@ class MessageProvider {
                                                 std::string data, uint32_t size, std::string& technicalMessageType, const std::string fileName = "");
 
     private:
-        Settings *m_settings;
-        uint32_t m_chunkSize;
+        Settings *m_settings = nullptr;
+        uint32_t m_chunkSize = 0;
         
         AgrirouterMessage getAgrirouterMessage(std::string *messageId, int32_t seqNo, std::string technicalMessageType,
                                                 std::string typeUrl, const std::string &teamSetContextId, Message *message, const std::string& fileName = "");

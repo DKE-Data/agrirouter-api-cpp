@@ -16,8 +16,8 @@ class CurlConnectionProvider : public ConnectionProvider
         // Struct to use curl chunked callbacks
         typedef struct MemoryStruct 
         {
-            char *memory;
-            size_t size;
+            char *memory = nullptr;
+            size_t size = 0;
         } MemoryStruct;
 
         void sendMessage(MessageParameters messageParameters);
@@ -30,7 +30,7 @@ class CurlConnectionProvider : public ConnectionProvider
         void onboard(MessageParameters messageParameters);
 
     private:
-        bool m_polling;
+        bool m_polling = false;
 
         void setCurlUrl(CURL *hnd);
         curl_slist *setCurlHeaders(CURL *hnd, curl_slist *slist);

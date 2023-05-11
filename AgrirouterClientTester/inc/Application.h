@@ -16,13 +16,13 @@ class Application {
         AgrirouterClient *m_agrirouterClient = nullptr;
         Communicator *m_communicator = nullptr;
 
-        AgrirouterSettings m_agrirouterSettings = AgrirouterSettings();
-        ApplicationSettings m_applicationSettings = ApplicationSettings();
+        AgrirouterSettings m_agrirouterSettings;
+        ApplicationSettings m_applicationSettings;
 
         bool m_onboarding = false;
         bool m_running = true;
         int8_t m_minLogLevel = MG_LFL_DBG; // set it to max loglevel
-        Addressing m_addressing = Addressing();
+        Addressing m_addressing;
 
     public:
         Application();

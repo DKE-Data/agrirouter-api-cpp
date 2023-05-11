@@ -100,34 +100,34 @@ class Settings
         onMessageCallback m_onMessage;
         onErrorCallback m_onError;
         onLoggingCallback m_onLog;
-        void *m_callbackCallee;
+        void *m_callbackCallee = nullptr;
 
         // For onboarding
-        std::string m_authUsername;
-        std::string m_authPassword;
-        std::string m_accountId;
-        std::string m_applicationId;
-        std::string m_certificationVersionId;
-        std::string m_onboardId;
-        std::string m_gatewayId;
-        std::string m_certificateType;
+        std::string m_authUsername = "";
+        std::string m_authPassword = "";
+        std::string m_accountId = "";
+        std::string m_applicationId = "";
+        std::string m_certificationVersionId = "";
+        std::string m_onboardId = "";
+        std::string m_gatewayId = "";
+        std::string m_certificateType = "";
 
         // For sending and receiving messages
-        std::string m_certificate;
-        std::string m_certificatePath;
-        std::string m_caFilePath;
-        std::string m_privateKey;
-        std::string m_privateKeyPath;
-        std::string m_encodingType;
+        std::string m_certificate = "";
+        std::string m_certificatePath = "";
+        std::string m_caFilePath = "";
+        std::string m_privateKey = "";
+        std::string m_privateKeyPath = "";
+        std::string m_encodingType = "";
         ConnectionType m_connectionType;
         ConnectionParameters m_connectionParameters;
-        std::string m_connectionParametersPath;
-        std::string m_certificateCaPath;
-        bool m_acceptSelfSignedCertificate;
+        std::string m_connectionParametersPath = "";
+        std::string m_certificateCaPath = "/etc/ssl/certs/";
+        bool m_acceptSelfSignedCertificate = false;
 
         // For general purposes
-        int m_pollingInterval;
-        int m_pollingMaxTime;
+        int m_pollingInterval = 0;
+        int m_pollingMaxTime = 0;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_

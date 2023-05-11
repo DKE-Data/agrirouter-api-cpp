@@ -11,9 +11,6 @@
 MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 {
     m_settings = settings;
-    m_body = "";
-    m_url = "";
-    m_mqttClient = NULL;
     this->init();
 }
 

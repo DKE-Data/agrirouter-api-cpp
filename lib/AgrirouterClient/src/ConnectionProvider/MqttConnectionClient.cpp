@@ -9,7 +9,6 @@ MqttConnectionClient::MqttConnectionClient(std::string &clientId, std::string &h
     m_mosq = NULL;
     m_host = host;
     m_messageId = 1;
-    m_connected = false;
     m_settings = settings;
 }
 

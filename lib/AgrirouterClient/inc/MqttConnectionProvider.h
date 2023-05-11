@@ -17,8 +17,8 @@ class MqttConnectionProvider : public ConnectionProvider
         // Struct to use curl chunked callbacks
         typedef struct MemoryStruct 
         {
-            char *memory;
-            size_t size;
+            char *memory = nullptr;
+            size_t size = 0;
         } MemoryStruct;
 
         static void requestMqttCallback(char *topic, void *payload, int payloadlen, void *member);
@@ -32,7 +32,7 @@ class MqttConnectionProvider : public ConnectionProvider
         void onboard(MessageParameters messageParameters);
 
     private:
-        MqttConnectionClient *m_mqttClient;
+        MqttConnectionClient *m_mqttClient = nullptr;
         MessageParameters m_messageParameters;
 
         void init();

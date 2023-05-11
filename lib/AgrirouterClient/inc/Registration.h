@@ -56,12 +56,12 @@ class Registration
         void setCallback(RegistrationCallback registrationCallback);
 
     private:
-        ConnectionProvider *m_connectionProvider;
-        Settings *m_settings;
-        void *m_member;
+        ConnectionProvider *m_connectionProvider = nullptr;
+        Settings *m_settings = nullptr;
+        void *m_member = nullptr;
         RegistrationCallback m_callback;
 
-        std::string m_registrationCode;
+        std::string m_registrationCode = "";
 };
 
 #endif //  LIB_AGRIROUTERCLIENT_INC_REGISTRATION_H_

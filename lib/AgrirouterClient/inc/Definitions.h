@@ -151,70 +151,70 @@ typedef google::protobuf::io::StringOutputStream StringOutputStream;
 // Error struct for callback functions
 typedef struct Error
 {
-    std::string code;
-    std::string message;
-    std::string applicationMessageId;
+    std::string code = "";
+    std::string message = "";
+    std::string applicationMessageId = "";
 } Error;
 
 // Struct for connection parameters received in onboard reponse
 typedef struct ConnectionParameters
 {
-    std::string deviceAlternateId;
-    std::string capabilityAlternateId;
-    std::string sensorAlternateId;
-    std::string certificateType;
-    std::string secret;
-    std::string measuresUrl;
-    std::string commandsUrl;
-    std::string gatewayId;
-    std::string host;
-    uint16_t port;
-    std::string clientId;
+    std::string deviceAlternateId = "";
+    std::string capabilityAlternateId = "";
+    std::string sensorAlternateId = "";
+    std::string certificateType = "";
+    std::string secret = "";
+    std::string measuresUrl = "";
+    std::string commandsUrl = "";
+    std::string gatewayId = "";
+    std::string host = "";
+    uint16_t port = 0;
+    std::string clientId = "";
 } ConnectionParameters;
 
 // Struct for message parameters used for communication
 typedef struct MessageParameters
 {
-    int event;
-    std::string applicationMessageId;
-    void *member;
+    int event = 0;
+    std::string applicationMessageId = "";
+    void *member = nullptr;
 } MessageParameters;
 
 // Struct for evaluating the mode. DIRECT: with recipients, PUBLISH: without
 // recipients, PUBLISH_WITH_DIRECT: with recipients
 typedef struct Addressing
 {
-    RequestEnvelope::Mode mode;
-    std::list<std::string> recipients;
+    RequestEnvelope::Mode mode = RequestEnvelope::Mode::RequestEnvelope_Mode_DIRECT;
+    std::list<std::string> recipients = std::list<std::string>();
 } Addressing;
 
 // Struct for application settings
 typedef struct ApplicationSettings
 {
-    std::string applicationId;
-    std::string certificationVersionId;
-    std::string externalId;
-    std::string locationCertsAndIds;
-    std::string teamsetContextId;
-    std::string connectionType;
-    bool acceptSelfSignedCertificate;
+    std::string applicationId = "";
+    std::string certificationVersionId = "";
+    std::string externalId = "";
+    std::string locationCertsAndIds = "";
+    std::string teamsetContextId = "";
+    std::string connectionType = "";
+    bool acceptSelfSignedCertificate = false;
 } ApplicationSettings;
 
 // Struct for agrirouter settings
 typedef struct AgrirouterSettings
 {
-    std::string registrationServicePath;
-    std::string landscape;
-    std::string cfHost;
-    std::string apiPrefix;
-    std::string registrationUrl;
+    std::string registrationServicePath = "";
+    std::string landscape = "";
+    std::string cfHost = "";
+    std::string apiPrefix = "";
+    std::string registrationUrl = "";
 } AgrirouterSettings;
 
 // Struct for handling binary data
 typedef struct BinaryData
 {
-    unsigned char* data;
-    int size;
+    unsigned char* data = nullptr;
+    int size = 0;
 } BinaryData;
 
 // Function pointer for callback functions

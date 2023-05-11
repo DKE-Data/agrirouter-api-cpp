@@ -13,9 +13,9 @@ class Communicator {
     private:
         Settings *m_settings = nullptr;
         AgrirouterClient *m_agrirouterClient = nullptr;
-        AgrirouterSettings m_agrirouterSettings = AgrirouterSettings();
 
-        Addressing m_addressing = Addressing();
+        AgrirouterSettings m_agrirouterSettings;
+        Addressing m_addressing;
 
     public:
         Communicator();

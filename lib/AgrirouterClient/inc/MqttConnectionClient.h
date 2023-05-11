@@ -31,21 +31,19 @@ public:
 
     bool isConnected();
 
-    static MqttConnectionClient *mqttClient;
-
 private:
-    struct mosquitto *m_mosq;    
-    std::string m_host;
-    int m_port;
-    std::string m_clientId;
+    struct mosquitto *m_mosq = nullptr;
+    std::string m_host = "";
+    int m_port = 0;
+    std::string m_clientId = "";
 
-    int m_messageId;
-    bool m_connected;
-    void *m_member;    
-    Settings *m_settings;
+    int m_messageId = 0;
+    bool m_connected = false;
+    void *m_member = nullptr;
+    Settings *m_settings = nullptr;
 
     MqttCallback m_mqttCallback;
-    MqttErrorCallback m_mqttErrorCallback;    
+    MqttErrorCallback m_mqttErrorCallback;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);

@@ -58,12 +58,12 @@ class AgrirouterClient {
 
         static size_t messageCallback(char *content, size_t size, size_t nmemb, void *member);
 
-        MessageProvider *m_messageProvider;
-        ConnectionProvider *m_connectionProvider;
-        Settings *m_settings;
+        MessageProvider *m_messageProvider = nullptr;
+        ConnectionProvider *m_connectionProvider = nullptr;
+        Settings *m_settings = nullptr;
 
-        int32_t m_seqNo;
-        int32_t m_chunkSize;
+        int32_t m_seqNo = 0;
+        int32_t m_chunkSize = 0;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_AGRIROUTERCLIENT_H_

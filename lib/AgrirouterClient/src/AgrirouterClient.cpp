@@ -34,7 +34,6 @@ AgrirouterClient::AgrirouterClient(Settings *settings, uint32_t chunkSize)
 
 void AgrirouterClient::init(Settings *settings)
 {
-    m_seqNo = 0;
     m_settings = settings;
     m_messageProvider = new MessageProvider(settings, m_chunkSize);
 

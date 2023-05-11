@@ -38,13 +38,13 @@ class ConnectionProvider
         void *getMember();
 
     protected:
-        Settings *m_settings;
-        std::string m_body;
-        std::string m_url;
-        std::vector<std::string> m_headers;
-        std::string m_applicationMessageId;
+        Settings *m_settings = nullptr;
+        std::string m_body = "";
+        std::string m_url = "";
+        std::vector<std::string> m_headers = std::vector<std::string>();
+        std::string m_applicationMessageId = "";
         Callback m_callback;
-        void *m_member;
+        void *m_member = nullptr;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_CONNECTIONPROVIDER_H_

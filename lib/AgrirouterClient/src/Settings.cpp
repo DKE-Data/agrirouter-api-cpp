@@ -2,10 +2,7 @@
 
 #include <string>
 
-Settings::Settings() 
-    : m_certificateCaPath("/etc/ssl/certs/"),
-      m_acceptSelfSignedCertificate(false)
-{}
+Settings::Settings() {}
 
 Settings::~Settings() {}
 

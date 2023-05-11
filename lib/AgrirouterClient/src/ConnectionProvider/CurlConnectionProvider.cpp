@@ -9,10 +9,7 @@
 
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
-    m_polling = false;
     m_settings = settings;
-    m_body = "";
-    m_url = "";
 }
 
 CurlConnectionProvider::~CurlConnectionProvider() {}

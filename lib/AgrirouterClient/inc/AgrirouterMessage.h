@@ -8,14 +8,10 @@
 
 struct Request 
 {
-    RequestEnvelope envelope;
-    RequestPayloadWrapper payloadWrapper;
+    RequestEnvelope envelope = RequestEnvelope::default_instance();
+    RequestPayloadWrapper payloadWrapper = RequestPayloadWrapper::default_instance();
 
-    Request()
-    {
-        envelope = RequestEnvelope::default_instance();
-        payloadWrapper = RequestPayloadWrapper::default_instance();
-    }
+    Request() { }
 
     Request(RequestEnvelope envelope, RequestPayloadWrapper payloadWrapper)
     {
@@ -42,14 +38,10 @@ struct Request
 
 struct Response
 {
-    ResponseEnvelope envelope;
-    ResponsePayloadWrapper payloadWrapper;
+    ResponseEnvelope envelope = ResponseEnvelope::default_instance();
+    ResponsePayloadWrapper payloadWrapper = ResponsePayloadWrapper::default_instance();
 
-    Response()
-    {
-        envelope = ResponseEnvelope::default_instance();
-        payloadWrapper = ResponsePayloadWrapper::default_instance();
-    }
+    Response() { }
 
     Response(const ResponseEnvelope &env, const ResponsePayloadWrapper &payload)
     {
