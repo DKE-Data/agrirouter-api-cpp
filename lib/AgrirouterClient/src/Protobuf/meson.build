@@ -34,7 +34,6 @@ agrirouter_protobuf_files = protobuf_generator.process(
     join_paths([meson.current_source_dir(), 'messaging/response/payload/endpoint/capability.proto']),
     join_paths([meson.current_source_dir(), 'messaging/response/payload/feed/feed-response.proto']),
     join_paths([meson.current_source_dir(), 'messaging/response/payload/feed/push-notification.proto']),
-    join_paths([meson.current_source_dir(), 'settings/dh-settings.proto']),
     preserve_path_from : meson.current_source_dir()
 )
 

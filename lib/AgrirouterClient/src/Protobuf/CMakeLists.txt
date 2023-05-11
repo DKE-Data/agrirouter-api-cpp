@@ -42,9 +42,6 @@ set(MESSAGING_RESPONSE_PAYLOAD_ENDPOINT_CAPABILITIES_PROTO_FILE ${MESSAGING_RESP
 set(MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_FILE ${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH}/feed-response.proto)
 set(MESSAGING_RESPONSE_PAYLOAD_FEED_PUSH_NOTIFICATION_PROTO_FILE ${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH}/push-notification.proto)
 
-#settings
-set(SETTINGS_DH_SETTINGS_PROTO_FILE ${SETTINGS_PROTO_PATH}/dh-settings.proto)
-
 set(PROTOC_CMD "protoc")
 
 ## generating pd.h and pb.cc
@@ -159,12 +156,4 @@ execute_process(COMMAND ${PROTOC_CMD}
                         "-I=${MESSAGING_RESPONSE_PAYLOAD_FEED_PROTO_PATH}"
                         "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
                         ${MESSAGING_RESPONSE_PAYLOAD_FEED_PUSH_NOTIFICATION_PROTO_FILE})
-
-message(STATUS "Generate ${SETTINGS_DH_SETTINGS_PROTO_FILE}")
-execute_process(COMMAND ${PROTOC_CMD}
-                        "-I=${PROTOBUF_SDK_INCLUDES}"
-                        "-I=${PROTO_PATH}"
-                        "-I=${SETTINGS_PROTO_PATH}"
-                        "--cpp_out=${PROTOBUF_OUTPUT_DIRECTORY}"
-                        ${SETTINGS_DH_SETTINGS_PROTO_FILE})
 

@@ -24,7 +24,6 @@ file(GLOB SRCS
     "inc/Protobuf/messaging/response/payload/feed/feed-response.pb.cc"
     "inc/Protobuf/messaging/response/payload/feed/push-notification.pb.cc"
     "inc/Protobuf/messaging/response/response.pb.cc"
-    "inc/Protobuf/settings/dh-settings.pb.cc"
     "third_party/cJSON/*.c"
     "third_party/mosquitto/*.h"
 )
