@@ -17,7 +17,7 @@ class Registration
         /**
         * Onboard device with registration code.
         */
-        void registerToAgrirouterWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
+        void registerToAgrirouterWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
 
         /**
         * Send request to finish onboarding/registration process.
@@ -36,14 +36,14 @@ class Registration
         *
         * @return Contains error or not.
         */
-        static bool containsError(std::string& message);
+        static bool containsError(const std::string& message);
 
         /**
         * To get key and pem outof onboard message.
         * 
         *  @return parsed ConnectionParameters from message
         */
-        ConnectionParameters parseParametersAndCertificates(std::string& message, void *member);
+        ConnectionParameters parseParametersAndCertificates(const std::string& message, void *member);
 
         /**
         * Define registration callback

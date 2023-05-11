@@ -179,7 +179,7 @@ void Settings::setCertificate(std::string certificate)
                     m_callbackCallee);
 }
 
-std::string& Settings::getCertificate() { return m_certificate; }
+const std::string& Settings::getCertificate() { return m_certificate; }
 
 void Settings::setCertificatePath(std::string certificatePath)
 {
@@ -189,7 +189,7 @@ void Settings::setCertificatePath(std::string certificatePath)
                     m_callbackCallee);
 }
 
-std::string& Settings::getCaFilePath() { return m_caFilePath; }
+const std::string& Settings::getCaFilePath() { return m_caFilePath; }
 
 void Settings::setCaFilePath(std::string caFilePath)
 {
@@ -199,7 +199,7 @@ void Settings::setCaFilePath(std::string caFilePath)
                     m_callbackCallee);
 }
 
-std::string& Settings::getCertificatePath() { return m_certificatePath; }
+const std::string& Settings::getCertificatePath() { return m_certificatePath; }
 
 void Settings::setPrivateKey(std::string privateKey)
 {
@@ -209,7 +209,7 @@ void Settings::setPrivateKey(std::string privateKey)
                     m_callbackCallee);
 }
 
-std::string& Settings::getPrivateKey() { return m_privateKey; }
+const std::string& Settings::getPrivateKey() { return m_privateKey; }
 
 void Settings::setPrivateKeyPath(std::string privateKeyPath)
 {
@@ -219,7 +219,7 @@ void Settings::setPrivateKeyPath(std::string privateKeyPath)
                     m_callbackCallee);
 }
 
-std::string& Settings::getPrivateKeyPath() { return m_privateKeyPath; }
+const std::string& Settings::getPrivateKeyPath() { return m_privateKeyPath; }
 
 void Settings::setEncodingType(std::string encodingType)
 {
@@ -229,7 +229,7 @@ void Settings::setEncodingType(std::string encodingType)
                     m_callbackCallee);
 }
 
-std::string& Settings::getEncodingType() { return m_encodingType; }
+const std::string& Settings::getEncodingType() { return m_encodingType; }
 
 void Settings::setConnectionType(ConnectionType connectionType)
 {
@@ -268,7 +268,7 @@ void Settings::setConnectionParametersPath(std::string connectionParametersPath)
                     m_callbackCallee);
 }
 
-std::string& Settings::getConnectionParametersPath()
+const std::string& Settings::getConnectionParametersPath()
 {
     return m_connectionParametersPath;
 }
@@ -278,7 +278,7 @@ void Settings::setCertificateCaPath(std::string certificateCaPath)
     m_certificateCaPath = certificateCaPath;
 }
 
-std::string& Settings::getCertificateCaPath()
+const std::string& Settings::getCertificateCaPath()
 {
     return m_certificateCaPath;
 }

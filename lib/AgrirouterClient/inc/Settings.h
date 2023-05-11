@@ -65,27 +65,27 @@ class Settings
         std::string getCertificateType();
 
         void setCertificate(std::string certificate);
-        std::string& getCertificate();
+        const std::string& getCertificate();
         void setCertificatePath(std::string certificatePath);
-        std::string& getCertificatePath();
+        const std::string& getCertificatePath();
         void setCaFilePath(std::string caFilePath);
-        std::string& getCaFilePath();
+        const std::string& getCaFilePath();
         void setPrivateKeyPath(std::string privateKeyPath);
-        std::string& getPrivateKeyPath();
+        const std::string& getPrivateKeyPath();
         void setPrivateKey(std::string privateKey);
-        std::string& getPrivateKey();
+        const std::string& getPrivateKey();
         void setEncodingType(std::string encodingType);
-        std::string& getEncodingType();
+        const std::string& getEncodingType();
         void setConnectionType(ConnectionType connectionType);
         ConnectionType getConnectionType();
         void setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback = true);
         ConnectionParameters& getConnectionParameters();
         void setConnectionParametersPath(std::string connectionParametersPath);
-        std::string& getConnectionParametersPath();
+        const std::string& getConnectionParametersPath();
 
         // path to root certificate to check agrirouter certificate (Default set /etc/ssl/certs/)
         void setCertificateCaPath(std::string certificateCaPath);
-        std::string& getCertificateCaPath();
+        const std::string& getCertificateCaPath();
 
         void setAcceptSelfSignedCertificate(bool a_accept);
         bool acceptSelfSignedCertificate();

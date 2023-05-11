@@ -23,7 +23,7 @@ inline std::string messageToJson(const google::protobuf::Message *msg)
 }
 
 // Convert JSON to message
-inline void jsonToMessage(const std::string &input, google::protobuf::Message * message)
+inline void jsonToMessage(const std::string& input, google::protobuf::Message * message)
 {
     google::protobuf::util::JsonStringToMessage(input, message);
 }
@@ -82,8 +82,8 @@ inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInpu
     return true;
 }
 
-inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t seqNo, const std::string &messageType,
-        Addressing& addressing, const std::string &teamSetContextId, const std::string &fileName = "")
+inline RequestEnvelope createRequestHeader(const std::string& messageId, int64_t seqNo, const std::string& messageType,
+        Addressing& addressing, const std::string& teamSetContextId, const std::string& fileName = "")
 {
 
     // Create request header
@@ -180,7 +180,7 @@ inline std::string encodeResponse(Response& response)
     return "";
 }
 
-inline Request decodeRequest(std::string& encoded)
+inline Request decodeRequest(const std::string& encoded)
 {
     Request request;
 
@@ -247,7 +247,7 @@ inline Request decodeRequest(std::string& encoded)
     return request;
 }
 
-inline Response decodeResponse(std::string& encoded)
+inline Response decodeResponse(const std::string& encoded)
 {
     Response response;
 

@@ -20,7 +20,7 @@ Registration::Registration(ConnectionProvider *connectionProvider, Settings *set
 
 Registration::~Registration() {}
 
-void Registration::registerToAgrirouterWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
+void Registration::registerToAgrirouterWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
     m_registrationCode = registrationCode;
 
@@ -82,7 +82,7 @@ size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmem
     return realsize;
 }
 
-ConnectionParameters Registration::parseParametersAndCertificates(std::string& message, void *member)
+ConnectionParameters Registration::parseParametersAndCertificates(const std::string& message, void *member)
 {
     Registration *self = static_cast<Registration *>(member);
 
@@ -126,7 +126,7 @@ ConnectionParameters Registration::parseParametersAndCertificates(std::string& m
     return parameters;
 }
 
-bool Registration::containsError(std::string& message)
+bool Registration::containsError(const std::string& message)
 {
     // Checks if string contains "statusCode" and "message" and returns the result
     // as a boolean

@@ -19,7 +19,7 @@ struct Request
         payloadWrapper = payloadWrapper;
     }
 
-    void addRecipient(const std::string &recipient)
+    void addRecipient(const std::string& recipient)
     {
         envelope.add_recipients(recipient);
     }
@@ -49,7 +49,7 @@ struct Response
         payloadWrapper = payload;
     }
 
-    void setEnvelope(const std::string &appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type)
+    void setEnvelope(const std::string& appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type)
     {
         envelope.set_application_message_id(appMesssageId);
         envelope.set_response_code(responseCode);

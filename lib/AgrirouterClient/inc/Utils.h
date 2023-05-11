@@ -65,7 +65,7 @@ inline int getNumberOfChunks(int sizeOfFile, int chunkSize)
     return chunks;
 }
 
-inline std::string getModifiedUuid(std::string& uuid, int number)
+inline std::string getModifiedUuid(const std::string& uuid, int number)
 {
     int numberOfDigits = 1;
     if (number >= 10)
@@ -102,7 +102,7 @@ inline void fillAnyMessage(Any *any, Message *message)
     }
 }
 
-inline std::vector<std::string> split(const std::string &s, char seperator)
+inline std::vector<std::string> split(const std::string& s, char seperator)
 {
     std::vector<std::string> output;
 
@@ -249,7 +249,7 @@ inline std::vector<BYTE> decodeBase64(std::string const &encoded_string)
  * File operations
  */
 
-inline bool fileExists(std::string& name)
+inline bool fileExists(const std::string& name)
 {
     if (FILE *file = fopen(name.c_str(), "r"))
     {
@@ -262,7 +262,7 @@ inline bool fileExists(std::string& name)
     }
 }
 
-inline std::string readFile(std::string& absolutePath)
+inline std::string readFile(const std::string& absolutePath)
 {
     std::string line = "";
     std::string data = "";
@@ -294,7 +294,7 @@ inline std::string readFile(std::string& absolutePath)
     return "";
 }
 
-inline void writeFile(const char *data, std::string& absolutePath)
+inline void writeFile(const char *data, const std::string& absolutePath)
 {
     std::ofstream file;
 
@@ -315,7 +315,7 @@ inline void writeFile(const char *data, std::string& absolutePath)
     }
 }
 
-inline void writeFile(const std::string &data, std::string& absolutePath)
+inline void writeFile(const std::string& data, const std::string& absolutePath)
 {
     std::ofstream file;
 
@@ -331,7 +331,7 @@ inline void writeFile(const std::string &data, std::string& absolutePath)
     }
 }
 
-inline std::string readBinaryFile(std::string& absolutePath)
+inline std::string readBinaryFile(const std::string& absolutePath)
 {
     std::ifstream input(absolutePath.c_str(), std::ifstream::binary);
 
@@ -341,13 +341,13 @@ inline std::string readBinaryFile(std::string& absolutePath)
     return buffer;
 }
 
-inline void writeBinaryFile(std::vector<unsigned char> buffer, std::string& absolutePath)
+inline void writeBinaryFile(std::vector<unsigned char> buffer, const std::string& absolutePath)
 {
     std::ofstream output(absolutePath.c_str(), std::ios::binary);
     output.write((const char *)&buffer[0], buffer.size());
 }
 
-inline std::string readBinaryFileAndBase64(std::string& absolutePath)
+inline std::string readBinaryFileAndBase64(const std::string& absolutePath)
 {
     // no check if file is there please check in application
     std::string content = readBinaryFile(absolutePath);
@@ -355,7 +355,7 @@ inline std::string readBinaryFileAndBase64(std::string& absolutePath)
     return base64;
 }
 
-inline void writeBase64EncodedBinaryFile(std::string& file, std::string& absolutePath)
+inline void writeBase64EncodedBinaryFile(const std::string& file, const std::string& absolutePath)
 {
     std::vector<unsigned char> decoded = decodeBase64(file);
     writeBinaryFile(decoded, absolutePath);
@@ -388,7 +388,7 @@ inline ConnectionParameters getConnectionParametersFromJSON(std::string params)
     return parameters;
 }
 
-inline ConnectionParameters getSavedConnectionParameters(std::string& absolutePath)
+inline ConnectionParameters getSavedConnectionParameters(const std::string& absolutePath)
 {
     if (fileExists(absolutePath))
     {
@@ -432,13 +432,13 @@ inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameter
     return credentials;
 }
 
-inline void saveConnectionParameters(ConnectionParameters *parameters, std::string& absolutePath)
+inline void saveConnectionParameters(ConnectionParameters *parameters, const std::string& absolutePath)
 {
     std::string credentials = getConnectionParametersAsJSON(parameters);
     writeFile(credentials, absolutePath);
 }
 
-inline ApplicationSettings getApplicationSettings(std::string& absolutePath)
+inline ApplicationSettings getApplicationSettings(const std::string& absolutePath)
 {
     ApplicationSettings settings;
 
@@ -472,7 +472,7 @@ inline ApplicationSettings getApplicationSettings(std::string& absolutePath)
     return settings;
 }
 
-inline AgrirouterSettings getAgrirouterSettings(std::string& absolutePath)
+inline AgrirouterSettings getAgrirouterSettings(const std::string& absolutePath)
 {
     std::string allSettings = readFile(absolutePath);
 

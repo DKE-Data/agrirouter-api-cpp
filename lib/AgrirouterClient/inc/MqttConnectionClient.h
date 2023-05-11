@@ -8,7 +8,7 @@
 class MqttConnectionClient {
 
 public:
-    MqttConnectionClient(const std::string &clientId, const std::string &address, int port, Settings *settings);
+    MqttConnectionClient(const std::string& clientId, const std::string& address, int port, Settings *settings);
     ~MqttConnectionClient();
 
     // Function pointer for callback functions
@@ -17,10 +17,10 @@ public:
     typedef int (*pw_callback)(char *buf, int size, int rwflag, void *userdata);
 
     int init();
-    void subscribe(const std::string &topic, int qos);
-    void publish(const std::string &topic, const std::string &payload, int qos);
-    void publish(const std::string &topic, char *payload, int size, int qos);
-    void publish(const std::string &topic, char *payload, int size, int qos, bool retain);
+    void subscribe(const std::string& topic, int qos);
+    void publish(const std::string& topic, const std::string& payload, int qos);
+    void publish(const std::string& topic, char *payload, int size, int qos);
+    void publish(const std::string& topic, char *payload, int size, int qos, bool retain);
 
     void setMqttCallback(MqttCallback callback);
     MqttCallback getMqttCallback();
@@ -37,7 +37,7 @@ private:
     int m_port = 0;
     std::string m_clientId = "";
 
-    int m_messageId = 0;
+    int m_messageId = 1;
     bool m_connected = false;
     void *m_member = nullptr;
     Settings *m_settings = nullptr;

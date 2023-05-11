@@ -89,7 +89,7 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     if(m_url.find("http") != std::string::npos)
     {
         std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
-        m_settings->callOnError(0, MG_ERROR_NOT_VALID_TOPIC, "Not a vaild MQTT topic. New Onboarding needed", m_messageParameters, errorJSON);
+        m_settings->callOnError(0, MG_ERROR_NOT_VALID_TOPIC, "Not a valid MQTT topic. New Onboarding needed", messageParameters, errorJSON);
     }
     else
     {
