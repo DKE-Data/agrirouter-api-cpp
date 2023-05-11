@@ -2,7 +2,7 @@
 
 #include "third_party/mosquitto/mosquitto_internal.h"
 
-MqttConnectionClient::MqttConnectionClient(std::string &clientId, std::string &host, int port, Settings *settings)
+MqttConnectionClient::MqttConnectionClient(const std::string &clientId, const std::string &host, int port, Settings *settings)
 {
     m_clientId = clientId;
     m_port = port;
@@ -262,7 +262,7 @@ void MqttConnectionClient::messageCallback(struct mosquitto *mosq, void *obj, co
     (self->m_mqttCallback)(message->topic, message->payload, message->payloadlen, self->m_member);
 }
 
-void MqttConnectionClient::subscribe(std::string &topic, int qos)
+void MqttConnectionClient::subscribe(const std::string &topic, int qos)
 {
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] subscribing on topic " + 
                    topic.c_str() + " with qos " + std::to_string(qos));
@@ -271,7 +271,7 @@ void MqttConnectionClient::subscribe(std::string &topic, int qos)
     ++m_messageId;
 }
 
-void MqttConnectionClient::publish(std::string &topic, std::string &payload, int qos)
+void MqttConnectionClient::publish(const std::string &topic, const std::string &payload, int qos)
 {
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] publishing on topic " + 
                    topic.c_str() + " with qos " + std::to_string(qos) + " and payload-length " + std::to_string(payload.length()));
@@ -280,7 +280,7 @@ void MqttConnectionClient::publish(std::string &topic, std::string &payload, int
     ++m_messageId;
 }
 
-void MqttConnectionClient::publish(std::string &topic, char *payload, int size, int qos)
+void MqttConnectionClient::publish(const std::string &topic, char *payload, int size, int qos)
 {
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] publishing on topic " + 
                    topic.c_str() + " with qos " + std::to_string(qos) + " and size " + std::to_string(size));
@@ -289,7 +289,7 @@ void MqttConnectionClient::publish(std::string &topic, char *payload, int size, 
     ++m_messageId;
 }
 
-void MqttConnectionClient::publish(std::string &topic, char *payload, int size, int qos, bool retain)
+void MqttConnectionClient::publish(const std::string &topic, char *payload, int size, int qos, bool retain)
 {
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] publishing on topic " + 
                    topic.c_str() + " with qos " + std::to_string(qos) + " and size " + std::to_string(size) + " and retain " + std::to_string(retain));
