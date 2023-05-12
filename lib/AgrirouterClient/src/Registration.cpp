@@ -20,15 +20,10 @@ Registration::Registration(ConnectionProvider *connectionProvider, Settings *set
 
 Registration::~Registration() {}
 
-void Registration::registerToAgrirouterWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
+void Registration::sendOnboard(const std::string& registrationCode, const AgrirouterSettings& agrirouterSettings)
 {
     m_registrationCode = registrationCode;
 
-    this->sendOnboard(agrirouterSettings);
-}
-
-void Registration::sendOnboard(AgrirouterSettings& agrirouterSettings)
-{
     // Set headers
     std::vector<std::string> headers;
 

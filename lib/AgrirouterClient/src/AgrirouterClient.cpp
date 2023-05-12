@@ -77,7 +77,7 @@ void AgrirouterClient::registerDeviceWithRegCode(const std::string& registration
 {
     Registration registration = Registration(m_connectionProvider, m_settings, this);
     registration.setCallback(registrationCallback);
-    registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
+    registration.sendOnboard(registrationCode, agrirouterSettings);
 }
 
 void AgrirouterClient::registrationCallback(bool success, void *member)

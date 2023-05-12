@@ -15,14 +15,9 @@ class Registration
         ~Registration();
 
         /**
-        * Onboard device with registration code.
-        */
-        void registerToAgrirouterWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
-
-        /**
         * Send request to finish onboarding/registration process.
         */
-        void sendOnboard(AgrirouterSettings& agrirouterSettings);
+        void sendOnboard(const std::string& registrationCode, const AgrirouterSettings& agrirouterSettings);
 
         /**
         * Write callback of get endpoint registration code.
