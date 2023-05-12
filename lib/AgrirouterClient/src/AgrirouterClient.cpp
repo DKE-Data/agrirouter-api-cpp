@@ -199,7 +199,7 @@ AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, A
         uint32_t size, const std::string& technicalMessageType, const std::string& fileName) // fileName default ""
 {
     return m_messageProvider->getChunkedMessage(messageId, addressing, getNextSeqNo(), numberOfChunk, numberOfChunks,
-                                                      teamSetContextId, chunkContextId, data, size, technicalMessageType, fileName);
+                                                    teamSetContextId, chunkContextId, data, size, technicalMessageType, fileName);
 }
 
 void AgrirouterClient::requestMessages()
