@@ -110,7 +110,7 @@ int MqttConnectionClient::init()
             return EXIT_FAILURE;
         }
         
-        if (connect == 0 && loop == 0)
+        if ((connect == MOSQ_ERR_SUCCESS) && (loop == MOSQ_ERR_SUCCESS))
         {
             return EXIT_SUCCESS;
         }
