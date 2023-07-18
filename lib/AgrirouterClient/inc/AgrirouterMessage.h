@@ -8,14 +8,10 @@
 
 struct Request 
 {
-    RequestEnvelope envelope;
-    RequestPayloadWrapper payloadWrapper;
+    RequestEnvelope envelope = RequestEnvelope::default_instance();
+    RequestPayloadWrapper payloadWrapper = RequestPayloadWrapper::default_instance();
 
-    Request()
-    {
-        envelope = RequestEnvelope::default_instance();
-        payloadWrapper = RequestPayloadWrapper::default_instance();
-    }
+    Request() { }
 
     Request(RequestEnvelope envelope, RequestPayloadWrapper payloadWrapper)
     {
@@ -23,7 +19,7 @@ struct Request
         payloadWrapper = payloadWrapper;
     }
 
-    void addRecipient(const std::string &recipient)
+    void addRecipient(const std::string& recipient)
     {
         envelope.add_recipients(recipient);
     }
@@ -42,14 +38,10 @@ struct Request
 
 struct Response
 {
-    ResponseEnvelope envelope;
-    ResponsePayloadWrapper payloadWrapper;
+    ResponseEnvelope envelope = ResponseEnvelope::default_instance();
+    ResponsePayloadWrapper payloadWrapper = ResponsePayloadWrapper::default_instance();
 
-    Response()
-    {
-        envelope = ResponseEnvelope::default_instance();
-        payloadWrapper = ResponsePayloadWrapper::default_instance();
-    }
+    Response() { }
 
     Response(const ResponseEnvelope &env, const ResponsePayloadWrapper &payload)
     {
@@ -57,7 +49,7 @@ struct Response
         payloadWrapper = payload;
     }
 
-    void setEnvelope(const std::string &appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type)
+    void setEnvelope(const std::string& appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type)
     {
         envelope.set_application_message_id(appMesssageId);
         envelope.set_response_code(responseCode);

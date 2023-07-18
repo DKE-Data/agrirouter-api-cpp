@@ -12,6 +12,7 @@
 #include "messaging/request/payload/feed/feed-requests.pb.h"
 #include "messaging/response/payload/account/endpoints.pb.h"
 #include "messaging/response/payload/feed/feed-response.pb.h"
+#include "messaging/response/payload/feed/push-notification.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -69,10 +70,26 @@
 #define MG_EV_GET_MESSAGES (MG_EV_BASE + GET_MESSAGES)
 #define MG_EV_TIMELOG (MG_EV_BASE + TIMELOG)
 
+// error messages
+#define MG_ERROR_BASE 300
+#define MG_ERROR_MISSING_ENDPOINT (MG_ERROR_BASE + 1)
+#define MG_ERROR_MISSING_OR_EXPIRED_CERTIFICATE (MG_ERROR_BASE + 2)
+#define MG_ERROR_MISSING_OR_EXPIRED_CA_CERTIFICATE (MG_ERROR_BASE + 3)
+#define MG_ERROR_NOT_VALID_TOPIC (MG_ERROR_BASE + 4)
+
 // message types
 #define MESSAGE_TYPE_TASK_DATA "iso:11783:-10:taskdata:zip"
 #define MESSAGE_TYPE_TIME_LOG "iso:11783:-10:time_log:protobuf"
 #define MESSAGE_TYPE_DEVICE_DESCRIPTION "iso:11783:-10:device_description:protobuf"
+
+// loglevel
+#define MG_LFL_CRI 1  // critical  
+#define MG_LFL_ERR 2  // error  
+#define MG_LFL_WRN 3  // warning  
+#define MG_LFL_MSG 4  // message  
+#define MG_LFL_NTC 5  // notice  
+#define MG_LFL_TRC 6  // trace  
+#define MG_LFL_DBG 7  // debug  
 
 // Other definitions
 #define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
@@ -107,6 +124,8 @@ typedef agrirouter::feed::response::HeaderQueryResponse HeaderQueryResponse;
 typedef agrirouter::feed::response::MessageQueryResponse MessageQueryResponse;
 typedef agrirouter::feed::response::FailedMessageQueryResponse FailedMessageQueryResponse;
 
+typedef agrirouter::feed::push::notification::PushNotification PushNotification;
+
 typedef agrirouter::commons::Message CommonsMessage;
 typedef agrirouter::commons::Messages CommonsMessages;
 typedef agrirouter::commons::ChunkComponent ChunkComponent;
@@ -132,74 +151,80 @@ typedef google::protobuf::io::StringOutputStream StringOutputStream;
 // Error struct for callback functions
 typedef struct Error
 {
-    std::string code;
-    std::string message;
-    std::string applicationMessageId;
+    std::string code = "";
+    std::string message = "";
+    std::string applicationMessageId = "";
 } Error;
 
 // Struct for connection parameters received in onboard reponse
 typedef struct ConnectionParameters
 {
-    std::string deviceAlternateId;
-    std::string capabilityAlternateId;
-    std::string sensorAlternateId;
-    std::string certificateType;
-    std::string secret;
-    std::string measuresUrl;
-    std::string commandsUrl;
-    std::string gatewayId;
-    std::string host;
-    std::string port;
-    std::string clientId;
+    std::string deviceAlternateId = "";
+    std::string capabilityAlternateId = "";
+    std::string sensorAlternateId = "";
+    std::string certificateType = "";
+    std::string secret = "";
+    std::string measuresUrl = "";
+    std::string commandsUrl = "";
+    std::string gatewayId = "";
+    std::string host = "";
+    uint16_t port = 0;
+    std::string clientId = "";
 } ConnectionParameters;
 
 // Struct for message parameters used for communication
 typedef struct MessageParameters
 {
-    int event;
-    std::string applicationMessageId;
-    void *member;
+    int event = 0;
+    std::string applicationMessageId = "";
+    void *member = nullptr;
 } MessageParameters;
 
 // Struct for evaluating the mode. DIRECT: with recipients, PUBLISH: without
 // recipients, PUBLISH_WITH_DIRECT: with recipients
 typedef struct Addressing
 {
-    RequestEnvelope::Mode mode;
-    std::list<std::string> recipients;
+    RequestEnvelope::Mode mode = RequestEnvelope::Mode::RequestEnvelope_Mode_DIRECT;
+    std::list<std::string> recipients = std::list<std::string>();
 } Addressing;
 
 // Struct for application settings
 typedef struct ApplicationSettings
 {
-    std::string applicationId;
-    std::string certificationVersionId;
-    std::string externalId;
-    std::string locationCertsAndIds;
-    std::string teamsetContextId;
-    std::string connectionType;
-    bool acceptSelfSignedCertificate;
+    std::string applicationId = "";
+    std::string certificationVersionId = "";
+    std::string externalId = "";
+    std::string locationCertsAndIds = "";
+    std::string teamsetContextId = "";
+    std::string connectionType = "";
+    bool acceptSelfSignedCertificate = false;
 } ApplicationSettings;
 
 // Struct for agrirouter settings
 typedef struct AgrirouterSettings
 {
-    std::string registrationServicePath;
-    std::string landscape;
-    std::string cfHost;
-    std::string apiPrefix;
-    std::string registrationUrl;
+    std::string registrationServicePath = "";
+    std::string landscape = "";
+    std::string cfHost = "";
+    std::string apiPrefix = "";
+    std::string registrationUrl = "";
 } AgrirouterSettings;
 
 // Struct for handling binary data
 typedef struct BinaryData
 {
-    unsigned char* data;
-    int size;
+    unsigned char* data = nullptr;
+    int size = 0;
 } BinaryData;
 
 // Function pointer for callback functions
 typedef size_t (*TokenCallback) (std::string token, Error error);
 typedef size_t (*GetMessagesCallback) ( google::protobuf::RepeatedPtrField<CommonsMessage>, Error error);
+
+const static std::string logLevelTexts[8] = {"", "CRITICAL", "ERROR   ", "WARNING ", "MESSAGE ", "NOTICE  ", "TRACE   ", "DEBUG   "};
+static inline std::string getLogLevelText(int logLevel)
+{
+    return logLevelTexts[logLevel];
+}
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_DEFINITIONS_H_

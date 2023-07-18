@@ -1,6 +1,7 @@
 #include "Registration.h"
 
 #include "Utils.h"
+#include "CurlConnectionProvider.h"
 #include "../third_party/cJSON/cJSON.h"
 
 #include <curl/curl.h>
@@ -10,23 +11,19 @@
 #include <iostream>
 #include <vector>
 
-Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings)
+Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings, void *member)
 {
     m_settings = settings;
     m_connectionProvider = connectionProvider;
+    m_member = member;
 }
 
 Registration::~Registration() {}
 
-void Registration::registerToAgrirouterWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
+void Registration::sendOnboard(const std::string& registrationCode, const AgrirouterSettings& agrirouterSettings)
 {
     m_registrationCode = registrationCode;
 
-    this->sendOnboard(agrirouterSettings);
-}
-
-void Registration::sendOnboard(AgrirouterSettings& agrirouterSettings)
-{
     // Set headers
     std::vector<std::string> headers;
 
@@ -41,17 +38,20 @@ void Registration::sendOnboard(AgrirouterSettings& agrirouterSettings)
         m_settings->getGatewayId() + "\",\"certificateType\":\"" + "PEM" + "\"}";
 
     std::string url = agrirouterSettings.registrationUrl;
-    m_connectionProvider->setBody(body);
-    m_connectionProvider->setUrl(url);
-    m_connectionProvider->setHeaders(headers);
-    m_connectionProvider->setCallback(sendOnboardCallback);
-    m_connectionProvider->setMember(static_cast<void *>(this));
+
+    // change to curl connection provider, because onbarding is every time http
+    CurlConnectionProvider connectionProvider = CurlConnectionProvider(m_settings);
+    connectionProvider.setBody(body);
+    connectionProvider.setUrl(url);
+    connectionProvider.setHeaders(headers);
+    connectionProvider.setCallback(sendOnboardCallback);
+    connectionProvider.setMember(this);
 
     // ToDo: any application message id available?
     MessageParameters messageParameters;
     messageParameters.member = static_cast<void *>(this);
 
-    m_connectionProvider->onboard(messageParameters);
+    connectionProvider.onboard(messageParameters);
 }
 
 size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmemb, void *member)
@@ -62,16 +62,22 @@ size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmem
 
     if (containsError(message))
     {
-        // printf("Received error: %s", message.c_str());
+        self->m_settings->callOnLog(MG_LFL_ERR, "Received error: " + message);
     }
 
-    // Get key and pem
-    self->parseCertificates(message, self);
+    ConnectionParameters parameters = self->parseParametersAndCertificates(message, self);
+
+    // set new secret and topic to can create mqtt connection before init agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters, false);
+    self->m_callback(true, self->m_member);
+
+    // set second time connection parameters with callback to agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters);
 
     return realsize;
 }
 
-void Registration::parseCertificates(std::string& message, void *member)
+ConnectionParameters Registration::parseParametersAndCertificates(const std::string& message, void *member)
 {
     Registration *self = static_cast<Registration *>(member);
 
@@ -110,14 +116,19 @@ void Registration::parseCertificates(std::string& message, void *member)
     self->m_settings->setCertificate(certificate);
     self->m_settings->setPrivateKey(privKey);
 
-    self->m_settings->setConnectionParameters(parameters);
-
     cJSON_Delete(root);
+
+    return parameters;
 }
 
-bool Registration::containsError(std::string& message)
+bool Registration::containsError(const std::string& message)
 {
     // Checks if string contains "statusCode" and "message" and returns the result
     // as a boolean
     return ((message.find("statusCode") != std::string::npos) && (message.find("message") != std::string::npos));
+}
+
+void Registration::setCallback(RegistrationCallback registrationCallback)
+{
+    m_callback = registrationCallback;
 }

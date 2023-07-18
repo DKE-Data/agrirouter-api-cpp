@@ -23,7 +23,7 @@ inline std::string messageToJson(const google::protobuf::Message *msg)
 }
 
 // Convert JSON to message
-inline void jsonToMessage(const std::string &input, google::protobuf::Message * message)
+inline void jsonToMessage(const std::string& input, google::protobuf::Message * message)
 {
     google::protobuf::util::JsonStringToMessage(input, message);
 }
@@ -39,7 +39,7 @@ inline bool writeDelimitedTo(const google::protobuf::MessageLite& message, googl
     output.WriteVarint32(size);
 
     uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-    if (buffer != NULL)
+    if (buffer != nullptr)
     {
         // Optimization:  The message fits in one buffer, so use the faster
         // direct-to-array serialization path.
@@ -82,8 +82,8 @@ inline bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInpu
     return true;
 }
 
-inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t seqNo, const std::string &messageType,
-        Addressing& addressing, const std::string &teamSetContextId)
+inline RequestEnvelope createRequestHeader(const std::string& messageId, int64_t seqNo, const std::string& messageType,
+        Addressing& addressing, const std::string& teamSetContextId, const std::string& fileName = "")
 {
 
     // Create request header
@@ -92,6 +92,19 @@ inline RequestEnvelope createRequestHeader(const std::string &messageId, int64_t
     header.set_application_message_seq_no(seqNo);
     header.set_technical_message_type(messageType);
     header.set_mode(addressing.mode);
+
+    // set fileName when it is given
+    if(!fileName.empty())
+    {
+        // delete ending
+        std::size_t found = fileName.find_last_of('.');
+        std::string fileNameWithoutEnding = fileName;
+        if (found != std::string::npos)
+        {
+            fileNameWithoutEnding = fileNameWithoutEnding.substr(0, found);
+        }
+        header.mutable_metadata()->mutable_file_name()->assign(fileNameWithoutEnding);
+    }
 
     if ((addressing.mode == RequestEnvelope::DIRECT) || (addressing.mode == RequestEnvelope::PUBLISH_WITH_DIRECT))
     {
@@ -167,7 +180,7 @@ inline std::string encodeResponse(Response& response)
     return "";
 }
 
-inline Request decodeRequest(std::string& encoded)
+inline Request decodeRequest(const std::string& encoded)
 {
     Request request;
 
@@ -186,6 +199,7 @@ inline Request decodeRequest(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         return Request();
     }
 
@@ -199,7 +213,9 @@ inline Request decodeRequest(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return Request();
     }
 
@@ -209,7 +225,9 @@ inline Request decodeRequest(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return Request();
     }
 
@@ -223,18 +241,24 @@ inline Request decodeRequest(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         delete [] payloadBuffer;
+        payloadBuffer = nullptr;
         return request;
     }
 
     delete decodedMsg;
+    decodedMsg = nullptr;
     delete [] envelopeBuffer;
+    envelopeBuffer = nullptr;
     delete [] payloadBuffer;
+    payloadBuffer = nullptr;
     return request;
 }
 
-inline Response decodeResponse(std::string& encoded)
+inline Response decodeResponse(const std::string& encoded)
 {
     Response response;
 
@@ -253,7 +277,8 @@ inline Response decodeResponse(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
-        return Response();
+        decodedMsg = nullptr;
+        return response;
     }
 
     // Parse envelope
@@ -266,8 +291,10 @@ inline Response decodeResponse(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
-        return Response();
+        envelopeBuffer = nullptr;
+        return response;
     }
 
     // Parse length of payload
@@ -276,7 +303,9 @@ inline Response decodeResponse(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         return response;
     }
 
@@ -290,14 +319,20 @@ inline Response decodeResponse(std::string& encoded)
     {
         // Parsing failed
         delete decodedMsg;
+        decodedMsg = nullptr;
         delete [] envelopeBuffer;
+        envelopeBuffer = nullptr;
         delete [] payloadBuffer;
+        payloadBuffer = nullptr;
         return response;
     }
 
     delete decodedMsg;
+    decodedMsg = nullptr;
     delete [] envelopeBuffer;
+    envelopeBuffer = nullptr;
     delete [] payloadBuffer;
+    payloadBuffer = nullptr;
 
     return response;
 }
@@ -307,10 +342,10 @@ inline int getResponsesFromMessage(std::list<Response> *list, std::string *messa
 {
     // Iterate through message to get list of responses
     cJSON *root = cJSON_Parse(message->c_str());
-    //cJSON *item = cJSON_GetObjectItem(root, "message");
+
     for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++)
     {
-        cJSON * subitem = cJSON_GetArrayItem(root, i);
+        cJSON *subitem = cJSON_GetArrayItem(root, i);
         cJSON *command = cJSON_GetObjectItem(subitem, "command");
         cJSON *msg = cJSON_GetObjectItem(command, "message");
         std::string str = msg->valuestring;

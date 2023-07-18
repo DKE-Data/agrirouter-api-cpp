@@ -11,18 +11,13 @@
 class Registration
 {
     public:
-        Registration(ConnectionProvider *connectionProvider, Settings *settings);
+        Registration(ConnectionProvider *connectionProvider, Settings *settings, void *member);
         ~Registration();
-
-        /**
-        * Onboard device with registration code.
-        */
-        void registerToAgrirouterWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
 
         /**
         * Send request to finish onboarding/registration process.
         */
-        void sendOnboard(AgrirouterSettings& agrirouterSettings);
+        void sendOnboard(const std::string& registrationCode, const AgrirouterSettings& agrirouterSettings);
 
         /**
         * Write callback of get endpoint registration code.
@@ -36,18 +31,32 @@ class Registration
         *
         * @return Contains error or not.
         */
-        static bool containsError(std::string& message);
+        static bool containsError(const std::string& message);
 
         /**
         * To get key and pem outof onboard message.
+        * 
+        *  @return parsed ConnectionParameters from message
         */
-        void parseCertificates(std::string& message, void *member);
+        ConnectionParameters parseParametersAndCertificates(const std::string& message, void *member);
+
+        /**
+        * Define registration callback
+        */
+        typedef void (*RegistrationCallback)(bool success, void *member);
+
+        /**
+        * Set a callback function for callback
+        */
+        void setCallback(RegistrationCallback registrationCallback);
 
     private:
-        ConnectionProvider *m_connectionProvider;
-        Settings *m_settings;
+        ConnectionProvider *m_connectionProvider = nullptr;
+        Settings *m_settings = nullptr;
+        void *m_member = nullptr;
+        RegistrationCallback m_callback;
 
-        std::string m_registrationCode;
+        std::string m_registrationCode = "";
 };
 
 #endif //  LIB_AGRIROUTERCLIENT_INC_REGISTRATION_H_

@@ -32,9 +32,7 @@ void Communicator::onboard(std::string registrationCode, std::string externalId)
     }
     else if (m_settings->getConnectionType() == Settings::MQTT)
     {
-        // ToDo: MQTT needs to be implemented
         m_settings->setGatewayId("2");
-        m_settings->setConnectionType(Settings::HTTP);
     }
     m_settings->setCertificateType("PEM");
 

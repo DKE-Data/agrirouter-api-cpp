@@ -2,6 +2,7 @@
 
 #include "AgrirouterMessageUtils.h"
 #include "CurlConnectionProvider.h"
+#include "MqttConnectionProvider.h"
 #include "Definitions.h"
 #include "Registration.h"
 
@@ -33,39 +34,69 @@ AgrirouterClient::AgrirouterClient(Settings *settings, uint32_t chunkSize)
 
 void AgrirouterClient::init(Settings *settings)
 {
-    m_seqNo = 0;
     m_settings = settings;
+    if(m_messageProvider != nullptr)
+    {
+        delete m_messageProvider;
+        m_messageProvider = nullptr;
+    }
     m_messageProvider = new MessageProvider(settings, m_chunkSize);
 
-    if (settings->getConnectionType() == Settings::HTTP)
+    if(m_connectionProvider != nullptr)
     {
+        delete m_connectionProvider;
+        m_connectionProvider = nullptr;
+    }
+
+    if (settings->getConnectionType() == Settings::HTTP)
+    {        
         m_connectionProvider = new CurlConnectionProvider(settings);
     }
     else if (settings->getConnectionType() == Settings::MQTT)
     {
-        // ToDo: MQTT needs to be implemented
+        m_connectionProvider = new MqttConnectionProvider(settings);
     }
 }
 
 AgrirouterClient::~AgrirouterClient()
 {
-    if (m_messageProvider != NULL)
+    if (m_messageProvider != nullptr)
     {
         delete m_messageProvider;
-        m_messageProvider = NULL;
+        m_messageProvider = nullptr;
     }
 
-    if (m_connectionProvider != NULL)
+    if (m_connectionProvider != nullptr)
     {
         delete m_connectionProvider;
-        m_connectionProvider = NULL;
+        m_connectionProvider = nullptr;
     }
 }
 
-void AgrirouterClient::registerDeviceWithRegCode(std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
+void AgrirouterClient::registerDeviceWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings)
 {
-    Registration registration = Registration(m_connectionProvider, m_settings);
-    registration.registerToAgrirouterWithRegCode(registrationCode, agrirouterSettings);
+    Registration registration = Registration(m_connectionProvider, m_settings, this);
+    registration.setCallback(registrationCallback);
+    registration.sendOnboard(registrationCode, agrirouterSettings);
+}
+
+void AgrirouterClient::registrationCallback(bool success, void *member)
+{
+    AgrirouterClient *self = static_cast<AgrirouterClient*>(member);
+    if(success) 
+    {
+        // reinit connection provider after onboard to new subscribe to the new topics
+        if (self->m_connectionProvider != nullptr)
+        {
+            delete self->m_connectionProvider;
+            self->m_connectionProvider = nullptr;
+        }
+        self->init(self->m_settings);
+    }
+    else
+    {
+        self->m_settings->callOnLog(MG_LFL_ERR, "Onboarding failed");
+    }
 }
 
 int32_t AgrirouterClient::getNextSeqNo()
@@ -131,43 +162,44 @@ void AgrirouterClient::sendMessagesDelete(std::string *messageId, MessageDelete 
     sendMessage(&message, MG_EV_MESSAGE_DELETE, messageId);
 }
 
-void AgrirouterClient::sendDeviceDescription(Addressing& addressing, std::string *messageId, std::string& teamsetId, ISO11783_TaskData *taskdata)
+void AgrirouterClient::sendDeviceDescription(Addressing& addressing, std::string *messageId, const std::string& teamsetId, ISO11783_TaskData *taskdata, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, getNextSeqNo(), addressing, teamsetId, taskdata);
+    AgrirouterMessage message = m_messageProvider->getDeviceDescriptionMessage(messageId, getNextSeqNo(), addressing, teamsetId, taskdata, fileName);
     sendMessage(&message, MG_EV_DEVICE_DESCRIPTION, messageId);
 }
 
-void AgrirouterClient::sendTimelog(Addressing& addressing, std::string *messageId, std::string& teamsetId, TimeLog *timelog)
+void AgrirouterClient::sendTimelog(Addressing& addressing, std::string *messageId, const std::string& teamsetId, TimeLog *timelog, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, getNextSeqNo(), addressing, teamsetId, timelog);
+    AgrirouterMessage message = m_messageProvider->getTimelogMessage(messageId, getNextSeqNo(), addressing, teamsetId, timelog, fileName);
     sendMessage(&message, MG_EV_TIMELOG, messageId);
 }
 
 void AgrirouterClient::sendChunk(AgrirouterMessage& message)
 {
+    // fileName already in AgrirouterMessage
     message.request().envelope.set_application_message_seq_no(getNextSeqNo());
     std::string applicationMessageId = message.request().envelope.application_message_id();
     sendMessage(&message, MG_EV_NON_TELEMETRY, &applicationMessageId);
 }
 
-void AgrirouterClient::sendImage(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *image, int size)
+void AgrirouterClient::sendImage(Addressing& addressing, std::string *messageId, const std::string& teamsetId, char *image, int size, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getImageMessage(messageId, addressing, getNextSeqNo(), teamsetId, image, size);
+    AgrirouterMessage message = m_messageProvider->getImageMessage(messageId, addressing, getNextSeqNo(), teamsetId, image, size, fileName);
     sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
 }
 
-void AgrirouterClient::sendTaskdataZip(Addressing& addressing, std::string *messageId, std::string& teamsetId, char *taskdataZip, int size)
+void AgrirouterClient::sendTaskdataZip(Addressing& addressing, std::string *messageId, const std::string& teamsetId, char *taskdataZip, int size, const std::string& fileName) // fileName default ""
 {
-    AgrirouterMessage message = m_messageProvider->getTaskdataZipMessage(messageId, addressing, getNextSeqNo(), teamsetId, taskdataZip, size);
+    AgrirouterMessage message = m_messageProvider->getTaskdataZipMessage(messageId, addressing, getNextSeqNo(), teamsetId, taskdataZip, size, fileName);
     sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
 }
 
 AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk,
-        uint16_t numberOfChunks, const std::string &teamSetContextId, const std::string &chunkContextId, std::string& data,
-        uint32_t size, std::string& technicalMessageType)
+        uint16_t numberOfChunks, const std::string& teamSetContextId, const std::string& chunkContextId, const std::string& data,
+        uint32_t size, const std::string& technicalMessageType, const std::string& fileName) // fileName default ""
 {
     return m_messageProvider->getChunkedMessage(messageId, addressing, getNextSeqNo(), numberOfChunk, numberOfChunks,
-                                                      teamSetContextId, chunkContextId, data, size, technicalMessageType);
+                                                    teamSetContextId, chunkContextId, data, size, technicalMessageType, fileName);
 }
 
 void AgrirouterClient::requestMessages()
@@ -181,7 +213,7 @@ void AgrirouterClient::requestMessages()
     m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
     m_connectionProvider->setHeaders(headers);
     m_connectionProvider->setCallback(requestMessagesCallback);
-    m_connectionProvider->setMember(static_cast<void *>(this));
+    m_connectionProvider->setMember(this);
 
     m_connectionProvider->getMessages();
 }
@@ -269,7 +301,7 @@ size_t AgrirouterClient::messageCallback(char *content, size_t size, size_t nmem
 int AgrirouterClient::sendMessage(AgrirouterMessage *agrirouterMessage, int event, std::string *messageId)
 {
     MessageParameters messageParameters;
-    messageParameters.member = static_cast<void *>(this);
+    messageParameters.member = this;
     messageParameters.event = event;
     messageParameters.applicationMessageId = *messageId;
 
@@ -312,7 +344,7 @@ void AgrirouterClient::getMessages(AgrirouterClient *self, ConnectionProvider::C
     self->m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
     self->m_connectionProvider->setHeaders(headers);
     self->m_connectionProvider->setCallback(callback);
-    self->m_connectionProvider->setMember(static_cast<void *>(self));
+    self->m_connectionProvider->setMember(self);
 
     self->m_connectionProvider->getMessages();
 }

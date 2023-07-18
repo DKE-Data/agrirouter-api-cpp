@@ -11,10 +11,10 @@
 
 class Communicator {
     private:
-        Settings *m_settings;
-        AgrirouterClient *m_agrirouterClient;
-        AgrirouterSettings m_agrirouterSettings;
+        Settings *m_settings = nullptr;
+        AgrirouterClient *m_agrirouterClient = nullptr;
 
+        AgrirouterSettings m_agrirouterSettings;
         Addressing m_addressing;
 
     public:

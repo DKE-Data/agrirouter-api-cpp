@@ -9,10 +9,7 @@
 
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
-    m_polling = false;
-    this->settings = settings;
-    this->body = "";
-    this->url = "";
+    m_settings = settings;
 }
 
 CurlConnectionProvider::~CurlConnectionProvider() {}
@@ -30,7 +27,7 @@ void CurlConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
 
     MemoryStruct chunk;
     // Will be grown as needed by the realloc above
-    chunk.memory = reinterpret_cast<char*>(malloc(1));
+    chunk.memory = static_cast<char*>(malloc(1));
     // No data at this point
     chunk.size = 0;
 
@@ -53,7 +50,7 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters)
 
     MemoryStruct chunk;
     // Will be grown as needed by the realloc above
-    chunk.memory = reinterpret_cast<char*>(malloc(1));
+    chunk.memory = static_cast<char*>(malloc(1));
     // No data at this point
     chunk.size = 0;
 
@@ -77,7 +74,7 @@ void CurlConnectionProvider::getMessages(void)
 
     MemoryStruct chunk;
     // Will be grown as needed by the realloc above
-    chunk.memory = reinterpret_cast<char*>(malloc(1));
+    chunk.memory = static_cast<char*>(malloc(1));
     // No data at this point
     chunk.size = 0;
 
@@ -101,19 +98,19 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
     size_t realsize = size * nmemb;
     static int pollCount = 1;
 
-    CurlConnectionProvider *self = reinterpret_cast<CurlConnectionProvider*>(member);
+    CurlConnectionProvider *self = static_cast<CurlConnectionProvider*>(member);
     std::string message(content, realsize);
 
     timeval tv;
 
-    int currentPollingTime = pollCount * self->settings->getPollingInterval();
-    if (currentPollingTime >= self->settings->getPollingMaxTime())
+    int currentPollingTime = pollCount * self->m_settings->getPollingInterval();
+    if (currentPollingTime >= self->m_settings->getPollingMaxTime())
     {
-        self->callback(content, realsize, 1, self->member);
+        self->m_callback(content, realsize, 1, self->m_member);
     }
     else if (message == "[]")
     {
-        if (self->settings->getPollingInterval() == 0)
+        if (self->m_settings->getPollingInterval() == 0)
         {
             // No polling required
             // Call callback of caller with member=this->member
@@ -121,7 +118,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
         }
 
         // Poll for messages depending on intervall
-        tv.tv_sec = self->settings->getPollingInterval();
+        tv.tv_sec = self->m_settings->getPollingInterval();
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
 
@@ -131,7 +128,7 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
     else
     {
         // Received entire message: call callback
-        self->callback(content, realsize, 1, self->member);
+        self->m_callback(content, realsize, 1, self->m_member);
     }
 
     // Has to be returned for successful curl communication
@@ -143,10 +140,10 @@ size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
         size_t size, size_t nmemb, void *userp)
 {
     size_t realsize = size * nmemb;
-    MemoryStruct *mem = reinterpret_cast<MemoryStruct*>(userp);
+    MemoryStruct *mem = static_cast<MemoryStruct *>(userp);
 
     int memorySize = mem->size + realsize + 1;
-    mem->memory = reinterpret_cast<char*>(realloc(mem->memory, memorySize));
+    mem->memory = static_cast<char*>(realloc(mem->memory, memorySize));
 
     if (mem->memory == NULL)
     {
@@ -165,22 +162,22 @@ size_t CurlConnectionProvider::chunkedResponseCallback(char *content,
 
 void CurlConnectionProvider::setCurlUrl(CURL *hnd)
 {
-    if (this->url != "")
+    if (m_url != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_URL, this->url.c_str());
+        curl_easy_setopt(hnd, CURLOPT_URL, m_url.c_str());
     }
 }
 
 curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 {
     slist = NULL;
-    for (size_t i = 0; i < this->headers.size(); i++)
+    for (size_t i = 0; i < m_headers.size(); i++)
     {
-        slist = curl_slist_append(slist, this->headers[i].c_str());
+        slist = curl_slist_append(slist, m_headers[i].c_str());
     }
 
     // Only set header if header array contains elements
-    if (this->headers.size() > 0)
+    if (m_headers.size() > 0)
     {
         curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist);
     }
@@ -190,9 +187,9 @@ curl_slist *CurlConnectionProvider::setCurlHeaders(CURL *hnd, curl_slist *slist)
 
 void CurlConnectionProvider::setCurlBody(CURL *hnd)
 {
-    if (this->body != "")
+    if (m_body != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, this->body.c_str());
+        curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, m_body.c_str());
     }
 }
 
@@ -203,28 +200,28 @@ void CurlConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chu
     curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, chunkedResponseCallback);
 
     /* we pass our 'chunk' struct to the callback function */
-    curl_easy_setopt(hnd, CURLOPT_WRITEDATA, reinterpret_cast<void*>(chunk));
+    curl_easy_setopt(hnd, CURLOPT_WRITEDATA, static_cast<void *>(chunk));
 }
 
 void CurlConnectionProvider::setCurlSSL(CURL *hnd)
 {
-    if (this->settings->getCertificatePath() != "")
+    if (m_settings->getCertificatePath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLCERT, this->settings->getCertificatePath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLCERT, m_settings->getCertificatePath().c_str());
     }
 
     // Set private key
-    if (this->settings->getPrivateKeyPath() != "")
+    if (m_settings->getPrivateKeyPath() != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_SSLKEY, this->settings->getPrivateKeyPath().c_str());
+        curl_easy_setopt(hnd, CURLOPT_SSLKEY, m_settings->getPrivateKeyPath().c_str());
     }
 
-    if (this->settings->getConnectionParameters().secret != "")
+    if (m_settings->getConnectionParameters().secret != "")
     {
-        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, this->settings->getConnectionParameters().secret.c_str());
+        curl_easy_setopt(hnd, CURLOPT_KEYPASSWD, m_settings->getConnectionParameters().secret.c_str());
     }
 
-    if (this->settings->acceptSelfSignedCertificate())
+    if (m_settings->acceptSelfSignedCertificate())
     {
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0);
         curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYHOST, 0);
@@ -255,7 +252,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         std::string curlMessage = "";
 
         // get content if there is some content
-        std::string content(chunk->memory, chunk->size);
+        std::string errorContent(chunk->memory, chunk->size);
 
         // get the curl message
         if(strlen(errbuf))
@@ -267,7 +264,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             curlMessage = std::string(curl_easy_strerror(curlCode));
         }
 
-        this->settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, content);
+        m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, errorContent);
     }
     else
     {
@@ -282,9 +279,9 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         {
             // Something went wrong
             // get content if there is some content
-            std::string content(chunk->memory, chunk->size);
+            std::string errorContent(chunk->memory, chunk->size);
 
-            this->settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, content);
+            m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
             return;
         }
 
@@ -296,7 +293,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
         else
         {
             // No polling, call callback instead
-            (this->callback)(chunk->memory, chunk->size, 1, this->member);
+            (m_callback)(chunk->memory, chunk->size, 1, m_member);
         }
     }
 }

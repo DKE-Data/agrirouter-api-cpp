@@ -14,8 +14,6 @@
 #include <vector>
 #include <iterator>
 
-
-
 inline std::string createUuid()
 {
     uuid_t id;
@@ -25,6 +23,7 @@ inline std::string createUuid()
     std::string uuidAsString = std::string(str);
 
     delete [] str;
+    str = nullptr;
     return uuidAsString;
 }
 
@@ -67,7 +66,7 @@ inline int getNumberOfChunks(int sizeOfFile, int chunkSize)
     return chunks;
 }
 
-inline std::string getModifiedUuid(std::string& uuid, int number)
+inline std::string getModifiedUuid(const std::string& uuid, int number)
 {
     int numberOfDigits = 1;
     if (number >= 10)
@@ -96,7 +95,7 @@ inline void fillAnyMessage(Any *any, Message *message)
 
     if (message->SerializeToArray(msg, size))
     {
-        any->set_value(msg, size);
+        any->mutable_value()->assign(std::string(msg, size));
     }
     else
     {
@@ -104,7 +103,7 @@ inline void fillAnyMessage(Any *any, Message *message)
     }
 }
 
-inline std::vector<std::string> split(const std::string &s, char seperator)
+inline std::vector<std::string> split(const std::string& s, char seperator)
 {
     std::vector<std::string> output;
 
@@ -251,7 +250,7 @@ inline std::vector<BYTE> decodeBase64(std::string const &encoded_string)
  * File operations
  */
 
-inline bool fileExists(std::string& name)
+inline bool fileExists(const std::string& name)
 {
     if (FILE *file = fopen(name.c_str(), "r"))
     {
@@ -264,7 +263,7 @@ inline bool fileExists(std::string& name)
     }
 }
 
-inline std::string readFile(std::string& absolutePath)
+inline std::string readFile(const std::string& absolutePath)
 {
     std::string line = "";
     std::string data = "";
@@ -274,7 +273,7 @@ inline std::string readFile(std::string& absolutePath)
         // Read file at given path
         FILE *file;
         file = fopen(absolutePath.c_str(), "r");
-        if (file != NULL)
+        if (file != nullptr)
         {
             while (1)
             {
@@ -296,7 +295,7 @@ inline std::string readFile(std::string& absolutePath)
     return "";
 }
 
-inline void writeFile(const char *data, std::string& absolutePath)
+inline void writeFile(const char *data, const std::string& absolutePath)
 {
     std::ofstream file;
 
@@ -306,7 +305,7 @@ inline void writeFile(const char *data, std::string& absolutePath)
         file << data;
         file.close();
 
-        FILE *file = NULL;
+        FILE *file = nullptr;
         file = fopen(absolutePath.c_str(), "rb");
         fseek(file, 0, SEEK_END);
         fclose(file);
@@ -317,7 +316,7 @@ inline void writeFile(const char *data, std::string& absolutePath)
     }
 }
 
-inline void writeFile(const std::string &data, std::string& absolutePath)
+inline void writeFile(const std::string& data, const std::string& absolutePath)
 {
     std::ofstream file;
 
@@ -333,35 +332,31 @@ inline void writeFile(const std::string &data, std::string& absolutePath)
     }
 }
 
-inline std::vector<unsigned char> readBinaryFile(std::string& absolutePath)
+inline std::string readBinaryFile(const std::string& absolutePath)
 {
-    std::ifstream input(absolutePath.c_str(), std::ios::binary);
+    std::ifstream input(absolutePath.c_str(), std::ifstream::binary);
 
     // copies all data into buffer
-    std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
+    std::string buffer((std::istreambuf_iterator<char>(input)), (std::istreambuf_iterator<char>()));
 
     return buffer;
 }
 
-inline void writeBinaryFile(std::vector<unsigned char> buffer, std::string& absolutePath)
+inline void writeBinaryFile(std::vector<unsigned char> buffer, const std::string& absolutePath)
 {
     std::ofstream output(absolutePath.c_str(), std::ios::binary);
     output.write((const char *)&buffer[0], buffer.size());
 }
 
-inline std::string readBinaryFileAndBase64(std::string& absolutePath)
+inline std::string readBinaryFileAndBase64(const std::string& absolutePath)
 {
-    std::vector<unsigned char> binaryFile = readBinaryFile(absolutePath);
-    unsigned char *file = new unsigned char[binaryFile.size()];
-    std::copy(binaryFile.begin(), binaryFile.end(), file);
-    binaryFile.clear();
-    std::string base64 = encodeBase64(file, binaryFile.size());
-
-    delete [] file;
+    // no check if file is there please check in application
+    std::string content = readBinaryFile(absolutePath);
+    std::string base64 = encodeBase64(reinterpret_cast<const BYTE*>(content.c_str()), content.size());
     return base64;
 }
 
-inline void writeBase64EncodedBinaryFile(std::string& file, std::string& absolutePath)
+inline void writeBase64EncodedBinaryFile(const std::string& file, const std::string& absolutePath)
 {
     std::vector<unsigned char> decoded = decodeBase64(file);
     writeBinaryFile(decoded, absolutePath);
@@ -384,8 +379,8 @@ inline ConnectionParameters getConnectionParametersFromJSON(std::string params)
     // Check for MQTT (gatewayId "2")
     if (parameters.gatewayId == "2")
     {
-        parameters.host = cJSON_GetObjectItem(root, "host")->valuestring,
-        parameters.port = cJSON_GetObjectItem(root, "port")->valuestring;
+        parameters.host = cJSON_GetObjectItem(root, "host")->valuestring;
+        parameters.port = cJSON_GetObjectItem(root, "port")->valueint;
         parameters.clientId = cJSON_GetObjectItem(root, "clientId")->valuestring;
     }
 
@@ -394,7 +389,7 @@ inline ConnectionParameters getConnectionParametersFromJSON(std::string params)
     return parameters;
 }
 
-inline ConnectionParameters getSavedConnectionParameters(std::string& absolutePath)
+inline ConnectionParameters getSavedConnectionParameters(const std::string& absolutePath)
 {
     if (fileExists(absolutePath))
     {
@@ -410,48 +405,41 @@ inline ConnectionParameters getSavedConnectionParameters(std::string& absolutePa
 
 inline std::string getConnectionParametersAsJSON(ConnectionParameters *parameters) 
 {
-    std::string credentials = "{";
+    std::string credentials = "";
+    cJSON *root;
 
-    credentials += "\n\t\"deviceAlternateId\": \"";
-    credentials += parameters->deviceAlternateId;
-    credentials += "\",\n\t\"capabilityAlternateId\": \"";
-    credentials += parameters->capabilityAlternateId;
-    credentials += "\",\n\t\"sensorAlternateId\": \"";
-    credentials += parameters->sensorAlternateId;
-    credentials += "\",\n\t\"certificateType\": \"";
-    credentials += parameters->certificateType;
-    credentials += "\",\n\t\"secret\": \"";
-    credentials += parameters->secret;
-    credentials += "\",\n\t\"measures\": \"";
-    credentials += parameters->measuresUrl;
-    credentials += "\",\n\t\"commands\": \"";
-    credentials += parameters->commandsUrl;
-    credentials += "\",\n\t\"gatewayId\": \"";
-    credentials += parameters->gatewayId;
+    root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "deviceAlternateId", parameters->deviceAlternateId.c_str());
+    cJSON_AddStringToObject(root, "capabilityAlternateId", parameters->capabilityAlternateId.c_str());
+    cJSON_AddStringToObject(root, "sensorAlternateId", parameters->sensorAlternateId.c_str());
+    cJSON_AddStringToObject(root, "certificateType", parameters->certificateType.c_str());
+    cJSON_AddStringToObject(root, "secret", parameters->secret.c_str());
+    cJSON_AddStringToObject(root, "measures", parameters->measuresUrl.c_str());
+    cJSON_AddStringToObject(root, "commands", parameters->commandsUrl.c_str());
+    cJSON_AddStringToObject(root, "gatewayId", parameters->gatewayId.c_str());
 
-    // Check for MQTT (gatewayId "2")
+    // Check for MQTT
     if (parameters->gatewayId == "2")
     {
-        credentials += "\",\n\t\"host\": \"";
-        credentials += parameters->host;
-        credentials += "\",\n\t\"port\": ";
-        credentials += parameters->port;
-        credentials += ",\n\t\"clientId\": \"";
-        credentials += parameters->clientId;
+        cJSON_AddStringToObject(root, "host", parameters->host.c_str());
+        cJSON_AddNumberToObject(root, "port", parameters->port);
+        cJSON_AddStringToObject(root, "clientId", parameters->clientId.c_str());
     }
 
-    credentials += "\"\n}";
+    credentials = cJSON_PrintUnformatted(root);
+
+    cJSON_Delete(root);
 
     return credentials;
 }
 
-inline void saveConnectionParameters(ConnectionParameters *parameters, std::string& absolutePath)
+inline void saveConnectionParameters(ConnectionParameters *parameters, const std::string& absolutePath)
 {
     std::string credentials = getConnectionParametersAsJSON(parameters);
     writeFile(credentials, absolutePath);
-    }
+}
 
-inline ApplicationSettings getApplicationSettings(std::string& absolutePath)
+inline ApplicationSettings getApplicationSettings(const std::string& absolutePath)
 {
     ApplicationSettings settings;
 
@@ -485,7 +473,7 @@ inline ApplicationSettings getApplicationSettings(std::string& absolutePath)
     return settings;
 }
 
-inline AgrirouterSettings getAgrirouterSettings(std::string& absolutePath)
+inline AgrirouterSettings getAgrirouterSettings(const std::string& absolutePath)
 {
     std::string allSettings = readFile(absolutePath);
 
@@ -537,14 +525,14 @@ inline ValidityPeriod getValidityPeriodForLastMinutes(int minutes)
     ValidityPeriod validityPeriod = ValidityPeriod();
 
     google::protobuf::Timestamp to = getCurrentTimestamp();
-    google::protobuf::Timestamp *t = validityPeriod.mutable_sentto();
+    google::protobuf::Timestamp *t = validityPeriod.mutable_sent_to();
     *t = to;
 
     timeval tv = getTimestamp();
     tv.tv_sec -= minutes * 60;
 
     google::protobuf::Timestamp from = getTimestampFromTimeval(tv);
-    google::protobuf::Timestamp *f = validityPeriod.mutable_sentfrom();
+    google::protobuf::Timestamp *f = validityPeriod.mutable_sent_from();
     *f = from;
 
     return validityPeriod;

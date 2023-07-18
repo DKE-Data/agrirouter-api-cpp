@@ -21,34 +21,34 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <ctime>
 
 Application::Application()
 {
     directory = getCurrentWorkingDir();
     m_settings = new Settings();
 
-    m_onboarding = false;
     m_addressing.mode = RequestEnvelope::PUBLISH;
 }
 
 Application::~Application()
 {
-    if (m_communicator != NULL)
+    if (m_communicator != nullptr)
     {
         delete m_communicator;
-        m_communicator = NULL;
+        m_communicator = nullptr;
     }
 
-    if (m_agrirouterClient != NULL)
+    if (m_agrirouterClient != nullptr)
     {
         delete m_agrirouterClient;
-        m_agrirouterClient = NULL;
+        m_agrirouterClient = nullptr;
     }
 
-    if (m_settings != NULL)
+    if (m_settings != nullptr)
     {
         delete m_settings;
-        m_settings = NULL;
+        m_settings = nullptr;
     }
 }
 
@@ -67,6 +67,8 @@ int32_t Application::run(int32_t argc, char *argv[])
     m_settings->setOnParameterChangeCallback(onParameterChangeCallback);
     m_settings->setOnMessageCallback(onMessageCallback);
     m_settings->setOnErrorCallback(onErrorCallback);
+    m_settings->setOnLoggingCallback(onLogCallback);
+    m_settings->setCallbackCallee(this);
 
     printf("Read file %sAgrirouterClientTesterConfig.json\n", directory.c_str());
 
@@ -86,10 +88,22 @@ int32_t Application::run(int32_t argc, char *argv[])
     m_settings->setCertificatePath(m_applicationSettings.locationCertsAndIds + "/agrirouter_cert.pem");
     m_settings->setPrivateKeyPath(m_applicationSettings.locationCertsAndIds + "/agrirouter_key.pem");
     m_settings->setConnectionParametersPath(m_applicationSettings.locationCertsAndIds + "/agrirouter_ids.json");
-    // m_settings->setCaFilePath("");
 
     ConnectionParameters conn = m_settings->getConnectionParameters(m_settings->getConnectionParametersPath());
-    printf("ConnectionParameters: \n\tgatewayId %s \n\thost %s \n\tport %s\n\tclientId %s\n\tsecret %s\n", conn.gatewayId.c_str(), conn.host.c_str(), conn.port.c_str(), conn.clientId.c_str(), conn.secret.c_str());
+
+    if(conn.sensorAlternateId.empty())
+    {
+        std::string firstArg = argv[1];
+        if(firstArg.find("--onboard") == std::string::npos)
+        {
+            printf("No ConnectionParameters found. Please call onboarding. \"agrirouterClientTester --onboard=<agrirouter TAN>\"\n");
+        }
+    }
+    else
+    {
+        printf("ConnectionParameters: \n\tgatewayId: %s \n\thost: %s \n\tport: %i\n\tclientId: %s\n\tsecret: %s\n", 
+                conn.gatewayId.c_str(), conn.host.c_str(), conn.port, conn.clientId.c_str(), conn.secret.c_str());
+    }
 
     m_settings->setEncodingType("base64");
     if (m_applicationSettings.connectionType == "HTTP")
@@ -100,12 +114,21 @@ int32_t Application::run(int32_t argc, char *argv[])
     }
     else if (m_applicationSettings.connectionType == "MQTT")
     {
-        // ToDo: MQTT needs to be implemented
         m_settings->setConnectionType(Settings::MQTT);
     }
 
     // Initialize agrirouter client instance
+    if(m_agrirouterClient != nullptr)
+    {
+        delete m_agrirouterClient;
+        m_agrirouterClient = nullptr;
+    }
     m_agrirouterClient = new AgrirouterClient(m_settings);
+    if(m_communicator != nullptr)
+    {
+        delete m_communicator;
+        m_communicator = nullptr;
+    }
     m_communicator = new Communicator(m_settings, m_agrirouterClient, m_agrirouterSettings);
 
     std::vector<std::string> cmdLineArgs(argv, argv + argc);
@@ -128,10 +151,10 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "--------------------------------------------\n";
             std::cout << "These are the CLI commands wiht arguments:\n";
             std::cout << "--------------------------------------------\n";
+            std::cout << "  --loglevel=<LOGLEVEL>\tset min loglevel from agrirouterclient lib\n";
+            std::cout << "  \t\t\te.g. --loglevel=6\n";
             std::cout << "  --onboard=<TAN>\tonboard CU with generated TAN/registration code\n";
             std::cout << "  \t\t\te.g. --onboard=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
-            std::cout << "  --id=<ID>\t\tset teamset context ID\n";
-            std::cout << "  \t\t\te.g. --id=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
             std::cout << "  --minutes=<MINUTES>\trequest messages of the last given minutes\n";
             std::cout << "  \t\t\te.g. --minutes=120\n";
             std::cout << "  --sender=<SENDER>\trequest messages of given sender\n";
@@ -146,10 +169,12 @@ int32_t Application::run(int32_t argc, char *argv[])
             std::cout << "  \t\t\te.g. --delete-id=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
             std::cout << "  --recipient=<RECIPIENT>\tadd recipient for messages\n";
             std::cout << "  \t\t\te.g. --recipient=1904a5f8-abd8-4f7d-bb20-27a704051904\n";
-            std::cout << "  --url=<URL>\t\tchange URL to communicate to\n";
+            std::cout << "  --url=<URL>\t\tchange registration URL to communicate to\n";
             std::cout << "  \t\t\te.g. --url=https://register-url.com\n";
             std::cout << "  --taskdata=<PATH>\t\tsend taskdata.zip file that is saved at given path\n";
             std::cout << "  \t\t\te.g. --taskdata=/home/TASKDATA.zip\n";
+
+            m_running = false;
         }
         else if (arg == "-c")
         {
@@ -175,13 +200,20 @@ int32_t Application::run(int32_t argc, char *argv[])
         {
             m_communicator->getListEndpointsUnfiltered();
         }
+        else if (arg.find("--loglevel") != std::string::npos)
+        {
+            size_t begin = arg.find("=");
+            std::string message = arg.substr(begin + 1);
+            
+            m_minLogLevel = std::stoi(message);
+            printf("Set Lib LogLevel to: %i\n", m_minLogLevel);
+        }
         else if (arg.find("--onboard") != std::string::npos)
         {
             size_t begin = arg.find("=");
             std::string message = arg.substr(begin + 1);
 
             m_onboarding = true;
-            m_settings->setCallbackCallee(this);
             
             std::string externalId = m_applicationSettings.externalId;
             m_communicator->onboard(message, externalId);
@@ -275,15 +307,25 @@ int32_t Application::run(int32_t argc, char *argv[])
             size_t begin = arg.find("=");
             std::string path = arg.substr(begin + 1);
 
-            std::string messageId;
+            // get filename
+            std::vector<std::string> partsOfPath = split(path, '/');
+            std::string filename = partsOfPath[partsOfPath.size() - 1];
+
+            std::string messageId = createUuid();
+            bool exists = fileExists(path);
+            if(!exists)
+            {
+                onLogCallback(MG_LFL_ERR, "File not exists", NULL);
+            }
             std::string message = readBinaryFileAndBase64(path);
             std::string teamsetContextId = m_applicationSettings.teamsetContextId;
-            m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size());
+
+            m_agrirouterClient->sendTaskdataZip(m_addressing, &messageId, teamsetContextId, const_cast<char *>(message.c_str()), message.size(), filename);
         }
     }
-
+    
     timeval timeout;
-    while (m_onboarding)
+    while (m_running)
     {
         timeout.tv_sec = 1;
         select(0, NULL, NULL, NULL, &timeout);
@@ -296,7 +338,7 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
 {
     printf("Parameter change (event %d)\n", event);
 
-    Application *self = reinterpret_cast<Application *>(callbackCallee);
+    Application *self = static_cast<Application *>(callbackCallee);
 
     std::string *dataAsString;
 
@@ -306,27 +348,27 @@ void Application::onParameterChangeCallback(int event, void *data, void *callbac
         {
             case MG_PARAMETER_CERTIFICATE:
 
-                dataAsString = reinterpret_cast<std::string *>(data);
-                printf("MG_PARAMETER_CERTIFICATE: %s\npath: %s\n", dataAsString->c_str(), self->m_settings->getCertificatePath().c_str());
+                dataAsString = static_cast<std::string *>(data);
+                printf("MG_PARAMETER_CERTIFICATE: %s\ncertificate path: %s\n", dataAsString->c_str(), self->m_settings->getCertificatePath().c_str());
                 writeFile(*dataAsString, self->m_settings->getCertificatePath());
 
                 break;
 
             case MG_PARAMETER_PRIVATE_KEY:
 
-                dataAsString = reinterpret_cast<std::string *>(data);
-                printf("MG_PARAMETER_PRIVATE_KEY: %s\npath: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
+                dataAsString = static_cast<std::string *>(data);
+                printf("MG_PARAMETER_PRIVATE_KEY: %s\nprivate key path: %s\n", dataAsString->c_str(), self->m_settings->getPrivateKeyPath().c_str());
                 writeFile(dataAsString->c_str(), self->m_settings->getPrivateKeyPath());
-
                 break;
 
             case MG_PARAMETER_CONNECTION_PARAMETERS:
 
-                ConnectionParameters *parameters = reinterpret_cast<ConnectionParameters *>(data);
-                printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n",  self->m_settings->getConnectionParametersPath().c_str());
+                ConnectionParameters *parameters = static_cast<ConnectionParameters *>(data);
+                printf("MG_PARAMETER_CONNECTION_PARAMETERS: path %s\n", self->m_settings->getConnectionParametersPath().c_str());
                 saveConnectionParameters(parameters, self->m_settings->getConnectionParametersPath());
-
+                printf("Onboarding Complete\n");
                 self->m_onboarding = false;
+                self->m_running = false;
                 break;
         }
     }
@@ -336,7 +378,7 @@ void Application::onMessageCallback(int event, Response *response, std::string a
 {
     printf("\n");
     printf("Message callback (event %d)\n", event);
-    Application *self = reinterpret_cast<Application *>(callbackCallee);
+    Application *self = static_cast<Application *>(callbackCallee);
     std::string msg;
     std::list<std::string> messageIds;
 
@@ -398,12 +440,33 @@ void Application::onMessageCallback(int event, Response *response, std::string a
             printf("ListEndpointsResponse: %s\n", msg.c_str());
         }
     }
+
+    self->m_running = false;
 }
 
-void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string curlMessage,
-                                    std::string applicationMessageId, std::string content, void *callbackCallee)
+void Application::onErrorCallback(int statusCode, int connectionProviderErrorCode, std::string errorMessage,
+                                    std::string applicationMessageId, std::string errorContent, void *callbackCallee)
 {
+    Application *self = static_cast<Application *>(callbackCallee);
     printf("\n");
-    printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page content: %s\n",
-                statusCode, connectionProviderErrorCode, curlMessage.c_str(), applicationMessageId.c_str(), content.c_str());
+    printf("On Error callback: http code: %i, CURL code: %i, CURL message: %s, Application message id: %s, error page errorContent: %s\n",
+                statusCode, connectionProviderErrorCode, errorMessage.c_str(), applicationMessageId.c_str(), errorContent.c_str());
+    
+    self->m_running = false;
+}
+
+void Application::onLogCallback(int logLevel, std::string logMessage, void *callbackCallee)
+{
+    Application *self = static_cast<Application *>(callbackCallee);
+
+    if(logLevel <= self->m_minLogLevel)
+    {
+        // build time for logging string
+        char buffer [80];
+        std::time_t timeNow = time(NULL);
+        std::tm *timeinfo = localtime(&timeNow);
+        strftime (buffer, 80, "%Y%m%d %H:%M:%S", timeinfo);
+
+        printf("[%s] [%s]: %s \n", &buffer[0], getLogLevelText(logLevel).c_str(), logMessage.c_str());
+    }
 }

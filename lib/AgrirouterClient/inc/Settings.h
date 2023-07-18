@@ -17,15 +17,17 @@ class Settings
 
         typedef void (*onParameterChangeCallback) (int event, void *data, void *callbackCallee);
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string curlMessage, 
-                                            std::string applicationMessageId, std::string content, void *callbackCallee);
+        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage, 
+                                            std::string applicationMessageId, std::string errorContent, void *callbackCallee);
+        typedef void (*onLoggingCallback) (int logLevel, std::string logMessage, void *callbackCallee);
 
         Settings();
         ~Settings();
 
         void callOnParameterChange(int event, void *data);
         void callOnMessage(Response *response, MessageParameters messageParameters);
-        void callOnError(int statusCode, int connectionProviderErrorCode, std::string curlMessage, MessageParameters messageParameters, std::string content);
+        void callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage, MessageParameters messageParameters, std::string errorContent);
+        void callOnLog(int logLevel, std::string logMessage);
 
         // On parameter change callback
         void setOnParameterChangeCallback(onParameterChangeCallback onParameter);
@@ -36,6 +38,9 @@ class Settings
         // On error change callback
         void setOnErrorCallback(onErrorCallback onError);
         onErrorCallback getOnErrorCallback();
+        // On logging change callback
+        void setOnLoggingCallback(onLoggingCallback onLogging);
+        onLoggingCallback getOnLoggingCallback();
         // Callback callee
         void setCallbackCallee(void *callbackCallee);
         void *getCallbackCallee();
@@ -60,23 +65,27 @@ class Settings
         std::string getCertificateType();
 
         void setCertificate(std::string certificate);
-        std::string& getCertificate();
+        const std::string& getCertificate();
         void setCertificatePath(std::string certificatePath);
-        std::string& getCertificatePath();
+        const std::string& getCertificatePath();
         void setCaFilePath(std::string caFilePath);
-        std::string& getCaFilePath();
+        const std::string& getCaFilePath();
         void setPrivateKeyPath(std::string privateKeyPath);
-        std::string& getPrivateKeyPath();
+        const std::string& getPrivateKeyPath();
         void setPrivateKey(std::string privateKey);
-        std::string& getPrivateKey();
+        const std::string& getPrivateKey();
         void setEncodingType(std::string encodingType);
-        std::string& getEncodingType();
+        const std::string& getEncodingType();
         void setConnectionType(ConnectionType connectionType);
         ConnectionType getConnectionType();
-        void setConnectionParameters(ConnectionParameters connectionParameters);
+        void setConnectionParameters(ConnectionParameters connectionParameters, bool withCallback = true);
         ConnectionParameters& getConnectionParameters();
         void setConnectionParametersPath(std::string connectionParametersPath);
-        std::string& getConnectionParametersPath();
+        const std::string& getConnectionParametersPath();
+
+        // path to root certificate to check agrirouter certificate (Default set /etc/ssl/certs/)
+        void setCertificateCaPath(std::string certificateCaPath);
+        const std::string& getCertificateCaPath();
 
         void setAcceptSelfSignedCertificate(bool a_accept);
         bool acceptSelfSignedCertificate();
@@ -87,36 +96,38 @@ class Settings
         int getPollingMaxTime();
 
     private:
-        onParameterChangeCallback onParameter;
-        onMessageCallback onMessage;
-        onErrorCallback onError;
-        void *callbackCallee;
+        onParameterChangeCallback m_onParameter;
+        onMessageCallback m_onMessage;
+        onErrorCallback m_onError;
+        onLoggingCallback m_onLog;
+        void *m_callbackCallee = nullptr;
 
         // For onboarding
-        std::string authUsername;
-        std::string authPassword;
-        std::string accountId;
-        std::string applicationId;
-        std::string certificationVersionId;
-        std::string onboardId;
-        std::string gatewayId;
-        std::string certificateType;
+        std::string m_authUsername = "";
+        std::string m_authPassword = "";
+        std::string m_accountId = "";
+        std::string m_applicationId = "";
+        std::string m_certificationVersionId = "";
+        std::string m_onboardId = "";
+        std::string m_gatewayId = "";
+        std::string m_certificateType = "";
 
         // For sending and receiving messages
-        std::string certificate;
-        std::string certificatePath;
-        std::string caFilePath;
-        std::string privateKey;
-        std::string privateKeyPath;
-        std::string encodingType;
-        ConnectionType connectionType;
-        ConnectionParameters connectionParameters;
-        std::string connectionParametersPath;
-        bool m_acceptSelfSignedCertificate;
+        std::string m_certificate = "";
+        std::string m_certificatePath = "";
+        std::string m_caFilePath = "";
+        std::string m_privateKey = "";
+        std::string m_privateKeyPath = "";
+        std::string m_encodingType = "";
+        ConnectionType m_connectionType;
+        ConnectionParameters m_connectionParameters;
+        std::string m_connectionParametersPath = "";
+        std::string m_certificateCaPath = "/etc/ssl/certs/";
+        bool m_acceptSelfSignedCertificate = false;
 
         // For general purposes
-        int pollingInterval;
-        int pollingMaxTime;
+        int m_pollingInterval = 0;
+        int m_pollingMaxTime = 0;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_
