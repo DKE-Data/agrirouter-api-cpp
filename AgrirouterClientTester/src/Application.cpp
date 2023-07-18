@@ -459,7 +459,7 @@ void Application::onLogCallback(int logLevel, std::string logMessage, void *call
 {
     Application *self = static_cast<Application *>(callbackCallee);
 
-    if(logLevel < self->m_minLogLevel)
+    if(logLevel <= self->m_minLogLevel)
     {
         // build time for logging string
         char buffer [80];
