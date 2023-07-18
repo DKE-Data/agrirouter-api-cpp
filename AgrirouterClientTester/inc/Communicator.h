@@ -2,39 +2,38 @@
 #define AGRIROUTERCLIENTTESTER_INC_COMMUNICATOR_H_
 
 #include <stdint.h>
-#include <google/protobuf/message.h>
 #include <string>
 #include <list>
 
-#include <AgrirouterClient.h>
-#include <AgrirouterMessage.h>
-#include <Settings.h>
+#include "AgrirouterClient.h"
+#include "AgrirouterMessage.h"
+#include "Settings.h"
 
 class Communicator {
- private:
-  Settings *m_settings;
-  AgrirouterClient *m_agrirouterClient;
-  AgrirouterSettings m_agrirouterSettings;
+    private:
+        Settings *m_settings = nullptr;
+        AgrirouterClient *m_agrirouterClient = nullptr;
 
-  Addressing m_addressing;
+        AgrirouterSettings m_agrirouterSettings;
+        Addressing m_addressing;
 
- public:
-  Communicator();
-  Communicator(Settings *m_settings, AgrirouterClient *m_agrirouterClient, AgrirouterSettings agrirouterSettings);
-  ~Communicator();
+    public:
+        Communicator();
+        Communicator(Settings *m_settings, AgrirouterClient *m_agrirouterClient, AgrirouterSettings agrirouterSettings);
+        ~Communicator();
 
-  void onboard(std::string registrationCode, std::string externalId);
-  void sendCapabilities();
-  void sendSubscription();
+        void onboard(std::string registrationCode, std::string externalId);
+        void sendCapabilities();
+        void sendSubscription();
 
-  void getListEndpointsFiltered();
-  void getListEndpointsUnfiltered();
+        void getListEndpointsFiltered();
+        void getListEndpointsUnfiltered();
 
-  int sendMessageQuery();
-  void sendMessageQueryWithId(std::list<std::string> messageIds);
-  void sendMessageQueryWithSender(std::list<std::string> senders);
-  void sendMessageQueryWithValidityPeriod(ValidityPeriod *validityPeriod);
-  void getMessages();
+        int sendMessageQuery();
+        void sendMessageQueryWithId(std::list<std::string> messageIds);
+        void sendMessageQueryWithSender(std::list<std::string> senders);
+        void sendMessageQueryWithValidityPeriod(ValidityPeriod *validityPeriod);
+        void getMessages();
 };
 
 #endif  // AGRIROUTERCLIENTTESTER_INC_COMMUNICATOR_H_

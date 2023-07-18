@@ -1,90 +1,94 @@
 #ifndef LIB_AGRIROUTERCLIENT_INC_AGRIROUTERMESSAGE_H_
 #define LIB_AGRIROUTERCLIENT_INC_AGRIROUTERMESSAGE_H_
 
-#include <Definitions.h>
-#include <Utils.h>
+#include "Definitions.h"
+#include "Utils.h"
 
 #include <string>
 
-struct Request {
-  RequestEnvelope envelope;
-  RequestPayloadWrapper payloadWrapper;
+struct Request 
+{
+    RequestEnvelope envelope = RequestEnvelope::default_instance();
+    RequestPayloadWrapper payloadWrapper = RequestPayloadWrapper::default_instance();
 
-  Request() {
-    envelope = RequestEnvelope::default_instance();
-    payloadWrapper = RequestPayloadWrapper::default_instance();
-  }
+    Request() { }
 
-  Request(RequestEnvelope envelope, RequestPayloadWrapper payloadWrapper) {
-    envelope = envelope;
-    payloadWrapper = payloadWrapper;
-  }
+    Request(RequestEnvelope envelope, RequestPayloadWrapper payloadWrapper)
+    {
+        envelope = envelope;
+        payloadWrapper = payloadWrapper;
+    }
 
-  void addRecipient(const std::string &recipient) {
-    envelope.add_recipients(recipient);
-  }
+    void addRecipient(const std::string& recipient)
+    {
+        envelope.add_recipients(recipient);
+    }
 
-  void setPayload(Message *message) {
-    fillAnyMessage(payloadWrapper.mutable_details(), message);
-  }
+    void setPayload(Message *message)
+    {
+        fillAnyMessage(payloadWrapper.mutable_details(), message);
+    }
 
-  void clear() {
-    envelope.Clear();
-    payloadWrapper.Clear();
-  }
+    void clear()
+    {
+        envelope.Clear();
+        payloadWrapper.Clear();
+    }
 };
 
-struct Response {
-  ResponseEnvelope envelope;
-  ResponsePayloadWrapper payloadWrapper;
+struct Response
+{
+    ResponseEnvelope envelope = ResponseEnvelope::default_instance();
+    ResponsePayloadWrapper payloadWrapper = ResponsePayloadWrapper::default_instance();
 
-  Response() {
-    envelope = ResponseEnvelope::default_instance();
-    payloadWrapper = ResponsePayloadWrapper::default_instance();
-  }
+    Response() { }
 
-  Response(const ResponseEnvelope &env, const ResponsePayloadWrapper &payload) {
-    envelope = env;
-    payloadWrapper = payload;
-  }
+    Response(const ResponseEnvelope &env, const ResponsePayloadWrapper &payload)
+    {
+        envelope = env;
+        payloadWrapper = payload;
+    }
 
-  void setEnvelope(const std::string &appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type) {
-    envelope.set_application_message_id(appMesssageId);
-    envelope.set_response_code(responseCode);
-    envelope.set_type(type);
-  }
+    void setEnvelope(const std::string& appMesssageId, int32_t responseCode, ResponseEnvelope::ResponseBodyType type)
+    {
+        envelope.set_application_message_id(appMesssageId);
+        envelope.set_response_code(responseCode);
+        envelope.set_type(type);
+    }
 
-  void setPayload(Message *message) {
-    fillAnyMessage(payloadWrapper.mutable_details(), message);
-  }
+    void setPayload(Message *message)
+    {
+        fillAnyMessage(payloadWrapper.mutable_details(), message);
+    }
 
-  void clear() {
-    envelope.Clear();
-    payloadWrapper.Clear();
-  }
+    void clear()
+    {
+        envelope.Clear();
+        payloadWrapper.Clear();
+    }
 };
 
 class AgrirouterMessage {
- public:
-  AgrirouterMessage();
-  explicit AgrirouterMessage(const Request request);
-  AgrirouterMessage(const RequestEnvelope envelope, const RequestPayloadWrapper payloadWrapper);
-  ~AgrirouterMessage();
+    public:
+        AgrirouterMessage();
+        explicit AgrirouterMessage(const Request request);
+        AgrirouterMessage(const RequestEnvelope envelope, const RequestPayloadWrapper payloadWrapper);
+        ~AgrirouterMessage();
 
-  Request request();
-  Response response();
+        Request request();
+        Response response();
 
-  void setResponse(Response response);
+        void setResponse(Response response);
 
-  std::string encodedRequest();
-  std::string encodedResponse();
+        std::string encodedRequest();
+        std::string encodedResponse();
 
-  std::string messageId();
-  std::string messageType();
+        std::string messageId();
+        std::string messageType();
 
- private:
-  Request m_request;
-  Response m_response;
+    private:
+        Request m_request;
+        Response m_response;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_AGRIROUTERMESSAGE_H_

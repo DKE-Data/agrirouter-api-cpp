@@ -1,0 +1,2 @@
+option('prod', type : 'boolean', value : true, yield : true)
+option('buildTester', type : 'boolean', value : false, yield : true)

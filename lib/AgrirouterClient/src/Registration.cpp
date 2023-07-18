@@ -1,6 +1,9 @@
 #include "Registration.h"
 
-#include <Utils.h>
+#include "Utils.h"
+#include "CurlConnectionProvider.h"
+#include "../third_party/cJSON/cJSON.h"
+
 #include <curl/curl.h>
 #include <stdio.h>
 #include <cstring>
@@ -8,73 +11,75 @@
 #include <iostream>
 #include <vector>
 
-#include "../third_party/cJSON/cJSON.h"
-
-Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings) {
+Registration::Registration(ConnectionProvider *connectionProvider, Settings *settings, void *member)
+{
     m_settings = settings;
     m_connectionProvider = connectionProvider;
+    m_member = member;
 }
 
 Registration::~Registration() {}
 
-void Registration::registerToAgrirouterWithRegCode(
-    std::string registrationCode, AgrirouterSettings agrirouterSettings) {
-    this->m_registrationCode = registrationCode;
+void Registration::sendOnboard(const std::string& registrationCode, const AgrirouterSettings& agrirouterSettings)
+{
+    m_registrationCode = registrationCode;
 
-    this->sendOnboard(agrirouterSettings);
-}
-
-void Registration::sendOnboard(AgrirouterSettings agrirouterSettings) {
     // Set headers
     std::vector<std::string> headers;
 
-    std::string authorization_header = "Authorization: Bearer " + this->m_registrationCode;
+    std::string authorization_header = "Authorization: Bearer " + m_registrationCode;
     headers.push_back(authorization_header);
     std::string content_type_header = "Content-Type: application/json";
     headers.push_back(content_type_header);
 
-    std::string body = "{\"id\":\"" + m_settings->getExternalId() +
-        "\",\"applicationId\":\"" + m_settings->getApplicationId() +
-        "\",\"certificationVersionId\":\"" + m_settings->getCertificationVersionId() +
-        "\",\"gatewayId\":\"" + m_settings->getGatewayId() +
-        "\",\"certificateType\":\"" + "PEM" + "\"}";
+    std::string body = "{\"id\":\"" + m_settings->getOnboardId() + "\",\"applicationId\":\"" +
+        m_settings->getApplicationId() + "\",\"certificationVersionId\":\"" +
+        m_settings->getCertificationVersionId() + "\",\"gatewayId\":\"" +
+        m_settings->getGatewayId() + "\",\"certificateType\":\"" + "PEM" + "\"}";
 
     std::string url = agrirouterSettings.registrationUrl;
-    m_connectionProvider->setBody(body);
-    m_connectionProvider->setUrl(url);
-    m_connectionProvider->setHeaders(headers);
-    m_connectionProvider->setCallback(sendOnboardCallback);
-    m_connectionProvider->setMember(reinterpret_cast<void*>(this));
 
+    // change to curl connection provider, because onbarding is every time http
+    CurlConnectionProvider connectionProvider = CurlConnectionProvider(m_settings);
+    connectionProvider.setBody(body);
+    connectionProvider.setUrl(url);
+    connectionProvider.setHeaders(headers);
+    connectionProvider.setCallback(sendOnboardCallback);
+    connectionProvider.setMember(this);
+
+    // ToDo: any application message id available?
     MessageParameters messageParameters;
-    messageParameters.member = reinterpret_cast<void*>(this);
+    messageParameters.member = static_cast<void *>(this);
 
-    m_connectionProvider->onboard(messageParameters);
+    connectionProvider.onboard(messageParameters);
 }
 
-size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmemb, void *member) {
+size_t Registration::sendOnboardCallback(char *content, size_t size, size_t nmemb, void *member)
+{
     size_t realsize = size * nmemb;
-    Registration *self = reinterpret_cast<Registration*>(member);
+    Registration *self = static_cast<Registration *>(member);
+    std::string message(content, realsize);
 
-    // Convert to string including some necessary modifications
-    char *tmp = new char[realsize];
-    strncpy(tmp, content, realsize);
-    tmp[realsize] = '\0';
-    std::string message(tmp);
-
-    if (containsError(message)) {
-        // printf("Received error: %s", message.c_str());
+    if (containsError(message))
+    {
+        self->m_settings->callOnLog(MG_LFL_ERR, "Received error: " + message);
     }
 
-    // Get key and pem
-    self->parseCertificates(message, self);
+    ConnectionParameters parameters = self->parseParametersAndCertificates(message, self);
 
-    delete [] tmp;
+    // set new secret and topic to can create mqtt connection before init agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters, false);
+    self->m_callback(true, self->m_member);
+
+    // set second time connection parameters with callback to agrirouterclient application
+    self->m_settings->setConnectionParameters(parameters);
+
     return realsize;
 }
 
-void Registration::parseCertificates(std::string message, void *member) {
-    Registration *self = reinterpret_cast<Registration*>(member);
+ConnectionParameters Registration::parseParametersAndCertificates(const std::string& message, void *member)
+{
+    Registration *self = static_cast<Registration *>(member);
 
     cJSON *root = cJSON_Parse(message.c_str());
     cJSON *connectionCriteria = cJSON_GetObjectItem(root, "connectionCriteria");
@@ -94,9 +99,11 @@ void Registration::parseCertificates(std::string message, void *member) {
 
     parameters.gatewayId = cJSON_GetObjectItem(connectionCriteria, "gatewayId")->valuestring;
 
-    // Check for MQTT (gatewayId "2"
-    if (parameters.gatewayId == "2") {
-        parameters.host = cJSON_GetObjectItem(connectionCriteria, "host")->valuestring, parameters.port = cJSON_GetObjectItem(connectionCriteria, "port")->valueint;
+    // Check for MQTT (gatewayId "2")
+    if (parameters.gatewayId == "2")
+    {
+        parameters.host = cJSON_GetObjectItem(connectionCriteria, "host")->valuestring,
+        parameters.port = cJSON_GetObjectItem(connectionCriteria, "port")->valueint;
         parameters.clientId = cJSON_GetObjectItem(connectionCriteria, "clientId")->valuestring;
     }
 
@@ -109,11 +116,19 @@ void Registration::parseCertificates(std::string message, void *member) {
     self->m_settings->setCertificate(certificate);
     self->m_settings->setPrivateKey(privKey);
 
-    self->m_settings->setConnectionParameters(parameters);
+    cJSON_Delete(root);
+
+    return parameters;
 }
 
-bool Registration::containsError(std::string message) {
+bool Registration::containsError(const std::string& message)
+{
     // Checks if string contains "statusCode" and "message" and returns the result
     // as a boolean
     return ((message.find("statusCode") != std::string::npos) && (message.find("message") != std::string::npos));
+}
+
+void Registration::setCallback(RegistrationCallback registrationCallback)
+{
+    m_callback = registrationCallback;
 }

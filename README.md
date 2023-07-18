@@ -26,12 +26,16 @@ The following packages have to be installed on your device
 - uuid and uuid-dev: <br>
 `sudo apt-get install uuid uuid-dev`
 
-### Steps to start program
+### Steps to build program
 
-1. `cmake CMakeLists.txt`
-2. `make`
-3. `./AgrirouterClientTest --help` <br>
-(Use one of the command line arguments)
+1. Create build directory <br>
+   `mkdir build`
+2. Go to build directory <br>
+   `cd build`
+3. Create Makefiles <br>
+   `cmake ..`
+4. Build lib and tester <br>
+   `make`
 
 ### Configuration
 
@@ -48,27 +52,43 @@ The configuration file `AgrirouterClientTesterConfig.json` looks like this
         "connectionType": "HTTP"
     },
     "agrirouterSettings": {
-        "url": "https://agrirouter-registration-service.cfapps.eu1.hana.ondemand.com/api/v1.0/registration/onboard"
+        "registrationServicePath" : "onboard.my",
+        "landscape" : "agrirouter",
+        "cfHost" : "com",
+        "apiPrefix" : "api/v1.0"
     }
 }
 ```
-
+### Start the agrirouter client tester
+1. To use the tool change the applicationSettings in the configuration file. <br>
+2. Show help of the agrirouter client tester <br>
+   `./AgrirouterClientTest --help`
+3. For e.g. onboarding to get certificates <br>
+   `./AgrirouterClientTest --onboard=123456789`
 ### Other hints
 
 The project is devided into 2 parts: the [lib](lib/AgrirouterClient) and an [example application](AgrirouterClientTester) that is using the compiled lib.
 
-Before creating a pull request, please execute the lint program in folder [cpplint](cpplint) and remove all occuring errors.
+Before creating a pull request, please build the application and remove all occuring errors.
 
 ## How to install Protobuf C++ Compiler <a name="compiler"></a>
 
 The following instructions are based on the [Google Protobuf installation guide](https://github.com/google/protobuf/blob/master/src/README.md) and are optimized for Unix based systems. For Windows it is recommended to install [Cygwin](https://www.cygwin.com/) and do the same steps as if you were on a Unix based system.
 
+### Install with package manager
+For example Debian/Ubuntu
+1. Update sources <br>
+   `sudo apt update`
+2. Install protoc and protobuf <br>
+   `sudo apt install protobuf-compiler libprotobuf-dev libprotoc-dev`
+
+### Install manuell
 #### Download packages
 
 You can download protoc and protobuf packages from [Google Protobuf Releases](https://github.com/google/protobuf/releases).
 Make sure you download **the same versions** of protoc and protobuf otherwise the installation won't work.
 
-E.g. *protoc-3.5.0-linux-x86_64.zip* and *protobuf-cpp-3.5.0.zip*
+E.g. *protoc-21.11-linux-x86_64.zip* and *protobuf-cpp-3.21.11.zip*
 
 #### Prepare Protoc
 
@@ -105,6 +125,17 @@ The `[OPTIONS]` part indicates the destination of compiled file. You can use rel
 In the `PROTO_FILES` part you can define which protobuf files will be compiled.
 
 E.g. the command `protoc --cpp_out=. ./*.proto` compiles every every proto file in this folder and places the compiled ones within this folder.
+
+#### Generate cpp protobuf files
+The files are generally generated with the build system.
+If it is necessary to compile them without the build system, perform the following steps:
+
+1. Go to protobuf folder <br>
+   `cd ./lib/AgrirouterClient/src/Protobuf/`
+2. Execute the compile protobuf script <br>
+   `. ./compileProtos.sh` <br>
+
+The generate files can be found under ./lib/AgrirouterClient/inc/Protobuf/
 
 #### Cross compiling
 
