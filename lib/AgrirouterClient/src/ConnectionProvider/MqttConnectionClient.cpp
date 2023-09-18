@@ -83,8 +83,13 @@ int MqttConnectionClient::init()
             (m_mqttErrorCallback) (MG_ERROR_MISSING_OR_EXPIRED_CERTIFICATE, "MqttConnectionClient: MQTT TLS Failed", errorJSON, m_member);
             return EXIT_FAILURE;
         }
+        int keepAliveTime = m_settings->getMqttKeepAliveTime();
+        if(keepAliveTime == 0)
+        {
+            keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
+        }
 
-        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, 20);
+        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
         if(connect == MOSQ_ERR_SUCCESS)
         {
             m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
