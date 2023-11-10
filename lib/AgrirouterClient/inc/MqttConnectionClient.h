@@ -31,9 +31,6 @@ public:
     void setMember(void* member);
     void* getMember();
 
-    static std::string getStaticSecret();
-    static void setStaticSecret(std::string secret);
-
     bool isConnected();
 
 private:
@@ -50,9 +47,6 @@ private:
     MqttCallback m_mqttCallback;
     MqttErrorCallback m_mqttErrorCallback;
 
-    static std::string globalSecret;
-    static std::mutex mutexSecret;
-
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);
     static void disconnectCallback(struct mosquitto *mosq, void *obj, int result);
@@ -61,6 +55,11 @@ private:
     static void subscribeCallback(struct mosquitto *mosq, void *obj, int messageId, int qosCount, const int *grantedQos);
     static void unsubscribeCallback(struct mosquitto *mosq, void *obj, int messageId);
     static void messageCallback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
+
+    static std::string globalSecret;
+    static std::mutex mutexSecret;
+    static std::string getStaticSecret();
+    static void setStaticSecret(std::string secret);
 };
 
 #endif // LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_
