@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "third_party/mosquitto/mosquitto.h"
 
+#include <mutex>
+
 class MqttConnectionClient {
 
 public:
@@ -29,6 +31,9 @@ public:
     void setMember(void* member);
     void* getMember();
 
+    static std::string getStaticSecret();
+    static void setStaticSecret(std::string secret);
+
     bool isConnected();
 
 private:
@@ -44,6 +49,9 @@ private:
 
     MqttCallback m_mqttCallback;
     MqttErrorCallback m_mqttErrorCallback;
+
+    static std::string globalSecret;
+    static std::mutex mutexSecret;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);
