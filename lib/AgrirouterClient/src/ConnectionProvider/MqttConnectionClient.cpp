@@ -88,19 +88,6 @@ int MqttConnectionClient::init()
             keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
         }
 
-        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
-        if(connect == MOSQ_ERR_SUCCESS)
-        {
-            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
-        }
-        else
-        {
-            std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
-            m_settings->callOnLog(MG_LFL_ERR, errorMessage);
-            (m_mqttErrorCallback) (connect, errorMessage, "", m_member);
-            return EXIT_FAILURE;
-        }
-
         int loop = mosquitto_loop_start(m_mosq);
         if(loop == MOSQ_ERR_SUCCESS)
         {
@@ -111,6 +98,19 @@ int MqttConnectionClient::init()
             std::string errorMessage = "MqttConnectionClient: loop start failed " + std::to_string(loop) + ": " + mosquitto_strerror(loop);
             m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (m_mqttErrorCallback) (loop, errorMessage, "", m_member);
+            return EXIT_FAILURE;
+        }
+
+        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
+        if(connect == MOSQ_ERR_SUCCESS)
+        {
+            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
+        }
+        else
+        {
+            std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
+            m_settings->callOnLog(MG_LFL_ERR, errorMessage);
+            (m_mqttErrorCallback) (connect, errorMessage, "", m_member);
             return EXIT_FAILURE;
         }
 
