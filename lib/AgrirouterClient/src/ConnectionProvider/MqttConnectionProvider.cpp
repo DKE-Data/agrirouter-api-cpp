@@ -46,6 +46,11 @@ void MqttConnectionProvider::init()
     }
 }
 
+void MqttConnectionProvider::renewConnection()
+{
+    this->init();
+}
+
 void MqttConnectionProvider::requestMqttErrorCallback(int errorCode, std::string message, std::string content, void *member)
 {
     MqttConnectionProvider *self = static_cast<MqttConnectionProvider *>(member);
@@ -61,7 +66,7 @@ void MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int
 {
     MqttConnectionProvider *self = static_cast<MqttConnectionProvider *>(member);
     char* msg = (char*) payload;
-       
+
     if(msg)
     {
         // If msg starts with '{', it is not an array as it comes from curl, so add the square brackets
