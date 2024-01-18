@@ -55,6 +55,7 @@
 #define MG_PARAMETER_CONNECTION_TYPE (MG_PARAMETER_BASE + 17)
 #define MG_PARAMETER_POLLING_INTERVAL (MG_PARAMETER_BASE + 18)
 #define MG_PARAMETER_POLLING_MAX_TIME (MG_PARAMETER_BASE + 19)
+#define MG_PARAMETER_MQTT_KEEP_ALIVE_TIME (MG_PARAMETER_BASE + 20)
 
 #define MG_EV_BASE 200
 #define MG_EV_CAPABILITIES (MG_EV_BASE + CAPABILITIES)
@@ -93,6 +94,7 @@
 
 // Other definitions
 #define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
+#define DEFAULT_KEEP_ALIVE_TIME 240 // 240 s
 
 // Protobuf typedefs
 typedef agrirouter::request::RequestEnvelope RequestEnvelope;

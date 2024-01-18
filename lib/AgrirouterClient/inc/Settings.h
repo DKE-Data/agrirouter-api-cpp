@@ -94,6 +94,8 @@ class Settings
         int getPollingInterval();
         void setPollingMaxTime(int pollingMaxTime);
         int getPollingMaxTime();
+        void setMqttKeepAliveTime(int keepAliveTime);
+        int getMqttKeepAliveTime();
 
     private:
         onParameterChangeCallback m_onParameter;
@@ -128,6 +130,7 @@ class Settings
         // For general purposes
         int m_pollingInterval = 0;
         int m_pollingMaxTime = 0;
+        int m_mqttKeepAliveTime = 0;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_
