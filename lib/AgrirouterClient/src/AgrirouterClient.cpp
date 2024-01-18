@@ -41,7 +41,6 @@ void AgrirouterClient::init(Settings *settings)
         m_messageProvider = nullptr;
     }
     m_messageProvider = new MessageProvider(settings, m_chunkSize);
-
     if(m_connectionProvider != nullptr)
     {
         delete m_connectionProvider;
@@ -49,7 +48,7 @@ void AgrirouterClient::init(Settings *settings)
     }
 
     if (settings->getConnectionType() == Settings::HTTP)
-    {        
+    {
         m_connectionProvider = new CurlConnectionProvider(settings);
     }
     else if (settings->getConnectionType() == Settings::MQTT)
@@ -83,14 +82,9 @@ void AgrirouterClient::registerDeviceWithRegCode(const std::string& registration
 void AgrirouterClient::registrationCallback(bool success, void *member)
 {
     AgrirouterClient *self = static_cast<AgrirouterClient*>(member);
-    if(success) 
+    if(success)
     {
         // reinit connection provider after onboard to new subscribe to the new topics
-        if (self->m_connectionProvider != nullptr)
-        {
-            delete self->m_connectionProvider;
-            self->m_connectionProvider = nullptr;
-        }
         self->init(self->m_settings);
     }
     else
@@ -112,6 +106,14 @@ int32_t AgrirouterClient::getNextSeqNo()
     }
 
     return m_seqNo;
+}
+
+void AgrirouterClient::renewConnection()
+{
+    if (m_settings->getConnectionType() == Settings::MQTT)
+    {
+        m_connectionProvider->renewConnection();
+    }
 }
 
 void AgrirouterClient::sendCapabilities(std::string *messageId, CapabilitySpecification *capabilities)
@@ -220,10 +222,9 @@ void AgrirouterClient::requestMessages()
 
 size_t AgrirouterClient::requestMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
 {
-    size_t realsize = size * nmemb;
-
     AgrirouterClient *self = static_cast<AgrirouterClient *>(member);
 
+    size_t realsize = size * nmemb;
     std::string message(content, realsize);
 
     std::list<Response> responseList;

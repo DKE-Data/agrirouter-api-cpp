@@ -17,6 +17,8 @@ class AgrirouterClient {
         explicit AgrirouterClient(Settings *settings, uint32_t chunkSize);
         ~AgrirouterClient();
 
+        void renewConnection();
+
         void registerDeviceWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
 
         // Messages without specific recipients
@@ -36,7 +38,7 @@ class AgrirouterClient {
         void sendTaskdataZip(Addressing& addressing, std::string *messageId, const std::string& teamsetId, char *taskdataZip, int size, const std::string& fileName = "");
         void sendChunk(AgrirouterMessage& message);
 
-        AgrirouterMessage createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk, uint16_t numberOfChunks, 
+        AgrirouterMessage createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk, uint16_t numberOfChunks,
                                                 const std::string& teamSetContextId, const std::string& chunkContextId, const std::string& data,
                                                 uint32_t size, const std::string& technicalMessageType, const std::string& fileName = "");
 

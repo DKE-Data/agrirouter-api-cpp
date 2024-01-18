@@ -44,8 +44,8 @@ private:
     void *m_member = nullptr;
     Settings *m_settings = nullptr;
 
-    MqttCallback m_mqttCallback;
-    MqttErrorCallback m_mqttErrorCallback;
+    MqttCallback m_mqttCallback = NULL;
+    MqttErrorCallback m_mqttErrorCallback = NULL;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);

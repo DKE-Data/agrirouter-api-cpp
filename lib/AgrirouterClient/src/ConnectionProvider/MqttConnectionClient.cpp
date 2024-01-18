@@ -188,7 +188,6 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
         self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
         (self->m_mqttErrorCallback) (reasonCode, errorMessage, "", self->m_member);
 
-
         // try to reconnect
         int reconn = mosquitto_reconnect(self->m_mosq);
         if (reconn == MOSQ_ERR_SUCCESS)
