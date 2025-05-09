@@ -37,7 +37,36 @@ void MqttConnectionProvider::init()
     m_mqttClient->setMqttCallback(requestMqttCallback);
     m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
 
-    m_mqttClient->init();
+    int initRetrunValue = EXIT_FAILURE;
+    const int timeRetry = 1;
+    int retryReconnectCounter = 30 * timeRetry;
+    int counter = 0;
+
+    while (initRetrunValue == EXIT_FAILURE)
+    {
+        if(counter == retryReconnectCounter || counter == 0)
+        {
+            initRetrunValue = m_mqttClient->init();
+            if(initRetrunValue == EXIT_FAILURE)
+            {
+                this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: Init failed retry in " + std::to_string(retryReconnectCounter) + "s");
+            }
+        }
+
+        counter++;
+
+        timeval timeout;
+        timeout.tv_sec = timeRetry;
+        timeout.tv_usec = 0;
+
+        int ret = select(0, nullptr, nullptr, nullptr, &timeout);
+
+        if (ret == -1 && errno == EINTR) {
+            // stop on exit application
+            break;
+        }
+    }
+
 
     // subscribe to commands only subscribe when topic is valid (onboarding is done)
     if(conn.commandsUrl.length() > 0)

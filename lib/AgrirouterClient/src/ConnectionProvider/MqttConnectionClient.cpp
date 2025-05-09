@@ -19,6 +19,7 @@ MqttConnectionClient::~MqttConnectionClient()
     if(m_mosq != nullptr)
     {
         mosquitto_disconnect(m_mosq);
+        mosquitto_loop_stop(m_mosq, true);
         mosquitto_destroy(m_mosq);
     }
     mosquitto_lib_cleanup();
@@ -121,7 +122,7 @@ int MqttConnectionClient::init()
     }
     else
     {
-        m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient not connect to broker");
+        m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: not connect to broker");
     }
     return EXIT_FAILURE;
 }
@@ -165,7 +166,7 @@ void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, in
     self->m_connected = true;
     if(reasonCode == 0)
     {
-        self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port));
+        self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port) + ")");
     }
     else
     {

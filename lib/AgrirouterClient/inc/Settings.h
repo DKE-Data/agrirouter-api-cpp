@@ -17,7 +17,7 @@ class Settings
 
         typedef void (*onParameterChangeCallback) (int event, void *data, void *callbackCallee);
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage, 
+        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage,
                                             std::string applicationMessageId, std::string errorContent, void *callbackCallee);
         typedef void (*onLoggingCallback) (int logLevel, std::string logMessage, void *callbackCallee);
 
