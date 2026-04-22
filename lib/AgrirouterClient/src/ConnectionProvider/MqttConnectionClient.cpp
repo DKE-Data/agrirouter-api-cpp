@@ -113,11 +113,12 @@ int MqttConnectionClient::init()
             std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
             m_settings->callOnLog(MG_LFL_ERR, errorMessage);
             (m_mqttErrorCallback) (connect, errorMessage, "", m_member);
-            return EXIT_FAILURE;
+            // not return fail, the mosquitto_loop trigger the connect until it is connected
         }
 
-        if ((connect == MOSQ_ERR_SUCCESS) && (loop == MOSQ_ERR_SUCCESS))
+        if (loop == MOSQ_ERR_SUCCESS)
         {
+            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: init success");
             return EXIT_SUCCESS;
         }
     }

@@ -37,17 +37,17 @@ void MqttConnectionProvider::init()
     m_mqttClient->setMqttCallback(requestMqttCallback);
     m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
 
-    int initRetrunValue = EXIT_FAILURE;
+    int initReturnValue = EXIT_FAILURE;
     const int timeRetry = 1;
     int retryReconnectCounter = 30 * timeRetry;
     int counter = 0;
 
-    while (initRetrunValue == EXIT_FAILURE)
+    while (initReturnValue == EXIT_FAILURE)
     {
         if(counter == retryReconnectCounter || counter == 0)
         {
-            initRetrunValue = m_mqttClient->init();
-            if(initRetrunValue == EXIT_FAILURE)
+            initReturnValue = m_mqttClient->init();
+            if(initReturnValue == EXIT_FAILURE)
             {
                 this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: Init failed retry in " + std::to_string(retryReconnectCounter) + "s");
             }
