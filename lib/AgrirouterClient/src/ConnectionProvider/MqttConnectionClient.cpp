@@ -19,6 +19,7 @@ MqttConnectionClient::~MqttConnectionClient()
     if(m_mosq != nullptr)
     {
         mosquitto_disconnect(m_mosq);
+        mosquitto_loop_stop(m_mosq, true);
         mosquitto_destroy(m_mosq);
     }
     mosquitto_lib_cleanup();
@@ -38,6 +39,7 @@ int MqttConnectionClient::init()
         mosquitto_subscribe_callback_set(m_mosq, subscribeCallback);
         mosquitto_unsubscribe_callback_set(m_mosq, unsubscribeCallback);
         mosquitto_message_callback_set(m_mosq, messageCallback);
+        mosquitto_reconnect_delay_set(m_mosq, 2, 120, true);
 
         int tlsInsecure = mosquitto_tls_insecure_set(m_mosq, false);
         if(tlsInsecure == MOSQ_ERR_SUCCESS)
@@ -88,19 +90,6 @@ int MqttConnectionClient::init()
             keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
         }
 
-        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
-        if(connect == MOSQ_ERR_SUCCESS)
-        {
-            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
-        }
-        else
-        {
-            std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
-            m_settings->callOnLog(MG_LFL_ERR, errorMessage);
-            (m_mqttErrorCallback) (connect, errorMessage, "", m_member);
-            return EXIT_FAILURE;
-        }
-
         int loop = mosquitto_loop_start(m_mosq);
         if(loop == MOSQ_ERR_SUCCESS)
         {
@@ -114,14 +103,28 @@ int MqttConnectionClient::init()
             return EXIT_FAILURE;
         }
 
-        if ((connect == MOSQ_ERR_SUCCESS) && (loop == MOSQ_ERR_SUCCESS))
+        int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
+        if(connect == MOSQ_ERR_SUCCESS)
         {
+            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
+        }
+        else
+        {
+            std::string errorMessage = "MqttConnectionClient: connect set failed " + std::to_string(connect) + ": " + mosquitto_strerror(connect);
+            m_settings->callOnLog(MG_LFL_ERR, errorMessage);
+            (m_mqttErrorCallback) (connect, errorMessage, "", m_member);
+            // not return fail, the mosquitto_loop trigger the connect until it is connected
+        }
+
+        if (loop == MOSQ_ERR_SUCCESS)
+        {
+            m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: init success");
             return EXIT_SUCCESS;
         }
     }
     else
     {
-        m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient not connect to broker");
+        m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: not connect to broker");
     }
     return EXIT_FAILURE;
 }
@@ -165,7 +168,7 @@ void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, in
     self->m_connected = true;
     if(reasonCode == 0)
     {
-        self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port));
+        self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port) + ")");
     }
     else
     {
@@ -187,19 +190,6 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
         std::string errorMessage = "MqttConnectionClient: disconnect unexpected " + std::to_string(reasonCode) + ": " + mosquitto_connack_string(reasonCode);
         self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
         (self->m_mqttErrorCallback) (reasonCode, errorMessage, "", self->m_member);
-
-        // try to reconnect
-        int reconn = mosquitto_reconnect(self->m_mosq);
-        if (reconn == MOSQ_ERR_SUCCESS)
-        {
-            self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Reconnected");
-        }
-        else
-        {
-            std::string errorMessage = "MqttConnectionClient: reconnect failed " + std::to_string(reconn) + ": " + mosquitto_strerror(reconn);
-            self->m_settings->callOnLog(MG_LFL_ERR, errorMessage);
-            (self->m_mqttErrorCallback) (reconn, errorMessage, "", self->m_member);
-        }
     }
 }
 
