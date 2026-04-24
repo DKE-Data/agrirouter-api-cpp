@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <limits>
 
 MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 {
     m_settings = settings;
-    this->init();
 }
 
 MqttConnectionProvider::~MqttConnectionProvider()
@@ -37,13 +37,57 @@ void MqttConnectionProvider::init()
     m_mqttClient->setMqttCallback(requestMqttCallback);
     m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
 
-    m_mqttClient->init();
+    int initReturnValue = EXIT_FAILURE;
+    const int timeRetry = 1; // time in s to run loop and after it can be stop the app
+    int retryReconnectCounter = 30 * timeRetry; // time in s to retry the mqtt init process
+    int counter = 0;
+
+    while (initReturnValue == EXIT_FAILURE)
+    {
+        if ((counter % retryReconnectCounter) == 0) // Call init() every 30s until it does not fail
+        {
+            initReturnValue = m_mqttClient->init();
+            if(initReturnValue == EXIT_FAILURE)
+            {
+                this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: Init failed retry in " + std::to_string(retryReconnectCounter) + "s");
+            }
+            else if (initReturnValue == EXIT_SUCCESS)
+            {
+                break;
+            }
+        }
+
+        if (counter < INT32_MAX)
+        {
+            counter++;
+        }
+        else
+        {
+            counter = 0;
+        }
+
+        timeval timeout;
+        timeout.tv_sec = timeRetry;
+        timeout.tv_usec = 0;
+
+        int ret = select(0, nullptr, nullptr, nullptr, &timeout);
+
+        if (ret == -1 && errno == EINTR) {
+            // stop on exit application
+            break;
+        }
+    }
 
     // subscribe to commands only subscribe when topic is valid (onboarding is done)
     if(conn.commandsUrl.length() > 0)
     {
         m_mqttClient->subscribe(conn.commandsUrl, 2);
     }
+}
+
+void MqttConnectionProvider::renewConnection()
+{
+    this->init();
 }
 
 void MqttConnectionProvider::requestMqttErrorCallback(int errorCode, std::string message, std::string content, void *member)
@@ -61,7 +105,7 @@ void MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int
 {
     MqttConnectionProvider *self = static_cast<MqttConnectionProvider *>(member);
     char* msg = (char*) payload;
-       
+
     if(msg)
     {
         // If msg starts with '{', it is not an array as it comes from curl, so add the square brackets

@@ -14,8 +14,10 @@ class MqttConnectionProvider : public ConnectionProvider
         explicit MqttConnectionProvider(Settings *settings);
         ~MqttConnectionProvider();
 
+        void renewConnection() override;
+
         // Struct to use curl chunked callbacks
-        typedef struct MemoryStruct 
+        typedef struct MemoryStruct
         {
             char *memory = nullptr;
             size_t size = 0;
