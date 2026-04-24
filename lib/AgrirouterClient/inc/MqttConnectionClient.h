@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "third_party/mosquitto/mosquitto.h"
 
+#include <mutex>
+
 class MqttConnectionClient {
 
 public:
@@ -42,8 +44,8 @@ private:
     void *m_member = nullptr;
     Settings *m_settings = nullptr;
 
-    MqttCallback m_mqttCallback;
-    MqttErrorCallback m_mqttErrorCallback;
+    MqttCallback m_mqttCallback = NULL;
+    MqttErrorCallback m_mqttErrorCallback = NULL;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);
@@ -53,6 +55,11 @@ private:
     static void subscribeCallback(struct mosquitto *mosq, void *obj, int messageId, int qosCount, const int *grantedQos);
     static void unsubscribeCallback(struct mosquitto *mosq, void *obj, int messageId);
     static void messageCallback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
+
+    static std::string globalSecret;
+    static std::mutex mutexSecret;
+    static std::string getStaticSecret();
+    static void setStaticSecret(std::string secret);
 };
 
 #endif // LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_

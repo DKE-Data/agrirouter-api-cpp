@@ -312,3 +312,13 @@ void Settings::setPollingMaxTime(int pollingMaxTime)
 }
 
 int Settings::getPollingMaxTime() { return m_pollingMaxTime; }
+
+void Settings::setMqttKeepAliveTime(int keepAliveTime)
+{
+    m_mqttKeepAliveTime = keepAliveTime;
+    m_onParameter(MG_PARAMETER_MQTT_KEEP_ALIVE_TIME,
+                    static_cast<void *>(&keepAliveTime),
+                    m_callbackCallee);
+}
+
+int Settings::getMqttKeepAliveTime() { return m_mqttKeepAliveTime; }

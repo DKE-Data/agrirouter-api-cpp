@@ -17,7 +17,7 @@ class Settings
 
         typedef void (*onParameterChangeCallback) (int event, void *data, void *callbackCallee);
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
-        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage, 
+        typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage,
                                             std::string applicationMessageId, std::string errorContent, void *callbackCallee);
         typedef void (*onLoggingCallback) (int logLevel, std::string logMessage, void *callbackCallee);
 
@@ -94,6 +94,8 @@ class Settings
         int getPollingInterval();
         void setPollingMaxTime(int pollingMaxTime);
         int getPollingMaxTime();
+        void setMqttKeepAliveTime(int keepAliveTime);
+        int getMqttKeepAliveTime();
 
     private:
         onParameterChangeCallback m_onParameter;
@@ -128,6 +130,7 @@ class Settings
         // For general purposes
         int m_pollingInterval = 0;
         int m_pollingMaxTime = 0;
+        int m_mqttKeepAliveTime = 0;
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_INC_SETTINGS_H_

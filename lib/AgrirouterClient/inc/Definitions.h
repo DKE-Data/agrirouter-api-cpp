@@ -55,6 +55,7 @@
 #define MG_PARAMETER_CONNECTION_TYPE (MG_PARAMETER_BASE + 17)
 #define MG_PARAMETER_POLLING_INTERVAL (MG_PARAMETER_BASE + 18)
 #define MG_PARAMETER_POLLING_MAX_TIME (MG_PARAMETER_BASE + 19)
+#define MG_PARAMETER_MQTT_KEEP_ALIVE_TIME (MG_PARAMETER_BASE + 20)
 
 #define MG_EV_BASE 200
 #define MG_EV_CAPABILITIES (MG_EV_BASE + CAPABILITIES)
@@ -83,16 +84,17 @@
 #define MESSAGE_TYPE_DEVICE_DESCRIPTION "iso:11783:-10:device_description:protobuf"
 
 // loglevel
-#define MG_LFL_CRI 1  // critical  
-#define MG_LFL_ERR 2  // error  
-#define MG_LFL_WRN 3  // warning  
-#define MG_LFL_MSG 4  // message  
-#define MG_LFL_NTC 5  // notice  
-#define MG_LFL_TRC 6  // trace  
-#define MG_LFL_DBG 7  // debug  
+#define MG_LFL_CRI 1  // critical
+#define MG_LFL_ERR 2  // error
+#define MG_LFL_WRN 3  // warning
+#define MG_LFL_MSG 4  // message
+#define MG_LFL_NTC 5  // notice
+#define MG_LFL_TRC 6  // trace
+#define MG_LFL_DBG 7  // debug
 
 // Other definitions
 #define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
+#define DEFAULT_KEEP_ALIVE_TIME 240 // 240 s
 
 // Protobuf typedefs
 typedef agrirouter::request::RequestEnvelope RequestEnvelope;
