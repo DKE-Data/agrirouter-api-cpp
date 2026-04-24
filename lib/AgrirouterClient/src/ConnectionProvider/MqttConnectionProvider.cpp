@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <limits>
 
 MqttConnectionProvider::MqttConnectionProvider(Settings *settings)
 {
@@ -50,13 +51,20 @@ void MqttConnectionProvider::init()
             {
                 this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: Init failed retry in " + std::to_string(retryReconnectCounter) + "s");
             }
-        }
-        else if (initReturnValue == EXIT_SUCCESS)
-        {
-            break;
+            else if (initReturnValue == EXIT_SUCCESS)
+            {
+                break;
+            }
         }
 
-        counter++;
+        if (counter < INT32_MAX)
+        {
+            counter++;
+        }
+        else
+        {
+            counter = 0;
+        }
 
         timeval timeout;
         timeout.tv_sec = timeRetry;
