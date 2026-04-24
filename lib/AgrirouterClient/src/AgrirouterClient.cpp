@@ -54,6 +54,7 @@ void AgrirouterClient::init(Settings *settings)
     else if (settings->getConnectionType() == Settings::MQTT)
     {
         m_connectionProvider = new MqttConnectionProvider(settings);
+        m_connectionProvider->renewConnection();
     }
 }
 
