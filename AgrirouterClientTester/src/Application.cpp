@@ -408,6 +408,7 @@ void Application::onMessageCallback(int event, Response *response, std::string a
             printf("MessageQueryResponse: %s\n", s.c_str());
 
             google::protobuf::RepeatedPtrField<MessageQueryResponse::FeedMessage> *m = qr.mutable_messages();
+            MessageConfirm messageConfirm = MessageConfirm();
 
             for (int i = 0; i < qr.messages_size(); i++)
             {
@@ -422,6 +423,15 @@ void Application::onMessageCallback(int event, Response *response, std::string a
                 std::string path = self->directory + "received.zip";
                 writeBase64EncodedBinaryFile(file, path);
                 }
+
+                messageConfirm.add_message_ids(h->message_id());
+            }
+
+            // Feed messages are not confirmed automatically, confirm them after processing
+            if (messageConfirm.message_ids_size() > 0)
+            {
+                std::string messageId;
+                self->m_agrirouterClient->sendMessagesConfirm(&messageId, &messageConfirm);
             }
 
         }

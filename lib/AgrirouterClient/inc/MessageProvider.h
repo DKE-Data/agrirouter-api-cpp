@@ -55,6 +55,11 @@ class MessageProvider {
                                                 uint16_t numberOfChunks, const std::string& teamSetContextId, const std::string& chunkContextId, 
                                                 std::string data, uint32_t size, const std::string& technicalMessageType, const std::string fileName = "");
 
+        // Message with any technical message type and type url, payload is taken over binary
+        AgrirouterMessage getRawMessage(std::string *messageId, Addressing& addressing, int32_t seqNo, const std::string& technicalMessageType,
+                                            const std::string& typeUrl, const std::string& teamSetContextId, const std::string& payload,
+                                            const std::string& fileName = "");
+
     private:
         Settings *m_settings = nullptr;
         uint32_t m_chunkSize = 0;
@@ -68,7 +73,7 @@ class MessageProvider {
 
         AgrirouterMessage getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing,
                                                 std::string technicalMessageType, std::string typeUrl,
-                                                const std::string& teamSetContextId, char *message, int size, const std::string& fileName = "");
+                                                const std::string& teamSetContextId, const char *message, int size, const std::string& fileName = "");
 
         AgrirouterMessage getMessage(std::string *messageId, Addressing& addressing, int32_t seqNo, const std::string& teamSetContextId,
                                                 char *unchunkedData, int size, const std::string& technicalMessageType, const std::string& fileName = "");

@@ -197,6 +197,13 @@ void AgrirouterClient::sendTaskdataZip(Addressing& addressing, std::string *mess
     sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
 }
 
+void AgrirouterClient::sendRawMessage(Addressing& addressing, std::string *messageId, const std::string& technicalMessageType, const std::string& typeUrl,
+        const std::string& teamsetId, const std::string& payload, const std::string& fileName) // fileName default ""
+{
+    AgrirouterMessage message = m_messageProvider->getRawMessage(messageId, addressing, getNextSeqNo(), technicalMessageType, typeUrl, teamsetId, payload, fileName);
+    sendMessage(&message, MG_EV_NON_TELEMETRY, messageId);
+}
+
 AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk,
         uint16_t numberOfChunks, const std::string& teamSetContextId, const std::string& chunkContextId, const std::string& data,
         uint32_t size, const std::string& technicalMessageType, const std::string& fileName) // fileName default ""
@@ -238,27 +245,9 @@ size_t AgrirouterClient::requestMessagesCallback(char *content, size_t size, siz
     {
         Response response = (Response) *it;
 
-        // Confirm messages after retrieving MessageQueryResponse
-        if (response.payloadWrapper.details().type_url() == "types.agrirouter.com/agrirouter.feed.response.MessageQueryResponse")
-        {
-            MessageConfirm messageConfirm = MessageConfirm();
-
-            MessageQueryResponse qr = MessageQueryResponse();
-            qr.ParseFromString(response.payloadWrapper.details().value());
-
-            for (int num = 0; num < qr.messages_size(); num++)
-            {
-                messageConfirm.add_message_ids(qr.messages(num).header().message_id());
-            }
-
-            if (messageConfirm.message_ids().size() > 0)
-            {
-                std::string messageId;
-                self->sendMessagesConfirm(&messageId, &messageConfirm);
-            }
-        }
-
         // Forward recieved message to application
+        // Feed messages are not confirmed automatically, the application has to confirm them
+        // with sendMessagesConfirm() after it has processed or stored them
         MessageParameters messageParameters;
         messageParameters.event = MG_EV_GET_MESSAGES;
         self->m_settings->callOnMessage(&response, messageParameters);

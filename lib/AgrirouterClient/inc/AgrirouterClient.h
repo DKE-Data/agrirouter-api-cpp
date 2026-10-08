@@ -38,6 +38,10 @@ class AgrirouterClient {
         void sendTaskdataZip(Addressing& addressing, std::string *messageId, const std::string& teamsetId, char *taskdataZip, int size, const std::string& fileName = "");
         void sendChunk(AgrirouterMessage& message);
 
+        // Send a message with any technical message type and type url, payload is sent binary without chunking
+        void sendRawMessage(Addressing& addressing, std::string *messageId, const std::string& technicalMessageType, const std::string& typeUrl,
+                                const std::string& teamsetId, const std::string& payload, const std::string& fileName = "");
+
         AgrirouterMessage createChunkMessage(std::string *messageId, Addressing& addressing, uint16_t numberOfChunk, uint16_t numberOfChunks,
                                                 const std::string& teamSetContextId, const std::string& chunkContextId, const std::string& data,
                                                 uint32_t size, const std::string& technicalMessageType, const std::string& fileName = "");

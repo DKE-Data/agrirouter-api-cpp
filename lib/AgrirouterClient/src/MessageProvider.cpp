@@ -32,6 +32,8 @@ AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, 
     if (messageId->empty())
     {
         applicationMessageId = createUuid();
+        // Return the generated id to the caller
+        *messageId = applicationMessageId;
     }
     else
     {
@@ -49,12 +51,14 @@ AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, 
 }
 
 AgrirouterMessage MessageProvider::getAgrirouterMessage(std::string *messageId, int32_t seqNo, Addressing& addressing,
-        std::string technicalMessageType, std::string typeUrl, const std::string& teamSetContextId, char *message, int size, const std::string& fileName)
+        std::string technicalMessageType, std::string typeUrl, const std::string& teamSetContextId, const char *message, int size, const std::string& fileName)
 {
     std::string applicationMessageId;
     if (messageId->empty())
     {
         applicationMessageId = createUuid();
+        // Return the generated id to the caller
+        *messageId = applicationMessageId;
     }
     else
     {
@@ -163,6 +167,8 @@ AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing
     if (messageId->empty())
     {
         applicationMessageId = createUuid();
+        // Return the generated id to the caller
+        *messageId = applicationMessageId;
     }
     else
     {
@@ -176,6 +182,14 @@ AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing
     return AgrirouterMessage(request);
 }
 
+AgrirouterMessage MessageProvider::getRawMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
+        const std::string& technicalMessageType, const std::string& typeUrl, const std::string& teamSetContextId,
+        const std::string& payload, const std::string& fileName)
+{
+    return getAgrirouterMessage(messageId, seqNo, addressing, technicalMessageType, typeUrl, teamSetContextId,
+                                    payload.data(), static_cast<int>(payload.size()), fileName);
+}
+
 AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Addressing& addressing, int32_t seqNo,
         uint16_t numberOfChunk, uint16_t numberOfChunks, const std::string& teamSetContextId,
         const std::string& chunkContextId, std::string data, uint32_t size, const std::string& technicalMessageType, const std::string fileName)
@@ -186,6 +200,8 @@ AgrirouterMessage MessageProvider::getChunkedMessage(std::string *messageId, Add
     if (messageId->empty())
     {
         applicationMessageId = createUuid();
+        // Return the generated id to the caller
+        *messageId = applicationMessageId;
     }
     else
     {
