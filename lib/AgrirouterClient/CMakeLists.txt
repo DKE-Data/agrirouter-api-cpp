@@ -43,6 +43,29 @@ install(TARGETS AgrirouterClient DESTINATION lib/AgrirouterClient)
 install(FILES ${INC_H} DESTINATION include/AgrirouterClient)
 
 ################################################################################
-# Link protobuf lib
+# Link libraries
 ################################################################################
-target_link_libraries(AgrirouterClient protobuf curl uuid mosquitto)
+# Prefer targets provided by the parent project (e.g. via find_package, FetchContent or CPM),
+# they carry their own usage requirements. Otherwise link the plain library names as before.
+if(TARGET protobuf::libprotobuf)
+    set(AGRIROUTER_PROTOBUF_LIB protobuf::libprotobuf)
+else()
+    set(AGRIROUTER_PROTOBUF_LIB protobuf)
+endif()
+
+if(TARGET CURL::libcurl)
+    set(AGRIROUTER_CURL_LIB CURL::libcurl)
+elseif(TARGET libcurl)
+    set(AGRIROUTER_CURL_LIB libcurl)
+else()
+    set(AGRIROUTER_CURL_LIB curl)
+endif()
+
+# libmosquitto is the library target of the mosquitto CMake build, mosquitto would be the broker executable
+if(TARGET libmosquitto)
+    set(AGRIROUTER_MOSQUITTO_LIB libmosquitto)
+else()
+    set(AGRIROUTER_MOSQUITTO_LIB mosquitto)
+endif()
+
+target_link_libraries(AgrirouterClient ${AGRIROUTER_PROTOBUF_LIB} ${AGRIROUTER_CURL_LIB} uuid ${AGRIROUTER_MOSQUITTO_LIB})
