@@ -40,7 +40,7 @@ void Registration::sendOnboard(const std::string& registrationCode, const Agriro
     std::string url = agrirouterSettings.registrationUrl;
 
     // change to curl connection provider, because onbarding is every time http
-    CurlConnectionProvider connectionProvider = CurlConnectionProvider(m_settings);
+    CurlConnectionProvider connectionProvider(m_settings);
     connectionProvider.setBody(body);
     connectionProvider.setUrl(url);
     connectionProvider.setHeaders(headers);

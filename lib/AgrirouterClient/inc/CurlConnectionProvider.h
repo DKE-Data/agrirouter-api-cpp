@@ -13,6 +13,10 @@ class CurlConnectionProvider : public ConnectionProvider
         explicit CurlConnectionProvider(Settings *settings);
         ~CurlConnectionProvider();
 
+        // Owns the curl share handle
+        CurlConnectionProvider(const CurlConnectionProvider&) = delete;
+        CurlConnectionProvider& operator=(const CurlConnectionProvider&) = delete;
+
         // Struct to use curl chunked callbacks
         typedef struct MemoryStruct 
         {
@@ -31,12 +35,22 @@ class CurlConnectionProvider : public ConnectionProvider
 
     private:
         bool m_polling = false;
+        int m_pollCount = 1;
+
+        // Shared by all requests of this provider: connection cache, TLS sessions and DNS cache.
+        // No lock functions are set, the provider must be used from one thread.
+        CURLSH *m_share = nullptr;
+
+        CURL *createCurlHandle();
+
+        void pollMessages(void);
 
         void setCurlUrl(CURL *hnd);
         curl_slist *setCurlHeaders(CURL *hnd, curl_slist *slist);
         void setCurlBody(CURL *hnd);
         void setChunkedCurlCallback(CURL *hnd, MemoryStruct *chunk);
         void setCurlSSL(CURL *hnd);
+        void setCurlCaBundle(CURL *hnd);
         void executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, MessageParameters messageParameters);
         void cleanupChunkedCurl(CURL *hnd, curl_slist *slist, MemoryStruct *chunk);
 };

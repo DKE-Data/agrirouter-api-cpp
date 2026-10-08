@@ -3,16 +3,62 @@
 #include "AgrirouterClient.h"
 #include "Utils.h"
 
+#include <mutex>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <sys/stat.h>
 
 CurlConnectionProvider::CurlConnectionProvider(Settings *settings)
 {
     m_settings = settings;
+
+    // curl_global_init is not thread safe, so call it only once instead of implicitly in curl_easy_init
+    static std::once_flag curlInitFlag;
+    std::call_once(curlInitFlag, []() { curl_global_init(CURL_GLOBAL_DEFAULT); });
+
+    // Reuse connections and TLS sessions, a full TLS handshake with client certificate for every request costs data volume
+    m_share = curl_share_init();
+    if (m_share != nullptr)
+    {
+        curl_share_setopt(m_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
+        curl_share_setopt(m_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+        curl_share_setopt(m_share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+    }
 }
 
-CurlConnectionProvider::~CurlConnectionProvider() {}
+CurlConnectionProvider::~CurlConnectionProvider()
+{
+    if (m_share != nullptr)
+    {
+        curl_share_cleanup(m_share);
+    }
+}
+
+CURL *CurlConnectionProvider::createCurlHandle()
+{
+    CURL *hnd = curl_easy_init();
+
+    // Do not use signals (e.g. SIGALRM for DNS timeouts), they are not safe in multithreaded processes
+    curl_easy_setopt(hnd, CURLOPT_NOSIGNAL, 1L);
+
+    if (m_share != nullptr)
+    {
+        curl_easy_setopt(hnd, CURLOPT_SHARE, m_share);
+    }
+
+    // Without timeouts a request on a dead connection (e.g. after a mobile network handover) blocks for minutes
+    curl_easy_setopt(hnd, CURLOPT_CONNECTTIMEOUT, static_cast<long>(m_settings->getHttpConnectTimeout()));
+    if (m_settings->getHttpStallTimeout() > 0)
+    {
+        // Abort if less than 1 byte/s is transferred for the stall timeout, a total timeout would abort slow uploads
+        curl_easy_setopt(hnd, CURLOPT_LOW_SPEED_LIMIT, 1L);
+        curl_easy_setopt(hnd, CURLOPT_LOW_SPEED_TIME, static_cast<long>(m_settings->getHttpStallTimeout()));
+    }
+    curl_easy_setopt(hnd, CURLOPT_TCP_KEEPALIVE, 1L);
+
+    return hnd;
+}
 
 void CurlConnectionProvider::sendMessage(MessageParameters messageParameters)
 {
@@ -32,7 +78,7 @@ void CurlConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     chunk.size = 0;
 
     curl_slist *slist = NULL;
-    hnd = curl_easy_init();
+    hnd = this->createCurlHandle();
 
     this->setCurlUrl(hnd);
     slist = this->setCurlHeaders(hnd, slist);
@@ -55,17 +101,25 @@ void CurlConnectionProvider::onboard(MessageParameters messageParameters)
     chunk.size = 0;
 
     curl_slist *slist = NULL;
-    hnd = curl_easy_init();
+    hnd = this->createCurlHandle();
 
     this->setCurlUrl(hnd);
     slist = this->setCurlHeaders(hnd, slist);
     this->setCurlBody(hnd);
+    this->setCurlCaBundle(hnd);
     this->setChunkedCurlCallback(hnd, &chunk);
     this->executeChunkedCurl(hnd, &chunk, messageParameters);
     this->cleanupChunkedCurl(hnd, slist, &chunk);
 }
 
 void CurlConnectionProvider::getMessages(void)
+{
+    // Start a new polling cycle
+    m_pollCount = 1;
+    this->pollMessages();
+}
+
+void CurlConnectionProvider::pollMessages(void)
 {
     m_polling = true;
 
@@ -79,7 +133,7 @@ void CurlConnectionProvider::getMessages(void)
     chunk.size = 0;
 
     curl_slist *slist = NULL;
-    hnd = curl_easy_init();
+    hnd = this->createCurlHandle();
 
     this->setCurlUrl(hnd);
     slist = this->setCurlHeaders(hnd, slist);
@@ -96,14 +150,13 @@ void CurlConnectionProvider::getMessages(void)
 size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
 {
     size_t realsize = size * nmemb;
-    static int pollCount = 1;
 
     CurlConnectionProvider *self = static_cast<CurlConnectionProvider*>(member);
     std::string message(content, realsize);
 
     timeval tv;
 
-    int currentPollingTime = pollCount * self->m_settings->getPollingInterval();
+    int currentPollingTime = self->m_pollCount * self->m_settings->getPollingInterval();
     if (currentPollingTime >= self->m_settings->getPollingMaxTime())
     {
         self->m_callback(content, realsize, 1, self->m_member);
@@ -122,8 +175,8 @@ size_t CurlConnectionProvider::getMessagesCallback(char *content, size_t size, s
         tv.tv_usec = 0;
         select(0, NULL, NULL, NULL, &tv);
 
-        pollCount++;
-        self->getMessages();
+        self->m_pollCount++;
+        self->pollMessages();
     }
     else
     {
@@ -203,8 +256,27 @@ void CurlConnectionProvider::setChunkedCurlCallback(CURL *hnd, MemoryStruct *chu
     curl_easy_setopt(hnd, CURLOPT_WRITEDATA, static_cast<void *>(chunk));
 }
 
+void CurlConnectionProvider::setCurlCaBundle(CURL *hnd)
+{
+    const std::string& caBundlePath = m_settings->getHttpCaBundlePath();
+    if (caBundlePath != "")
+    {
+        struct stat pathStat;
+        if ((stat(caBundlePath.c_str(), &pathStat) == 0) && S_ISDIR(pathStat.st_mode))
+        {
+            curl_easy_setopt(hnd, CURLOPT_CAPATH, caBundlePath.c_str());
+        }
+        else
+        {
+            curl_easy_setopt(hnd, CURLOPT_CAINFO, caBundlePath.c_str());
+        }
+    }
+}
+
 void CurlConnectionProvider::setCurlSSL(CURL *hnd)
 {
+    this->setCurlCaBundle(hnd);
+
     if (m_settings->getCertificatePath() != "")
     {
         curl_easy_setopt(hnd, CURLOPT_SSLCERT, m_settings->getCertificatePath().c_str());
@@ -243,7 +315,8 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
 
     curlCode = curl_easy_perform(hnd);
 
-    int32_t httpCode = 0;
+    // CURLINFO_RESPONSE_CODE requires a long
+    long httpCode = 0;
     curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &httpCode);
 
     /* check for errors */
@@ -264,7 +337,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             curlMessage = std::string(curl_easy_strerror(curlCode));
         }
 
-        m_settings->callOnError(httpCode, curlCode, curlMessage, messageParameters, errorContent);
+        m_settings->callOnError(static_cast<int>(httpCode), curlCode, curlMessage, messageParameters, errorContent);
     }
     else
     {
@@ -281,7 +354,7 @@ void CurlConnectionProvider::executeChunkedCurl(CURL *hnd, MemoryStruct *chunk, 
             // get content if there is some content
             std::string errorContent(chunk->memory, chunk->size);
 
-            m_settings->callOnError(httpCode, curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
+            m_settings->callOnError(static_cast<int>(httpCode), curlCode, std::string(curl_easy_strerror(curlCode)), messageParameters, errorContent);
             return;
         }
 

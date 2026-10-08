@@ -96,6 +96,8 @@
 // Other definitions
 #define DEFAULT_CHUNK_SIZE 300000 // 0,3 MB
 #define DEFAULT_KEEP_ALIVE_TIME 240 // 240 s
+#define DEFAULT_HTTP_CONNECT_TIMEOUT 15 // 15 s
+#define DEFAULT_HTTP_STALL_TIMEOUT 30 // 30 s
 
 // Protobuf typedefs
 typedef agrirouter::request::RequestEnvelope RequestEnvelope;

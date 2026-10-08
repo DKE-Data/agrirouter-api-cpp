@@ -87,6 +87,18 @@ class Settings
         void setCertificateCaPath(std::string certificateCaPath);
         const std::string& getCertificateCaPath();
 
+        // CA bundle file or directory to verify the agrirouter server for HTTPS (Default empty: use libcurl/system CA store)
+        void setHttpCaBundlePath(std::string httpCaBundlePath);
+        const std::string& getHttpCaBundlePath();
+
+        // Timeout in seconds for establishing an HTTPS connection (Default 15 s, 0: libcurl default of 300 s)
+        void setHttpConnectTimeout(int httpConnectTimeout);
+        int getHttpConnectTimeout();
+
+        // An HTTPS request is aborted if no data is transferred for this time in seconds (Default 30 s, 0: never)
+        void setHttpStallTimeout(int httpStallTimeout);
+        int getHttpStallTimeout();
+
         void setAcceptSelfSignedCertificate(bool a_accept);
         bool acceptSelfSignedCertificate();
 
@@ -125,6 +137,9 @@ class Settings
         ConnectionParameters m_connectionParameters;
         std::string m_connectionParametersPath = "";
         std::string m_certificateCaPath = "/etc/ssl/certs/";
+        std::string m_httpCaBundlePath = "";
+        int m_httpConnectTimeout = DEFAULT_HTTP_CONNECT_TIMEOUT;
+        int m_httpStallTimeout = DEFAULT_HTTP_STALL_TIMEOUT;
         bool m_acceptSelfSignedCertificate = false;
 
         // For general purposes

@@ -283,6 +283,30 @@ const std::string& Settings::getCertificateCaPath()
     return m_certificateCaPath;
 }
 
+void Settings::setHttpCaBundlePath(std::string httpCaBundlePath)
+{
+    m_httpCaBundlePath = httpCaBundlePath;
+}
+
+const std::string& Settings::getHttpCaBundlePath()
+{
+    return m_httpCaBundlePath;
+}
+
+void Settings::setHttpConnectTimeout(int httpConnectTimeout)
+{
+    m_httpConnectTimeout = httpConnectTimeout;
+}
+
+int Settings::getHttpConnectTimeout() { return m_httpConnectTimeout; }
+
+void Settings::setHttpStallTimeout(int httpStallTimeout)
+{
+    m_httpStallTimeout = httpStallTimeout;
+}
+
+int Settings::getHttpStallTimeout() { return m_httpStallTimeout; }
+
 void Settings::setAcceptSelfSignedCertificate(bool a_accept)
 {
     m_acceptSelfSignedCertificate = a_accept;
