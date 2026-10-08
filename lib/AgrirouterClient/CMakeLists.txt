@@ -2,6 +2,12 @@
 # Create protobuf pb.h and pb.cc
 add_subdirectory(src/Protobuf)
 
+# The EFDI types (package efdi) can be taken from the parent project instead of compiling the own copy of
+# grpc-efdi.proto. Two copies of the same protobuf package in one process abort at startup
+# ("Symbol name ... conflicts with the existing symbol"), e.g. if the application uses its own EFDI protos.
+set(AGRIROUTER_EFDI_PROTO_TARGET "" CACHE STRING "Target providing the efdi protobuf types, empty: compile grpc-efdi.proto")
+set(AGRIROUTER_EFDI_PROTO_HEADER "" CACHE STRING "Header of AGRIROUTER_EFDI_PROTO_TARGET with efdi::ISO11783_TaskData and efdi::TimeLog")
+
 ################################################################################
 # AgrirouterClient files
 ################################################################################
@@ -14,7 +20,6 @@ file(GLOB SRCS
     "inc/Protobuf/commons/chunk.pb.cc"
     "inc/Protobuf/commons/message.pb.cc"
     "inc/Protobuf/messaging/request/payload/account/endpoints.pb.cc"
-    "inc/Protobuf/messaging/request/payload/efdi/grpc-efdi.pb.cc"
     "inc/Protobuf/messaging/request/payload/endpoint/capabilities.pb.cc"
     "inc/Protobuf/messaging/request/payload/endpoint/subscription.pb.cc"
     "inc/Protobuf/messaging/request/payload/feed/feed-requests.pb.cc"
@@ -27,6 +32,10 @@ file(GLOB SRCS
     "third_party/cJSON/*.c"
     "third_party/mosquitto/*.h"
 )
+
+if(AGRIROUTER_EFDI_PROTO_TARGET STREQUAL "")
+    list(APPEND SRCS "inc/Protobuf/messaging/request/payload/efdi/grpc-efdi.pb.cc")
+endif()
 
 ################################################################################
 # Build static lib and install it
@@ -69,3 +78,16 @@ else()
 endif()
 
 target_link_libraries(AgrirouterClient ${AGRIROUTER_PROTOBUF_LIB} ${AGRIROUTER_CURL_LIB} uuid ${AGRIROUTER_MOSQUITTO_LIB})
+
+if(NOT AGRIROUTER_EFDI_PROTO_TARGET STREQUAL "")
+    if(NOT TARGET ${AGRIROUTER_EFDI_PROTO_TARGET})
+        message(FATAL_ERROR "AGRIROUTER_EFDI_PROTO_TARGET: target '${AGRIROUTER_EFDI_PROTO_TARGET}' does not exist")
+    endif()
+    if(AGRIROUTER_EFDI_PROTO_HEADER STREQUAL "")
+        message(FATAL_ERROR "AGRIROUTER_EFDI_PROTO_HEADER must be set together with AGRIROUTER_EFDI_PROTO_TARGET")
+    endif()
+    message(STATUS "AgrirouterClient: using EFDI protobuf types of ${AGRIROUTER_EFDI_PROTO_TARGET}")
+    # Public: Definitions.h includes the header, so every user of AgrirouterClient needs the definition
+    target_compile_definitions(AgrirouterClient PUBLIC AGRIROUTER_EFDI_PROTO_HEADER="${AGRIROUTER_EFDI_PROTO_HEADER}")
+    target_link_libraries(AgrirouterClient ${AGRIROUTER_EFDI_PROTO_TARGET})
+endif()

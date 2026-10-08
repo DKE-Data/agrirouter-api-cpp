@@ -73,6 +73,12 @@ HTTP applications are not affected.
   the connection cannot be established in time, or if less than 1 byte/s is transferred for the
   stall timeout. `0` restores the previous behavior (libcurl connect timeout of 300 s, no stall
   timeout). There is no total timeout, so slow uploads are not aborted.
+- CMake: `AGRIROUTER_EFDI_PROTO_TARGET` and `AGRIROUTER_EFDI_PROTO_HEADER` to use the EFDI protobuf
+  types (package `efdi`) of the parent project instead of the own copy of `grpc-efdi.proto`.
+  Two copies of the same protobuf package in one process abort at startup ("Symbol name ...
+  conflicts with the existing symbol"). The external proto must define the same messages.
+  Example: `-DAGRIROUTER_EFDI_PROTO_TARGET=MyEfdiProtos -DAGRIROUTER_EFDI_PROTO_HEADER=my/iso11783-10.pb.h`.
+  If not set (the default), `grpc-efdi.proto` is compiled as before. Not available in the Meson build.
 
 ### Changed
 

@@ -6,7 +6,12 @@
 #include "messaging/request/request.pb.h"
 #include "messaging/response/response.pb.h"
 #include "messaging/request/payload/account/endpoints.pb.h"
+// EFDI types of the parent project if configured, see AGRIROUTER_EFDI_PROTO_TARGET in CMakeLists.txt
+#ifdef AGRIROUTER_EFDI_PROTO_HEADER
+#include AGRIROUTER_EFDI_PROTO_HEADER
+#else
 #include "messaging/request/payload/efdi/grpc-efdi.pb.h"
+#endif
 #include "messaging/request/payload/endpoint/capabilities.pb.h"
 #include "messaging/request/payload/endpoint/subscription.pb.h"
 #include "messaging/request/payload/feed/feed-requests.pb.h"
