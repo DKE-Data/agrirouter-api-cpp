@@ -66,36 +66,14 @@ inline int getNumberOfChunks(int sizeOfFile, int chunkSize)
     return chunks;
 }
 
-inline std::string getModifiedUuid(const std::string& uuid, int number)
-{
-    int numberOfDigits = 1;
-    if (number >= 10)
-    {
-        numberOfDigits = 2;
-    }
-    if (number >= 100)
-    {
-        numberOfDigits = 3;
-    }
-    if (number >= 1000)
-    {
-        numberOfDigits = 4;
-    }
-
-    std::string tmpUuid = uuid.substr(0, uuid.size() - numberOfDigits);
-    std::string modifiedUuid = tmpUuid + uint32ToString(number);
-    return modifiedUuid;
-}
-
 // Automatically correct the type_url to match SAPs syntax
 inline void fillAnyMessage(Any *any, Message *message)
 {
-    size_t size = message->ByteSizeLong();
-    char msg[size];
-
-    if (message->SerializeToArray(msg, size))
+    // Serialize on the heap, a variable length array on the stack overflows for large messages
+    std::string serialized;
+    if (message->SerializeToString(&serialized))
     {
-        any->mutable_value()->assign(std::string(msg, size));
+        any->mutable_value()->assign(serialized);
     }
     else
     {

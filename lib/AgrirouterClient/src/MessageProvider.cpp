@@ -172,7 +172,7 @@ AgrirouterMessage MessageProvider::getMessage(std::string *messageId, Addressing
     Request request;
     request.envelope = createRequestHeader(applicationMessageId, seqNo, technicalMessageType, addressing, teamSetContextId, fileName);
     google::protobuf::Any *payload = request.payloadWrapper.mutable_details();
-    payload->mutable_value()->assign(std::string(unchunkedData));
+    payload->mutable_value()->assign(unchunkedData, static_cast<size_t>(size));
     return AgrirouterMessage(request);
 }
 

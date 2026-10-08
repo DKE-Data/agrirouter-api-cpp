@@ -229,7 +229,10 @@ size_t AgrirouterClient::requestMessagesCallback(char *content, size_t size, siz
     std::string message(content, realsize);
 
     std::list<Response> responseList;
-    getResponsesFromMessage(&responseList, &message);
+    if (getResponsesFromMessage(&responseList, &message) != EXIT_SUCCESS)
+    {
+        self->m_settings->callOnLog(MG_LFL_ERR, "AgrirouterClient: Skipped unexpected response content: " + message);
+    }
 
     for (std::list<Response>::iterator it = responseList.begin(); it != responseList.end(); ++it)
     {
@@ -279,7 +282,10 @@ void AgrirouterClient::callbackHandler(char *content, size_t size, MessageParame
     {
         std::string message(content, size);
         std::list<Response> responseList;
-        getResponsesFromMessage(&responseList, &message);
+        if (getResponsesFromMessage(&responseList, &message) != EXIT_SUCCESS)
+        {
+            m_settings->callOnLog(MG_LFL_ERR, "AgrirouterClient: Skipped unexpected response content: " + message);
+        }
 
         for (std::list<Response>::iterator it = responseList.begin(); it != responseList.end(); ++it)
         {

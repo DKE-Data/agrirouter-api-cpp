@@ -184,77 +184,48 @@ inline Request decodeRequest(const std::string& encoded)
 {
     Request request;
 
-    // Base64 decoding and conversion to char*
+    // Base64 decoding
     std::vector<unsigned char> decodedRequest = decodeBase64(encoded);
-    char* decodedMsg = new char[decodedRequest.size()];
-    std::copy(decodedRequest.begin(), decodedRequest.end(), decodedMsg);
 
     // Conversion to a coded input stream
-    google::protobuf::io::ArrayInputStream inputStream((void*) decodedMsg, decodedRequest.size());
+    google::protobuf::io::ArrayInputStream inputStream(decodedRequest.data(), static_cast<int>(decodedRequest.size()));
     google::protobuf::io::CodedInputStream codedStream(&inputStream);
 
     // Parse length of envelope
     uint32_t envelopeLength;
-    if (!codedStream.ReadVarint32(&envelopeLength))
+    if ((!codedStream.ReadVarint32(&envelopeLength)) || (envelopeLength > decodedRequest.size()))
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
         return Request();
     }
 
     // Parse envelope
-    char *envelopeBuffer = new char[envelopeLength + 1];
-    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength))
+    std::vector<char> envelopeBuffer(envelopeLength + 1);
+    if (codedStream.ReadRaw(envelopeBuffer.data(), envelopeLength))
     {
-        request.envelope.ParseFromArray(envelopeBuffer, envelopeLength);
+        request.envelope.ParseFromArray(envelopeBuffer.data(), envelopeLength);
     }
     else
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
         return Request();
     }
 
     // Parse length of payload
     uint32_t payloadLength;
-    if (!codedStream.ReadVarint32(&payloadLength))
+    if ((!codedStream.ReadVarint32(&payloadLength)) || (payloadLength > decodedRequest.size()))
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
         return Request();
     }
 
     // Parse payload
-    char *payloadBuffer = new char[payloadLength + 1];
-    if (codedStream.ReadRaw(payloadBuffer, payloadLength))
+    std::vector<char> payloadBuffer(payloadLength + 1);
+    if (codedStream.ReadRaw(payloadBuffer.data(), payloadLength))
     {
-        request.payloadWrapper.ParseFromArray(payloadBuffer, payloadLength);
-    }
-    else
-    {
-        // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
-        delete [] payloadBuffer;
-        payloadBuffer = nullptr;
-        return request;
+        request.payloadWrapper.ParseFromArray(payloadBuffer.data(), payloadLength);
     }
 
-    delete decodedMsg;
-    decodedMsg = nullptr;
-    delete [] envelopeBuffer;
-    envelopeBuffer = nullptr;
-    delete [] payloadBuffer;
-    payloadBuffer = nullptr;
     return request;
 }
 
@@ -262,92 +233,75 @@ inline Response decodeResponse(const std::string& encoded)
 {
     Response response;
 
-    // Base64 decoding and conversion to char*
+    // Base64 decoding
     std::vector<unsigned char> decodedResponse = decodeBase64(encoded);
-    char* decodedMsg = new char[decodedResponse.size()];
-    std::copy(decodedResponse.begin(), decodedResponse.end(), decodedMsg);
 
     // Conversion to a coded input stream
-    google::protobuf::io::ArrayInputStream inputStream((void*) decodedMsg, decodedResponse.size());
+    google::protobuf::io::ArrayInputStream inputStream(decodedResponse.data(), static_cast<int>(decodedResponse.size()));
     google::protobuf::io::CodedInputStream codedStream(&inputStream);
 
     // Parse length of envelope
     uint32_t envelopeLength;
-    if (!codedStream.ReadVarint32(&envelopeLength))
+    if ((!codedStream.ReadVarint32(&envelopeLength)) || (envelopeLength > decodedResponse.size()))
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
         return response;
     }
 
     // Parse envelope
-    char *envelopeBuffer = new char[envelopeLength + 1];
-    if (codedStream.ReadRaw(envelopeBuffer, envelopeLength))
+    std::vector<char> envelopeBuffer(envelopeLength + 1);
+    if (codedStream.ReadRaw(envelopeBuffer.data(), envelopeLength))
     {
-        response.envelope.ParseFromArray(envelopeBuffer, envelopeLength);
+        response.envelope.ParseFromArray(envelopeBuffer.data(), envelopeLength);
     }
     else
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
         return response;
     }
 
     // Parse length of payload
     uint32_t payloadLength;
-    if (!codedStream.ReadVarint32(&payloadLength))
+    if ((!codedStream.ReadVarint32(&payloadLength)) || (payloadLength > decodedResponse.size()))
     {
         // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
         return response;
     }
 
     // Parse payload
-    char *payloadBuffer = new char[payloadLength + 1];
-    if (codedStream.ReadRaw(payloadBuffer, payloadLength))
+    std::vector<char> payloadBuffer(payloadLength + 1);
+    if (codedStream.ReadRaw(payloadBuffer.data(), payloadLength))
     {
-        response.payloadWrapper.ParseFromArray(payloadBuffer, payloadLength);
+        response.payloadWrapper.ParseFromArray(payloadBuffer.data(), payloadLength);
     }
-    else
-    {
-        // Parsing failed
-        delete decodedMsg;
-        decodedMsg = nullptr;
-        delete [] envelopeBuffer;
-        envelopeBuffer = nullptr;
-        delete [] payloadBuffer;
-        payloadBuffer = nullptr;
-        return response;
-    }
-
-    delete decodedMsg;
-    decodedMsg = nullptr;
-    delete [] envelopeBuffer;
-    envelopeBuffer = nullptr;
-    delete [] payloadBuffer;
-    payloadBuffer = nullptr;
 
     return response;
 }
 
 
+// Returns EXIT_FAILURE if the message is no JSON array or entries without command.message were skipped
 inline int getResponsesFromMessage(std::list<Response> *list, std::string *message)
 {
     // Iterate through message to get list of responses
     cJSON *root = cJSON_Parse(message->c_str());
+    if (!cJSON_IsArray(root))
+    {
+        cJSON_Delete(root);
+        return EXIT_FAILURE;
+    }
 
+    int result = EXIT_SUCCESS;
     for (int i = 0 ; i < cJSON_GetArraySize(root) ; i++)
     {
         cJSON *subitem = cJSON_GetArrayItem(root, i);
         cJSON *command = cJSON_GetObjectItem(subitem, "command");
         cJSON *msg = cJSON_GetObjectItem(command, "message");
+        if ((msg == nullptr) || (msg->valuestring == nullptr))
+        {
+            result = EXIT_FAILURE;
+            continue;
+        }
+
         std::string str = msg->valuestring;
         Response response = decodeResponse(str);
         list->push_back(response);
@@ -355,7 +309,7 @@ inline int getResponsesFromMessage(std::list<Response> *list, std::string *messa
 
     cJSON_Delete(root);
 
-    return EXIT_SUCCESS;
+    return result;
 }
 
 #endif

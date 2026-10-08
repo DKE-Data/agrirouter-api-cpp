@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+struct cJSON;
+
 class Registration
 {
     public:
@@ -41,6 +43,14 @@ class Registration
         ConnectionParameters parseParametersAndCertificates(const std::string& message, void *member);
 
         /**
+        * To get key and pem outof onboard message.
+        * Certificate and private key are only stored in the settings if the message is valid.
+        *
+        *  @return true if all required fields are present and the certificate could be parsed
+        */
+        bool parseParametersAndCertificates(const std::string& message, ConnectionParameters& parameters);
+
+        /**
         * Define registration callback
         */
         typedef void (*RegistrationCallback)(bool success, void *member);
@@ -57,6 +67,8 @@ class Registration
         RegistrationCallback m_callback;
 
         std::string m_registrationCode = "";
+
+        static bool getJsonString(cJSON *object, const char *name, std::string& value);
 };
 
 #endif //  LIB_AGRIROUTERCLIENT_INC_REGISTRATION_H_
