@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to this project (since v3.0) are documented in this file.
 
 ## [Unreleased] (planned: v4.0)
 
