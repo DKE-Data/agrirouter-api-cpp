@@ -166,10 +166,16 @@ void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, in
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect callback with result: " + std::to_string(reasonCode));
 
-    self->m_connected = true;
+    self->m_connected = (reasonCode == 0);
     if(reasonCode == 0)
     {
         self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port) + ")");
+
+        // Subscribe on every connect, a subscription before the connection is established would be lost
+        if (!self->m_subscriptionTopic.empty())
+        {
+            self->subscribe(self->m_subscriptionTopic, self->m_subscriptionQos);
+        }
     }
     else
     {
@@ -251,11 +257,17 @@ void MqttConnectionClient::messageCallback(struct mosquitto *mosq, void *obj, co
 
 void MqttConnectionClient::subscribe(const std::string& topic, int qos)
 {
-    m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] subscribing on topic " +
-                   topic.c_str() + " with qos " + std::to_string(qos));
+    // Called from the mosquitto thread, so do not use m_messageId (used by publish from the application thread)
+    int messageId = 0;
+    int result = mosquitto_subscribe(m_mosq, &messageId, topic.c_str(), qos);
+    m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] subscribing on topic " +
+                   topic + " with qos " + std::to_string(qos) + ": " + mosquitto_strerror(result));
+}
 
-    mosquitto_subscribe(m_mosq, &(m_messageId), topic.c_str(), qos);
-    ++m_messageId;
+void MqttConnectionClient::setSubscription(const std::string& topic, int qos)
+{
+    m_subscriptionTopic = topic;
+    m_subscriptionQos = qos;
 }
 
 void MqttConnectionClient::publish(const std::string& topic, const std::string& payload, int qos)

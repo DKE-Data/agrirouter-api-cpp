@@ -37,52 +37,24 @@ void MqttConnectionProvider::init()
     m_mqttClient->setMqttCallback(requestMqttCallback);
     m_mqttClient->setMqttErrorCallback(requestMqttErrorCallback);
 
-    int initReturnValue = EXIT_FAILURE;
-    const int timeRetry = 1; // time in s to run loop and after it can be stop the app
-    int retryReconnectCounter = 30 * timeRetry; // time in s to retry the mqtt init process
-    int counter = 0;
+    // subscribe to commands only when topic is valid (onboarding is done), the client subscribes after every connect
+    m_mqttClient->setSubscription(conn.commandsUrl, 2);
 
-    while (initReturnValue == EXIT_FAILURE)
+    // Try the setup only once. If it succeeds, mosquitto reconnects by itself (also if the first connect fails).
+    // If it fails, there is no automatic retry, the application has to call renewConnection().
+    if (m_mqttClient->init() != EXIT_SUCCESS)
     {
-        if ((counter % retryReconnectCounter) == 0) // Call init() every 30s until it does not fail
-        {
-            initReturnValue = m_mqttClient->init();
-            if(initReturnValue == EXIT_FAILURE)
-            {
-                this->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionClient: Init failed retry in " + std::to_string(retryReconnectCounter) + "s");
-            }
-            else if (initReturnValue == EXIT_SUCCESS)
-            {
-                break;
-            }
-        }
-
-        if (counter < INT32_MAX)
-        {
-            counter++;
-        }
-        else
-        {
-            counter = 0;
-        }
-
-        timeval timeout;
-        timeout.tv_sec = timeRetry;
-        timeout.tv_usec = 0;
-
-        int ret = select(0, nullptr, nullptr, nullptr, &timeout);
-
-        if (ret == -1 && errno == EINTR) {
-            // stop on exit application
-            break;
-        }
+        std::string errorMessage = "MqttConnectionProvider: MQTT client setup failed, call renewConnection() to retry";
+        m_settings->callOnLog(MG_LFL_ERR, errorMessage);
+        std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MQTT_CONNECT_FAILED) + "\",\"message\":\"" + errorMessage + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
+        m_settings->callOnError(0, MG_ERROR_MQTT_CONNECT_FAILED, errorMessage, MessageParameters(), errorJSON);
+        return;
     }
+}
 
-    // subscribe to commands only subscribe when topic is valid (onboarding is done)
-    if(conn.commandsUrl.length() > 0)
-    {
-        m_mqttClient->subscribe(conn.commandsUrl, 2);
-    }
+bool MqttConnectionProvider::isConnected()
+{
+    return (m_mqttClient != nullptr) && m_mqttClient->isConnected();
 }
 
 void MqttConnectionProvider::renewConnection()
@@ -104,26 +76,24 @@ void MqttConnectionProvider::requestMqttErrorCallback(int errorCode, std::string
 void MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int payloadlen, void *member)
 {
     MqttConnectionProvider *self = static_cast<MqttConnectionProvider *>(member);
-    char* msg = (char*) payload;
+    std::string message;
 
-    if(msg)
+    if(payload != nullptr)
     {
+        message = std::string(static_cast<char *>(payload), payloadlen);
         // If msg starts with '{', it is not an array as it comes from curl, so add the square brackets
-        if (strncmp(msg, "{", 1) == 0)
+        if (strncmp(message.c_str(), "{", 1) == 0)
         {
-            std::string message = std::string(msg, payloadlen);
             message = "[" + message + "]";
             payloadlen = message.length();
-            msg = strdup(message.c_str());
         }
     }
     else
     {
-        std::string emptyMessage = "[]";
-        msg = strdup(emptyMessage.c_str());
+        message = "[]";
     }
 
-    (self->m_callback)(msg, payloadlen, 1, &self->m_messageParameters);
+    (self->m_callback)(&message[0], payloadlen, 1, &self->m_messageParameters);
 }
 
 void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
@@ -135,6 +105,9 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
 {
     m_settings->callOnLog(MG_LFL_NTC, "Send message mqtt with application id: '" + messageParameters.applicationMessageId + "'");
 
+    // Set before publishing, a fast response from the mosquitto thread would otherwise use the previous parameters
+    m_messageParameters = messageParameters;
+
     if(m_url.find("http") != std::string::npos)
     {
         std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
@@ -144,7 +117,6 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     {
         m_mqttClient->publish(m_url, m_body, 2); // Qos 2
     }
-    m_messageParameters = messageParameters;
 }
 
 void MqttConnectionProvider::onboard(MessageParameters messageParameters)
@@ -156,5 +128,8 @@ void MqttConnectionProvider::getMessages(void)
 {
     MessageParameters messageParameters;
     messageParameters.applicationMessageId = createUuid();
+    messageParameters.event = MG_EV_GET_MESSAGES;
+    // The member is the AgrirouterClient, the callback gets these parameters as member
+    messageParameters.member = m_member;
     this->sendMessageWithChunkedResponse(messageParameters);
 }

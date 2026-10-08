@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "third_party/mosquitto/mosquitto.h"
 
+#include <atomic>
 #include <mutex>
 
 class MqttConnectionClient {
@@ -33,14 +34,19 @@ public:
 
     bool isConnected();
 
+    // Topic to subscribe after every successful connect (also after an automatic reconnect), empty for none
+    void setSubscription(const std::string& topic, int qos);
+
 private:
     struct mosquitto *m_mosq = nullptr;
     std::string m_host = "";
     int m_port = 0;
     std::string m_clientId = "";
+    std::string m_subscriptionTopic = "";
+    int m_subscriptionQos = 0;
 
     int m_messageId = 1;
-    bool m_connected = false;
+    std::atomic<bool> m_connected{false}; // set from the mosquitto thread
     void *m_member = nullptr;
     Settings *m_settings = nullptr;
 

@@ -18,6 +18,8 @@ class AgrirouterClient {
         ~AgrirouterClient();
 
         void renewConnection();
+        // MQTT: connection state, HTTP: always true (no persistent connection)
+        bool isConnected();
 
         void registerDeviceWithRegCode(const std::string& registrationCode, AgrirouterSettings& agrirouterSettings);
 

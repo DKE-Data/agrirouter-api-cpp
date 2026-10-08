@@ -21,6 +21,9 @@ class ConnectionProvider
 
         virtual void renewConnection() {}
 
+        // Connection state, connection providers without a persistent connection are always connected
+        virtual bool isConnected() { return true; }
+
         // Function pointer for callback functions
         typedef size_t (*Callback)(char *content, size_t size, size_t nmemb, void *member);
 

@@ -15,6 +15,7 @@ class MqttConnectionProvider : public ConnectionProvider
         ~MqttConnectionProvider();
 
         void renewConnection() override;
+        bool isConnected() override;
 
         // Struct to use curl chunked callbacks
         typedef struct MemoryStruct

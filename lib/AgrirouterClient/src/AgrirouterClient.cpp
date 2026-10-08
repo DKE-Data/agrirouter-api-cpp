@@ -117,6 +117,11 @@ void AgrirouterClient::renewConnection()
     }
 }
 
+bool AgrirouterClient::isConnected()
+{
+    return (m_connectionProvider != nullptr) && m_connectionProvider->isConnected();
+}
+
 void AgrirouterClient::sendCapabilities(std::string *messageId, CapabilitySpecification *capabilities)
 {
     AgrirouterMessage message = m_messageProvider->getCapabilityMessage(messageId, getNextSeqNo(), "", capabilities);
@@ -214,18 +219,7 @@ AgrirouterMessage AgrirouterClient::createChunkMessage(std::string *messageId, A
 
 void AgrirouterClient::requestMessages()
 {
-    // Create headers
-    std::vector<std::string> headers;
-    headers.push_back("Content-type: application/json");
-    headers.push_back("Accept: application/json");
-
-    m_connectionProvider->setBody("");
-    m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
-    m_connectionProvider->setHeaders(headers);
-    m_connectionProvider->setCallback(requestMessagesCallback);
-    m_connectionProvider->setMember(this);
-
-    m_connectionProvider->getMessages();
+    this->getMessages(this, requestMessagesCallback);
 }
 
 size_t AgrirouterClient::requestMessagesCallback(char *content, size_t size, size_t nmemb, void *member)
@@ -336,6 +330,13 @@ void AgrirouterClient::getMessages(AgrirouterClient *self, ConnectionProvider::C
     std::vector<std::string> headers;
     headers.push_back("Content-type: application/json");
     headers.push_back("Accept: application/json");
+
+    // MQTT passes its MessageParameters as member to the callback (responses arrive asynchronously),
+    // so use the callback that expects them. The provider sets this client as their member.
+    if (m_settings->getConnectionType() == Settings::MQTT)
+    {
+        callback = messageCallback;
+    }
 
     self->m_connectionProvider->setBody("");
     self->m_connectionProvider->setUrl(m_settings->getConnectionParameters().commandsUrl);
