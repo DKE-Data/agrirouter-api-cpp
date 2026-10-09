@@ -48,7 +48,7 @@ class ConnectionProvider
         std::string m_url = "";
         std::vector<std::string> m_headers = std::vector<std::string>();
         std::string m_applicationMessageId = "";
-        Callback m_callback;
+        Callback m_callback = nullptr;
         void *m_member = nullptr;
 };
 

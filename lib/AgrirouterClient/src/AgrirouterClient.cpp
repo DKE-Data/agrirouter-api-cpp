@@ -53,7 +53,10 @@ void AgrirouterClient::init(Settings *settings)
     }
     else if (settings->getConnectionType() == Settings::MQTT)
     {
-        m_connectionProvider = new MqttConnectionProvider(settings);
+        MqttConnectionProvider *mqttConnectionProvider = new MqttConnectionProvider(settings);
+        // Before connecting, messages can arrive right after the connect
+        mqttConnectionProvider->setReceiver(messageCallback, this);
+        m_connectionProvider = mqttConnectionProvider;
         m_connectionProvider->renewConnection();
     }
 }
@@ -285,6 +288,11 @@ size_t AgrirouterClient::messageCallback(char *content, size_t size, size_t nmem
     size_t realsize = size * nmemb;
 
     AgrirouterClient *self = static_cast<AgrirouterClient *>(messageParameters->member);
+    if (self == nullptr)
+    {
+        return realsize;
+    }
+
     self->callbackHandler(content, realsize, *messageParameters);
     return realsize;
 }

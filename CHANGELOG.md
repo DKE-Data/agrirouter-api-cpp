@@ -121,6 +121,9 @@ HTTP applications are not affected.
 - MQTT: the subscription to the commands topic was lost if the first connect failed and was not
   repeated after a reconnect.
 - MQTT: crash in `requestMessages()`.
+- MQTT: crash if a message (e.g. a push notification) arrived before the first message was sent.
+  The receive callback was only set when sending. The message parameters are now also protected
+  against concurrent access from the mosquitto thread.
 - `decodeRequest()`/`decodeResponse()`: memory allocated with `new[]` was freed with `delete`.
   Length prefixes larger than the message are rejected.
 - Stack overflow when serializing large messages (e.g. device descriptions or timelogs).

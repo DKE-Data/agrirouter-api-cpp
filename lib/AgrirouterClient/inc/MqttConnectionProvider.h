@@ -6,6 +6,7 @@
 
 #include "Settings.h"
 #include <curl/curl.h>
+#include <mutex>
 #include <string>
 
 class MqttConnectionProvider : public ConnectionProvider
@@ -34,11 +35,20 @@ class MqttConnectionProvider : public ConnectionProvider
 
         void onboard(MessageParameters messageParameters);
 
+        // Receives all incoming messages. Set it before connecting, messages (e.g. push notifications)
+        // can arrive right after the connect, before anything was sent.
+        void setReceiver(Callback callback, void *receiver);
+
     private:
         MqttConnectionClient *m_mqttClient = nullptr;
+        Callback m_receiveCallback = nullptr;
+        void *m_receiver = nullptr;
+        // Written by the sending thread, read by the mosquitto thread
         MessageParameters m_messageParameters;
+        std::mutex m_messageParametersMutex;
 
         void init();
+        MessageParameters getMessageParameters();
 };
 
 #endif  // LIB_AGRIROUTERCLIENT_SRC_CONNECTIONPROVIDER_MQTTCONNECTIONPROVIDER_H_

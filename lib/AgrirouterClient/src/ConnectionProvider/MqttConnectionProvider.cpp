@@ -70,7 +70,7 @@ void MqttConnectionProvider::requestMqttErrorCallback(int errorCode, std::string
     {
         errorCode = MG_ERROR_MISSING_ENDPOINT;
     }
-    self->m_settings->callOnError(0, errorCode, message, self->m_messageParameters, content);
+    self->m_settings->callOnError(0, errorCode, message, self->getMessageParameters(), content);
 }
 
 void MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int payloadlen, void *member)
@@ -93,7 +93,16 @@ void MqttConnectionProvider::requestMqttCallback(char *topic, void *payload, int
         message = "[]";
     }
 
-    (self->m_callback)(&message[0], payloadlen, 1, &self->m_messageParameters);
+    if ((self->m_receiveCallback == nullptr) || (self->m_receiver == nullptr))
+    {
+        self->m_settings->callOnLog(MG_LFL_ERR, "MqttConnectionProvider: No receiver set, dropped message on topic " + std::string(topic));
+        return;
+    }
+
+    // The receiver is always the member, the parameters of the last sent message only provide the context
+    MessageParameters messageParameters = self->getMessageParameters();
+    messageParameters.member = self->m_receiver;
+    (self->m_receiveCallback)(&message[0], message.size(), 1, &messageParameters);
 }
 
 void MqttConnectionProvider::sendMessage(MessageParameters messageParameters)
@@ -106,7 +115,10 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     m_settings->callOnLog(MG_LFL_NTC, "Send message mqtt with application id: '" + messageParameters.applicationMessageId + "'");
 
     // Set before publishing, a fast response from the mosquitto thread would otherwise use the previous parameters
-    m_messageParameters = messageParameters;
+    {
+        std::lock_guard<std::mutex> lock(m_messageParametersMutex);
+        m_messageParameters = messageParameters;
+    }
 
     if(m_url.find("http") != std::string::npos)
     {
@@ -117,6 +129,18 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     {
         m_mqttClient->publish(m_url, m_body, 2); // Qos 2
     }
+}
+
+void MqttConnectionProvider::setReceiver(Callback callback, void *receiver)
+{
+    m_receiveCallback = callback;
+    m_receiver = receiver;
+}
+
+MessageParameters MqttConnectionProvider::getMessageParameters()
+{
+    std::lock_guard<std::mutex> lock(m_messageParametersMutex);
+    return m_messageParameters;
 }
 
 void MqttConnectionProvider::onboard(MessageParameters messageParameters)
