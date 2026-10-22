@@ -6,8 +6,10 @@
 #include "third_party/mosquitto/mosquitto.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <map>
 #include <mutex>
+#include <thread>
 
 class MqttConnectionClient {
 
@@ -51,6 +53,23 @@ private:
 
     MqttCallback m_mqttCallback = NULL;
     MqttErrorCallback m_mqttErrorCallback = NULL;
+
+    // libmosquitto 1.x ends its thread after TLS errors (e.g. if the broker closes the connection) and does not
+    // reconnect anymore. The supervisor restarts the thread.
+    std::thread m_supervisor;
+    std::mutex m_supervisorMutex;
+    std::condition_variable m_supervisorCondition;
+    bool m_loopThreadEnded = false;
+    bool m_stopping = false;
+    std::atomic<bool> m_connectedSinceRestart{false};
+
+    // Notifies the client when the mosquitto thread ends
+    struct LoopThreadWatcher;
+    static thread_local LoopThreadWatcher s_loopThreadWatcher;
+
+    void watchLoopThread();
+    void onLoopThreadEnded();
+    void superviseLoopThread();
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);

@@ -148,6 +148,10 @@ The bundled header is not compatible with libmosquitto 2.x.
   was cancelled even while it was running a callback, so mutexes of the application (e.g. of the
   logger) or of the client could stay locked. Cancellation is now deferred until the callback has
   returned. Before the thread is stopped, the client waits up to 1 s for the DISCONNECT to be sent.
+- MQTT: no reconnect after the broker closed the connection. libmosquitto 1.x ends its thread after
+  a TLS read error (e.g. "unexpected eof while reading"), so mosquitto did not reconnect anymore and
+  `isConnected()` stayed `false`. The client now restarts the thread (after 2 s, doubled up to 120 s
+  until it is connected again), the new thread reconnects by itself.
 - MQTT: two connections at the same time and crashes in OpenSSL during the connect. The mosquitto
   thread was started before `mosquitto_connect_async()`, so both threads connected on the same
   mosquitto instance (broker log: "sending multiple CONNECT messages"). The thread is now started

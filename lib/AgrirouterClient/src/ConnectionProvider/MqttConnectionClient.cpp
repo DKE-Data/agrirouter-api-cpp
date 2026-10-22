@@ -1,5 +1,6 @@
 #include "MqttConnectionClient.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <pthread.h>
@@ -14,6 +15,33 @@ namespace
     // Time to wait for the DISCONNECT to be sent before the mosquitto thread is stopped
     const int DISCONNECT_TIMEOUT_MS = 1000;
     const int DISCONNECT_POLL_INTERVAL_MS = 10;
+
+    // Delay before the ended mosquitto thread is restarted, doubled until it connects again
+    const int LOOP_RESTART_DELAY_MIN_S = 2;
+    const int LOOP_RESTART_DELAY_MAX_S = 120;
+
+    // Number of calls into libmosquitto on this thread from outside of its own thread
+    thread_local int t_applicationCallDepth = 0;
+
+    // Set around calls into libmosquitto from the application thread.
+    // libmosquitto 1.x also calls callbacks (e.g. the log callback) from the calling thread, these threads must
+    // not be watched as mosquitto thread.
+    class ApplicationCallScope
+    {
+    public:
+        ApplicationCallScope()
+        {
+            ++t_applicationCallDepth;
+        }
+
+        ~ApplicationCallScope()
+        {
+            --t_applicationCallDepth;
+        }
+
+        ApplicationCallScope(const ApplicationCallScope &) = delete;
+        ApplicationCallScope &operator=(const ApplicationCallScope &) = delete;
+    };
 
     // Set at the start of every mosquitto callback.
     // The destructor stops the mosquitto thread with pthread_cancel, because libmosquitto 1.x sleeps up to the maximum
@@ -39,6 +67,22 @@ namespace
     };
 } // namespace
 
+// The thread_local watcher is destroyed when the mosquitto thread ends
+struct MqttConnectionClient::LoopThreadWatcher
+{
+    MqttConnectionClient *client = nullptr;
+
+    ~LoopThreadWatcher()
+    {
+        if (client != nullptr)
+        {
+            client->onLoopThreadEnded();
+        }
+    }
+};
+
+thread_local MqttConnectionClient::LoopThreadWatcher MqttConnectionClient::s_loopThreadWatcher;
+
 MqttConnectionClient::MqttConnectionClient(const std::string& clientId, const std::string& host, int port, Settings *settings)
 {
     m_clientId = clientId;
@@ -50,8 +94,21 @@ MqttConnectionClient::MqttConnectionClient(const std::string& clientId, const st
 
 MqttConnectionClient::~MqttConnectionClient()
 {
+    // Stop the supervisor first, it must not restart the mosquitto thread while it is stopped
+    {
+        std::lock_guard<std::mutex> lock(m_supervisorMutex);
+        m_stopping = true;
+    }
+
+    m_supervisorCondition.notify_all();
+    if (m_supervisor.joinable())
+    {
+        m_supervisor.join();
+    }
+
     if(m_mosq != nullptr)
     {
+        ApplicationCallScope applicationCallScope;
         if (mosquitto_disconnect(m_mosq) == MOSQ_ERR_SUCCESS)
         {
             // The mosquitto thread sends the DISCONNECT, give it the chance to do so before it is cancelled
@@ -166,7 +223,12 @@ int MqttConnectionClient::init()
 
     // Connect before the mosquitto thread is started. The thread reconnects by itself, if it runs already, both threads
     // connect at the same time on the same mosquitto instance (two connections, crashes in OpenSSL).
-    int connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
+    int connect = MOSQ_ERR_SUCCESS;
+    {
+        ApplicationCallScope applicationCallScope;
+        connect = mosquitto_connect_async(m_mosq, m_host.c_str(), m_port, keepAliveTime);
+    }
+
     if(connect == MOSQ_ERR_SUCCESS)
     {
         m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect set successful - " + std::to_string(connect) + ": " + mosquitto_strerror(connect));
@@ -191,6 +253,8 @@ int MqttConnectionClient::init()
         (m_mqttErrorCallback) (loop, errorMessage, "", m_member);
         return EXIT_FAILURE;
     }
+
+    m_supervisor = std::thread(&MqttConnectionClient::superviseLoopThread, this);
 
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: init success");
     return EXIT_SUCCESS;
@@ -242,11 +306,13 @@ void MqttConnectionClient::connectCallback(struct mosquitto *mosq, void *obj, in
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: connect callback with result: " + std::to_string(reasonCode));
 
     self->m_connected = (reasonCode == 0);
     if(reasonCode == 0)
     {
+        self->m_connectedSinceRestart = true;
         self->m_settings->callOnLog(MG_LFL_MSG, "MqttConnectionClient: Connected to MQTT Broker (" + self->m_host + ":" + std::to_string(self->m_port) + ")");
 
         // Subscribe on every connect, a subscription before the connection is established would be lost
@@ -267,6 +333,7 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: disconnect callback with result: '" + std::to_string(reasonCode) + ":" + mosquitto_strerror(reasonCode) + "'");
     self->m_connected = false;
 
@@ -283,6 +350,7 @@ void MqttConnectionClient::publishCallback(struct mosquitto *mosq, void *obj, in
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] publish OK");
 }
 
@@ -290,6 +358,7 @@ void MqttConnectionClient::loggingCallback(struct mosquitto *mosq, void *obj, in
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: logging callback with message: '" + std::string(message) + "' and Log level: '" + std::to_string(level) + "'");
 
     if(std::string(message).find("tls_process_server_certificate:certificate verify failed") != std::string::npos)
@@ -304,6 +373,7 @@ void MqttConnectionClient::subscribeCallback(struct mosquitto *mosq, void *obj, 
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] subscribe callback");
 
     // 0x80 (128) is the only failure code of SUBACK, a lower QoS than requested is a valid grant
@@ -331,6 +401,7 @@ void MqttConnectionClient::unsubscribeCallback(struct mosquitto *mosq, void *obj
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: unsubscribe callback");
 }
 
@@ -338,6 +409,7 @@ void MqttConnectionClient::messageCallback(struct mosquitto *mosq, void *obj, co
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
     CallbackScope scope;
+    self->watchLoopThread();
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(message->mid) + "] messageCallback on topic " + message->topic + " with qos " + std::to_string(message->qos));
 
     (self->m_mqttCallback)(message->topic, message->payload, message->payloadlen, self->m_member);
@@ -346,7 +418,12 @@ void MqttConnectionClient::messageCallback(struct mosquitto *mosq, void *obj, co
 void MqttConnectionClient::subscribe(const std::string& topic, int qos)
 {
     int messageId = 0;
-    int result = mosquitto_subscribe(m_mosq, &messageId, topic.c_str(), qos);
+    int result = MOSQ_ERR_SUCCESS;
+    {
+        ApplicationCallScope applicationCallScope;
+        result = mosquitto_subscribe(m_mosq, &messageId, topic.c_str(), qos);
+    }
+
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] subscribing on topic " + topic + " with qos " + std::to_string(qos) + ": " + mosquitto_strerror(result));
 }
 
@@ -370,7 +447,12 @@ int MqttConnectionClient::publish(const std::string& topic, char *payload, int s
 {
     // mosquitto_publish copies the payload
     int messageId = 0;
-    int result = mosquitto_publish(m_mosq, &messageId, topic.c_str(), size, payload, qos, retain);
+    int result = MOSQ_ERR_SUCCESS;
+    {
+        ApplicationCallScope applicationCallScope;
+        result = mosquitto_publish(m_mosq, &messageId, topic.c_str(), size, payload, qos, retain);
+    }
+
     m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] publishing on topic " + topic + " with qos " + std::to_string(qos) + ", size " + std::to_string(size) + " and retain " + std::to_string(retain) + ": " + mosquitto_strerror(result));
     return result;
 }
@@ -378,4 +460,64 @@ int MqttConnectionClient::publish(const std::string& topic, char *payload, int s
 bool MqttConnectionClient::isConnected()
 {
     return m_connected;
+}
+
+void MqttConnectionClient::watchLoopThread()
+{
+    // Callbacks outside of an ApplicationCallScope run on the mosquitto thread
+    if (t_applicationCallDepth == 0)
+    {
+        s_loopThreadWatcher.client = this;
+    }
+}
+
+void MqttConnectionClient::onLoopThreadEnded()
+{
+    {
+        std::lock_guard<std::mutex> lock(m_supervisorMutex);
+        m_loopThreadEnded = true;
+    }
+
+    m_supervisorCondition.notify_all();
+}
+
+void MqttConnectionClient::superviseLoopThread()
+{
+    int restartDelay = LOOP_RESTART_DELAY_MIN_S;
+    std::unique_lock<std::mutex> lock(m_supervisorMutex);
+    while (!m_stopping)
+    {
+        m_supervisorCondition.wait(lock, [this] { return m_stopping || m_loopThreadEnded; });
+        if (m_stopping)
+        {
+            break;
+        }
+
+        if (m_connectedSinceRestart.exchange(false))
+        {
+            restartDelay = LOOP_RESTART_DELAY_MIN_S;
+        }
+
+        // Do not call the application with the lock held
+        lock.unlock();
+        m_settings->callOnLog(MG_LFL_WRN, "MqttConnectionClient: mosquitto thread ended, restart in " + std::to_string(restartDelay) + " s");
+        lock.lock();
+
+        if (m_supervisorCondition.wait_for(lock, std::chrono::seconds(restartDelay), [this] { return m_stopping; }))
+        {
+            break;
+        }
+
+        m_loopThreadEnded = false;
+        lock.unlock();
+
+        // The thread has ended, so loop_stop returns immediately. It resets the thread state of libmosquitto,
+        // the new thread reconnects by itself.
+        mosquitto_loop_stop(m_mosq, false);
+        int loop = mosquitto_loop_start(m_mosq);
+        m_settings->callOnLog((loop == MOSQ_ERR_SUCCESS) ? MG_LFL_MSG : MG_LFL_ERR, "MqttConnectionClient: mosquitto thread restarted: " + std::to_string(loop) + ": " + mosquitto_strerror(loop));
+
+        lock.lock();
+        restartDelay = std::min(restartDelay * 2, LOOP_RESTART_DELAY_MAX_S);
+    }
 }
