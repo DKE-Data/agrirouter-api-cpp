@@ -6,6 +6,7 @@
 #include "third_party/mosquitto/mosquitto.h"
 
 #include <atomic>
+#include <map>
 #include <mutex>
 
 class MqttConnectionClient {
@@ -14,16 +15,15 @@ public:
     MqttConnectionClient(const std::string& clientId, const std::string& address, int port, Settings *settings);
     ~MqttConnectionClient();
 
-    // Function pointer for callback functions
     typedef void (*MqttCallback)(char *topic, void *payload, int payloadlen, void *member);
     typedef void (*MqttErrorCallback)(int errorCode, std::string message, std::string content, void *member);
     typedef int (*pw_callback)(char *buf, int size, int rwflag, void *userdata);
 
     int init();
     void subscribe(const std::string& topic, int qos);
-    void publish(const std::string& topic, const std::string& payload, int qos);
-    void publish(const std::string& topic, char *payload, int size, int qos);
-    void publish(const std::string& topic, char *payload, int size, int qos, bool retain);
+    int publish(const std::string& topic, const std::string& payload, int qos);
+    int publish(const std::string& topic, char *payload, int size, int qos);
+    int publish(const std::string& topic, char *payload, int size, int qos, bool retain);
 
     void setMqttCallback(MqttCallback callback);
     MqttCallback getMqttCallback();
@@ -34,7 +34,6 @@ public:
 
     bool isConnected();
 
-    // Topic to subscribe after every successful connect (also after an automatic reconnect), empty for none
     void setSubscription(const std::string& topic, int qos);
 
 private:
@@ -42,11 +41,11 @@ private:
     std::string m_host = "";
     int m_port = 0;
     std::string m_clientId = "";
+    std::string m_secret = "";
     std::string m_subscriptionTopic = "";
     int m_subscriptionQos = 0;
 
-    int m_messageId = 1;
-    std::atomic<bool> m_connected{false}; // set from the mosquitto thread
+    std::atomic<bool> m_connected{false}; // Set from the mosquitto thread
     void *m_member = nullptr;
     Settings *m_settings = nullptr;
 
@@ -62,10 +61,12 @@ private:
     static void unsubscribeCallback(struct mosquitto *mosq, void *obj, int messageId);
     static void messageCallback(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message);
 
-    static std::string globalSecret;
-    static std::mutex mutexSecret;
-    static std::string getStaticSecret();
-    static void setStaticSecret(std::string secret);
+    // The password callback only gets the mosquitto instance, so the secrets are stored per instance
+    static std::map<const struct mosquitto *, std::string> s_secrets;
+    static std::mutex s_secretsMutex;
+
+    // mosquitto_lib_init() is global, it is called once for all clients
+    static std::once_flag s_libInitFlag;
 };
 
 #endif // LIB_AGRIROUTERCLIENT_INC_MQTTCONNECTIONCLIENT_H_

@@ -84,6 +84,7 @@
 #define MG_ERROR_NOT_VALID_TOPIC (MG_ERROR_BASE + 4)
 #define MG_ERROR_MQTT_CONNECT_FAILED (MG_ERROR_BASE + 5) // MQTT client setup failed, no automatic reconnect, call renewConnection()
 #define MG_ERROR_INVALID_ONBOARD_RESPONSE (MG_ERROR_BASE + 6)
+#define MG_ERROR_MQTT_PUBLISH_FAILED (MG_ERROR_BASE + 7) // MQTT message was not sent and not queued, send it again
 
 // message types
 #define MESSAGE_TYPE_TASK_DATA "iso:11783:-10:taskdata:zip"

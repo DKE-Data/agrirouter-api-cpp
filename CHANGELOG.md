@@ -49,10 +49,27 @@ indefinitely.
 
 - Handle `MG_ERROR_MQTT_CONNECT_FAILED` in `onError` and retry with `renewConnection()`, e.g. with
   a timer every 30 s. This gives the previous behaviour without blocking.
-- Check the new `isConnected()` before sending. The result of `mosquitto_publish` is not reported
-  to the application.
+- Check the new `isConnected()` before sending. If a message can neither be sent nor queued,
+  `onError` is called with the new error code `MG_ERROR_MQTT_PUBLISH_FAILED`.
 
 HTTP applications are not affected.
+
+#### MQTT: `requestMessages()` does not publish anymore
+
+Until now, `requestMessages()` with MQTT published an empty message on the commands topic, which is
+the topic the client subscribes to. It did not fetch anything.
+
+**Now:** `requestMessages()` does nothing with MQTT. The agrirouter pushes the messages of the
+outbox to the commands topic, and they are delivered to `onMessage` as before.
+
+**Migration:** none, unless the application relied on the empty message.
+
+#### MQTT: libmosquitto 1.x is required
+
+The client uses the API of the bundled `third_party/mosquitto/mosquitto.h` (1.4.14), the library
+itself is linked by the parent project. If the linked libmosquitto has another major version,
+the MQTT setup fails with `MG_ERROR_MQTT_CONNECT_FAILED`, and the log names the linked version.
+The bundled header is not compatible with libmosquitto 2.x.
 
 ### Added
 
@@ -66,6 +83,9 @@ HTTP applications are not affected.
 - New error codes in `Definitions.h`:
   - `MG_ERROR_MQTT_CONNECT_FAILED` (`MG_ERROR_BASE + 5`)
   - `MG_ERROR_INVALID_ONBOARD_RESPONSE` (`MG_ERROR_BASE + 6`)
+  - `MG_ERROR_MQTT_PUBLISH_FAILED` (`MG_ERROR_BASE + 7`): the MQTT message was neither sent nor
+    queued, e.g. invalid topic or payload too large. Without connection, QoS 2 messages are queued
+    and sent after the reconnect (warning in the log), this is not reported as error.
 - `Registration::parseParametersAndCertificates(const std::string&, ConnectionParameters&)`:
   returns whether the onboarding response is valid. The existing overload is kept.
 - `Settings::setHttpConnectTimeout()` (default 15 s) and `Settings::setHttpStallTimeout()`
@@ -124,6 +144,24 @@ HTTP applications are not affected.
 - MQTT: crash if a message (e.g. a push notification) arrived before the first message was sent.
   The receive callback was only set when sending. The message parameters are now also protected
   against concurrent access from the mosquitto thread.
+- MQTT: deadlock after deleting the `AgrirouterClient`. The mosquitto thread
+  was cancelled even while it was running a callback, so mutexes of the application (e.g. of the
+  logger) or of the client could stay locked. Cancellation is now deferred until the callback has
+  returned. Before the thread is stopped, the client waits up to 1 s for the DISCONNECT to be sent.
+- MQTT: two connections at the same time and crashes in OpenSSL during the connect. The mosquitto
+  thread was started before `mosquitto_connect_async()`, so both threads connected on the same
+  mosquitto instance (broker log: "sending multiple CONNECT messages"). The thread is now started
+  after the connect.
+- MQTT: several clients in one process used the private key password of the client created last.
+- MQTT: a subscription granted with a lower QoS than requested was reported as error (with error
+  code 0 or 1). Only the SUBACK failure code 128 is reported (as `MG_ERROR_MISSING_ENDPOINT`), a
+  lower QoS is logged as warning.
+- MQTT: wrong error text for an unexpected disconnect.
+- MQTT: the payload was cut at the first NUL byte.
+- MQTT: `mosquitto_lib_cleanup()` was called whenever a client was deleted, also while another
+  client was still in use. `mosquitto_lib_init()` is now called once, `mosquitto_lib_cleanup()`
+  not at all.
+- MQTT: the logged message ID of a publish was not the ID used by mosquitto.
 - `decodeRequest()`/`decodeResponse()`: memory allocated with `new[]` was freed with `delete`.
   Length prefixes larger than the message are rejected.
 - Stack overflow when serializing large messages (e.g. device descriptions or timelogs).
@@ -139,6 +177,9 @@ HTTP applications are not affected.
 
 - `AgrirouterClient` is not thread safe. Make all calls from one thread. MQTT callbacks are called
   from the mosquitto thread.
+- MQTT: do not call `renewConnection()` or delete the `AgrirouterClient` from a callback.
+- MQTT: libmosquitto 1.4.15 leaks about 80 KB per failed TLS handshake (e.g. rejected client
+  certificate), it does not free the OpenSSL objects on these error paths.
 - Match responses via `response.envelope.application_message_id()`. The `applicationMessageId` in
   the callbacks only refers to the last sent message.
 - `chunkSize` is not used for splitting messages. Split large messages yourself and send them with

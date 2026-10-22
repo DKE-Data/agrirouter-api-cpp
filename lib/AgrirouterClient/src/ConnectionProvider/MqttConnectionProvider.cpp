@@ -125,9 +125,28 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
         std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_NOT_VALID_TOPIC) + "\",\"message\":\"" + m_url + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
         m_settings->callOnError(0, MG_ERROR_NOT_VALID_TOPIC, "Not a valid MQTT topic. New Onboarding needed", messageParameters, errorJSON);
     }
+    else if(m_mqttClient == nullptr)
+    {
+        std::string errorMessage = "MqttConnectionProvider: Not initialized, message not sent";
+        m_settings->callOnLog(MG_LFL_ERR, errorMessage);
+        std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MQTT_PUBLISH_FAILED) + "\",\"message\":\"" + errorMessage + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
+        m_settings->callOnError(0, MG_ERROR_MQTT_PUBLISH_FAILED, errorMessage, messageParameters, errorJSON);
+    }
     else
     {
-        m_mqttClient->publish(m_url, m_body, 2); // Qos 2
+        int result = m_mqttClient->publish(m_url, m_body, 2); // Qos 2
+        if(result == MOSQ_ERR_NO_CONN)
+        {
+            // QoS 2 messages are queued by mosquitto and sent after the reconnect, unless the connection is renewed
+            m_settings->callOnLog(MG_LFL_WRN, "MqttConnectionProvider: Not connected, message queued until reconnect");
+        }
+        else if(result != MOSQ_ERR_SUCCESS)
+        {
+            std::string errorMessage = "MqttConnectionProvider: Publish failed " + std::to_string(result) + ": " + mosquitto_strerror(result);
+            m_settings->callOnLog(MG_LFL_ERR, errorMessage);
+            std::string errorJSON = "{\"error\":{\"code\":\""+ std::to_string(MG_ERROR_MQTT_PUBLISH_FAILED) + "\",\"message\":\"" + errorMessage + "\",\"target\":\"agrirouter-api-cpp\",\"details\":[]}}";
+            m_settings->callOnError(0, MG_ERROR_MQTT_PUBLISH_FAILED, errorMessage, messageParameters, errorJSON);
+        }
     }
 }
 
@@ -150,10 +169,7 @@ void MqttConnectionProvider::onboard(MessageParameters messageParameters)
 
 void MqttConnectionProvider::getMessages(void)
 {
-    MessageParameters messageParameters;
-    messageParameters.applicationMessageId = createUuid();
-    messageParameters.event = MG_EV_GET_MESSAGES;
-    // The member is the AgrirouterClient, the callback gets these parameters as member
-    messageParameters.member = m_member;
-    this->sendMessageWithChunkedResponse(messageParameters);
+    // With MQTT the agrirouter pushes the outbox to the subscribed commands topic, there is nothing to fetch.
+    // Publishing on the commands topic would only send an empty message to this endpoint itself.
+    m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionProvider: Messages are pushed on the commands topic, nothing to request");
 }
