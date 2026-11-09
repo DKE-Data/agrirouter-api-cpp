@@ -17,6 +17,7 @@ class Settings
 
         typedef void (*onParameterChangeCallback) (int event, void *data, void *callbackCallee);
         typedef void (*onMessageCallback) (int event, Response *response, std::string applicationMessageId, void *callbackCallee);
+        typedef void (*onMqttPublishCallback) (int mqttMessageId, std::string applicationMessageId, void *callbackCallee);
         typedef void (*onErrorCallback) (int statusCode, int connectionProviderErrorCode, std::string errorMessage,
                                             std::string applicationMessageId, std::string errorContent, void *callbackCallee);
         typedef void (*onLoggingCallback) (int logLevel, std::string logMessage, void *callbackCallee);
@@ -26,6 +27,7 @@ class Settings
 
         void callOnParameterChange(int event, void *data);
         void callOnMessage(Response *response, MessageParameters messageParameters);
+        void callOnMqttPublish(int mqttMessageId, std::string applicationMessageId);
         void callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage, MessageParameters messageParameters, std::string errorContent);
         void callOnLog(int logLevel, std::string logMessage);
 
@@ -35,6 +37,7 @@ class Settings
         // On message change callback
         void setOnMessageCallback(onMessageCallback onMessage);
         onMessageCallback getOnMessageCallback();
+        void setOnMqttPublishCallback(onMqttPublishCallback onMqttPublish);
         // On error change callback
         void setOnErrorCallback(onErrorCallback onError);
         onErrorCallback getOnErrorCallback();
@@ -100,6 +103,7 @@ class Settings
     private:
         onParameterChangeCallback m_onParameter;
         onMessageCallback m_onMessage;
+        onMqttPublishCallback m_onMqttPublish = nullptr;
         onErrorCallback m_onError;
         onLoggingCallback m_onLog;
         void *m_callbackCallee = nullptr;

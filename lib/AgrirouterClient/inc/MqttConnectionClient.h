@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "third_party/mosquitto/mosquitto.h"
 
+#include <map>
 #include <mutex>
 
 class MqttConnectionClient {
@@ -21,6 +22,7 @@ public:
     int init();
     void subscribe(const std::string& topic, int qos);
     void publish(const std::string& topic, const std::string& payload, int qos);
+    int publish(const std::string& topic, const std::string& payload, int qos, const std::string& applicationMessageId);
     void publish(const std::string& topic, char *payload, int size, int qos);
     void publish(const std::string& topic, char *payload, int size, int qos, bool retain);
 
@@ -46,6 +48,8 @@ private:
 
     MqttCallback m_mqttCallback = NULL;
     MqttErrorCallback m_mqttErrorCallback = NULL;
+    std::map<int, std::string> m_pendingPublishIds;
+    std::mutex m_publishMutex;
 
     static int onPWCallback(char *buf, int size, int rwflag, void *userdata);
     static void connectCallback(struct mosquitto *mosq, void *obj, int result);

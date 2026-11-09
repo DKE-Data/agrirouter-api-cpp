@@ -197,7 +197,22 @@ void MqttConnectionClient::disconnectCallback(struct mosquitto *mosq, void *obj,
 void MqttConnectionClient::publishCallback(struct mosquitto *mosq, void *obj, int messageId)
 {
     MqttConnectionClient *self = static_cast<MqttConnectionClient *>(obj);
+    std::string applicationMessageId;
+    {
+        std::lock_guard<std::mutex> lock(self->m_publishMutex);
+        auto it = self->m_pendingPublishIds.find(messageId);
+        if (it != self->m_pendingPublishIds.end())
+        {
+            applicationMessageId = it->second;
+            self->m_pendingPublishIds.erase(it);
+        }
+    }
+
     self->m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(messageId) + "] publish OK");
+    if (!applicationMessageId.empty())
+    {
+        self->m_settings->callOnMqttPublish(messageId, applicationMessageId);
+    }
 }
 
 void MqttConnectionClient::loggingCallback(struct mosquitto *mosq, void *obj, int level, const char *message)
@@ -265,6 +280,22 @@ void MqttConnectionClient::publish(const std::string& topic, const std::string& 
 
     mosquitto_publish(m_mosq, &(m_messageId), topic.c_str(), strlen(payload.c_str()), payload.c_str(), qos, 0);
     ++m_messageId;
+}
+
+int MqttConnectionClient::publish(const std::string& topic, const std::string& payload, int qos, const std::string& applicationMessageId)
+{
+    std::lock_guard<std::mutex> lock(m_publishMutex);
+    m_settings->callOnLog(MG_LFL_NTC, "MqttConnectionClient: [MsgId: " + std::to_string(m_messageId) + "] publishing application message " +
+            applicationMessageId + " on topic " + topic + " with qos " + std::to_string(qos) + " and payload-length " + std::to_string(payload.length()));
+
+    int result = mosquitto_publish(m_mosq, &m_messageId, topic.c_str(), static_cast<int>(payload.length()), payload.data(), qos, false);
+    int messageId = m_messageId;
+    ++m_messageId;
+    if (result == MOSQ_ERR_SUCCESS)
+    {
+        m_pendingPublishIds[messageId] = applicationMessageId;
+    }
+    return result;
 }
 
 void MqttConnectionClient::publish(const std::string& topic, char *payload, int size, int qos)

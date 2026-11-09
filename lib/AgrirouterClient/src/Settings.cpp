@@ -17,6 +17,14 @@ void Settings::callOnMessage(Response *response, MessageParameters messageParame
                   messageParameters.applicationMessageId, m_callbackCallee);
 }
 
+void Settings::callOnMqttPublish(int mqttMessageId, std::string applicationMessageId)
+{
+    if (m_onMqttPublish != nullptr)
+    {
+        m_onMqttPublish(mqttMessageId, applicationMessageId, m_callbackCallee);
+    }
+}
+
 void Settings::callOnError(int statusCode, int connectionProviderErrorCode, std::string errorMessage,
         MessageParameters messageParameters, std::string errorContent)
 {
@@ -59,6 +67,11 @@ void Settings::setOnMessageCallback(onMessageCallback onMessage)
 Settings::onMessageCallback Settings::getOnMessageCallback()
 {
     return m_onMessage;
+}
+
+void Settings::setOnMqttPublishCallback(onMqttPublishCallback onMqttPublish)
+{
+    m_onMqttPublish = onMqttPublish;
 }
 
 void Settings::setOnErrorCallback(onErrorCallback onError)

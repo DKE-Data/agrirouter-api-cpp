@@ -142,7 +142,11 @@ void MqttConnectionProvider::sendMessageWithChunkedResponse(MessageParameters me
     }
     else
     {
-        m_mqttClient->publish(m_url, m_body, 2); // Qos 2
+        int result = m_mqttClient->publish(m_url, m_body, 2 /*Qos 2*/, messageParameters.applicationMessageId);
+        if (result != MOSQ_ERR_SUCCESS)
+        {
+            m_settings->callOnError(0, result, "MQTT publish enqueue failed: " + std::string(mosquitto_strerror(result)), messageParameters, "");
+        }
     }
     m_messageParameters = messageParameters;
 }
